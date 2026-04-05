@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: ditto-mongo
+    ports:
+      - "27018:27017"
+    restart: unless-stopped
+
+  orion-ld:
+    image: fiware/orion-ld:latest
+    container_name: orion-ld
+    depends_on:
+      - mongo
+    ports:
+      - "1026:1026"
+    command: -dbhost mongo -mongocOnly -logLevel INFO
+    restart: unless-stopped
+
+  ditto-policies:
+    image: eclipse/ditto-policies:latest
+    container_name: ditto-policies
+    hostname: ditto-policies
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_DB_HOSTNAME=mongo
+      - JAVA_TOOL_OPTIONS=-Dpekko.remote.artery.canonical.hostname=ditto-policies -Dpekko.cluster.seed-nodes.0=pekko://ditto-cluster@ditto-things:2551
+    restart: unless-stopped
+
+  ditto-things:
+    image: eclipse/ditto-things:latest
+    container_name: ditto-things
+    hostname: ditto-things
+    depends_on:
+      - mongo
+      - ditto-policies
+    environment:
+      - MONGO_DB_HOSTNAME=mongo
+      - JAVA_TOOL_OPTIONS=-Dpekko.remote.artery.canonical.hostname=ditto-things -Dpekko.cluster.seed-nodes.0=pekko://ditto-cluster@ditto-things:2551
+    restart: unless-stopped
+
+  ditto-connectivity:
+    image: eclipse/ditto-connectivity:latest
+    container_name: ditto-connectivity
+    hostname: ditto-connectivity
+    depends_on:
+      - mongo
+      - ditto-policies
+    environment:
+      - MONGO_DB_HOSTNAME=mongo
+      - JAVA_TOOL_OPTIONS=-Dpekko.remote.artery.canonical.hostname=ditto-connectivity -Dpekko.cluster.seed-nodes.0=pekko://ditto-cluster@ditto-things:2551
+    restart: unless-stopped
+
+  ditto-things-search:
+    image: eclipse/ditto-things-search:latest
+    container_name: ditto-things-search
+    hostname: ditto-things-search
+    depends_on:
+      - mongo
+      - ditto-policies
+    environment:
+      - MONGO_DB_HOSTNAME=mongo
+      - JAVA_TOOL_OPTIONS=-Dpekko.remote.artery.canonical.hostname=ditto-things-search -Dpekko.cluster.seed-nodes.0=pekko://ditto-cluster@ditto-things:2551
+    restart: unless-stopped
+
+  ditto-gateway:
+    image: eclipse/ditto-gateway:latest
+    container_name: ditto-gateway
+    hostname: ditto-gateway
+    depends_on:
+      - ditto-policies
+      - ditto-things
+    ports:
+      - "8081:8080"
+    environment:
+      - ENABLE_PRE_AUTHENTICATION=true
+      - JAVA_TOOL_OPTIONS=-Dpekko.remote.artery.canonical.hostname=ditto-gateway -Dpekko.cluster.seed-nodes.0=pekko://ditto-cluster@ditto-things:2551
+    restart: unless-stopped
