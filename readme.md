@@ -1,153 +1,227 @@
-🏠 Smart Home IoT Pipeline (FIWARE + Ditto + MySQL)
-📌 Project Overview
+# 🏠 Smart Home IoT Data Pipeline  
+### (FIWARE + Eclipse Ditto + MySQL + Streamlit)
 
-This project implements a Smart Home IoT Data Pipeline that processes heterogeneous device data, applies semantic standardization, and enables real-time and historical data visualization.
+---
 
-The system simulates IoT devices (temperature, humidity, smart meter, etc.), processes raw data using a Semantic Connector, and integrates with:
+## 📌 Project Overview
 
-MySQL → Raw + Processed data storage
-Eclipse Ditto → Digital Twin (latest device state)
-FIWARE Orion-LD → NGSI-LD Context Broker
-Streamlit Dashboard → Visualization layer
-⚙️ Architecture Flow
-Devices / Consumer
+This project implements a **Smart Home IoT Data Pipeline** that handles heterogeneous device data, applies semantic standardization, and enables both real-time and historical data visualization.
+
+The system simulates IoT devices (temperature sensors, smart meters, etc.), processes raw data using a **custom Semantic Connector**, and integrates with:
+
+- **MySQL** → Raw & Processed data storage  
+- **Eclipse Ditto** → Digital Twin (latest device state)  
+- **FIWARE Orion-LD** → Context Broker (NGSI-LD standard)  
+- **Streamlit Dashboard** → Visualization layer  
+
+---
+
+## ⚙️ Architecture Flow
+
+```
+IoT Devices / Data Generator
         ↓
 Raw Data (MySQL - raw_device_data_table)
         ↓
 Semantic Connector (Python)
         ↓
-   ┌───────────────────────────────┬───────────────────────────────┬───────────────────────────────┐
-   │ Processed MySQL (History)     │ Eclipse Ditto (Live State)     │ Orion-LD (NGSI-LD Context)    │
-   └───────────────────────────────┴───────────────────────────────┴───────────────────────────────┘
-        ↓
-Streamlit Dashboard
-🧠 Key Components
-1. Consumer (Data Generator)
-Simulates IoT devices
-Inserts raw data into MySQL
-2. Raw Database
-Table: raw_device_data_table
-Stores unprocessed device data
-3. Semantic Connector
+ ┌───────────────────────────────┐
+ │                               │
+ ↓                               ↓
+Processed Data (MySQL)     Eclipse Ditto (Digital Twin)
+                                ↓
+                         FIWARE Orion-LD
+                                ↓
+                       Streamlit Dashboard
+```
 
-Core processing layer:
+---
 
-Reads raw data
-Applies SAREF-based semantic mapping
-Converts data to:
-Ditto format
-NGSI-LD format
-Sends data to:
-Eclipse Ditto
-Orion-LD
-Stores processed data in MySQL
-4. Processed Database
-Table: processed_device_data
-Stores:
-Cleaned values
-SAREF metadata
-NGSI-LD metadata
-Historical records
-5. Eclipse Ditto
-Stores latest device state
-Used for real-time dashboard updates
-6. Orion-LD
-Stores data in NGSI-LD standard format
-Enables interoperability
-7. Streamlit Dashboard
-Displays:
-Live device state (from Ditto)
-Historical data (from MySQL)
-NGSI-LD metadata
-Trends and charts
-🚀 Technologies Used
-Python
-MySQL
-Docker
-Eclipse Ditto
-FIWARE Orion-LD
-Streamlit
-NGSI-LD
-SAREF Ontology
-📦 Setup Instructions
-1. Clone Repository
+## 🧠 Key Components
+
+### 1️⃣ Data Generator (Consumer)
+- Simulates IoT devices
+- Generates random sensor data
+- Stores raw JSON payloads in MySQL
+
+---
+
+### 2️⃣ MySQL Database
+
+#### Raw Table
+Stores unprocessed device data:
+- `device_id`
+- `device_type`
+- `raw_payload (JSON)`
+- `created_at`
+- `processed (boolean)`
+
+#### Processed Table
+Stores standardized data after semantic transformation.
+
+---
+
+### 3️⃣ Semantic Connector (Python)
+
+Custom-built component that:
+
+- Reads unprocessed raw data  
+- Parses JSON payload  
+- Converts data into:
+  - **Eclipse Ditto format**
+  - **NGSI-LD format (FIWARE)**  
+- Applies semantic meaning (SAREF-inspired mapping)  
+- Sends data to:
+  - Eclipse Ditto (Digital Twin)
+  - Orion-LD (Context Broker)
+- Stores processed data in MySQL  
+- Marks raw data as processed  
+
+---
+
+### 4️⃣ Eclipse Ditto (Digital Twin)
+
+- Maintains latest state of devices
+- Provides real-time representation
+- Stores device twin models
+
+---
+
+### 5️⃣ FIWARE Orion-LD
+
+- Context Broker using NGSI-LD
+- Enables:
+  - Data sharing
+  - Standardized APIs
+  - Dataspace interoperability
+
+---
+
+### 6️⃣ Streamlit Dashboard
+
+- Displays:
+  - Real-time device data
+  - Historical trends
+- Auto-refresh enabled
+- Clean UI for monitoring smart home data
+
+---
+
+## 🚀 How to Run the Project
+
+### 1️⃣ Clone Repository
+```
 git clone https://github.com/manisharma9/IOT-PIPELINE.git
 cd IOT-PIPELINE
-2. Install Requirements
-pip install -r requirements.txt
-3. Start Docker Services
+```
 
-Make sure Docker is running, then start:
+---
 
-docker-compose up -d
+### 2️⃣ Setup MySQL
+- Install MySQL
+- Create database:
 
-This will start:
-
-Eclipse Ditto
-MongoDB (for Ditto)
-Orion-LD
-4. Setup MySQL Database
-
-Create database:
-
+```
 CREATE DATABASE smart_home;
+```
 
-Create raw table:
+---
 
-CREATE TABLE raw_device_data_table (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    device_id VARCHAR(50),
-    device_type VARCHAR(50),
-    raw_payload JSON,
-    processed BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+### 3️⃣ Run FIWARE Orion-LD (Docker)
 
-Create processed table:
+```
+docker run -d --name mongo -p 27017:27017 mongo
 
-CREATE TABLE processed_device_data (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    entity_id VARCHAR(100),
-    entity_type VARCHAR(50),
-    attribute_name VARCHAR(50),
-    attribute_value JSON,
-    saref_type VARCHAR(100),
-    saref_unit VARCHAR(100),
-    ngsi_id VARCHAR(100),
-    ngsi_type VARCHAR(50),
-    ngsi_property VARCHAR(50),
-    ngsi_payload JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-▶️ Run the Project
-1. Start Consumer
-python consumer/consumer.py
-2. Start Semantic Connector
-python semantic_connector/semantic.py
-3. Run Streamlit Dashboard
+docker run -d --name orion \
+  --link mongo \
+  -p 1026:1026 \
+  fiware/orion-ld
+```
+
+---
+
+### 4️⃣ Run Eclipse Ditto
+
+```
+docker run -d -p 8080:8080 eclipse/ditto
+```
+
+---
+
+### 5️⃣ Install Python Dependencies
+
+```
+pip install mysql-connector-python requests pandas streamlit
+```
+
+---
+
+### 6️⃣ Run Components
+
+#### ▶ Data Generator
+```
+python consumer.py
+```
+
+#### ▶ Semantic Connector
+```
+python semantic_connector.py
+```
+
+#### ▶ Dashboard
+```
 streamlit run dashboard.py
-📊 Dashboard Features
-Live device metrics (Ditto)
-NGSI-LD structured view
-SAREF semantic metadata
-Historical trends (MySQL)
-Device activity charts
-Raw JSON inspection
-🔗 API Endpoints
-Eclipse Ditto
-http://localhost:8081/api/2/things
-Orion-LD
-http://localhost:1026/ngsi-ld/v1/entities
-🧠 Key Concept
+```
 
-The semantic connector is the core component that transforms raw IoT data into standardized formats and distributes it to different systems for storage and visualization.
+---
 
-🎯 Project Goal
+## 📊 Example Device Payload
 
-To demonstrate:
+```
+{
+  "temperature": 23.5,
+  "humidity": 60,
+  "device_id": "sensor_1"
+}
+```
 
-IoT data interoperability
-Semantic data modeling using SAREF
-NGSI-LD standard usage
-Digital twin representation using Ditto
-Real-time + historical data integration
+---
+
+## 🎯 Key Features
+
+- End-to-end IoT data pipeline  
+- Real-time + historical data  
+- Digital Twin integration (Ditto)  
+- NGSI-LD standardization  
+- Semantic data transformation  
+- Interactive dashboard  
+
+---
+
+## 🧩 Technologies Used
+
+- Python  
+- MySQL  
+- Docker  
+- Eclipse Ditto  
+- FIWARE Orion-LD  
+- Streamlit  
+
+---
+
+## 📚 Concepts Used
+
+- IoT Data Pipelines  
+- Digital Twins  
+- Semantic Interoperability  
+- NGSI-LD Information Model  
+- Smart Home Systems  
+
+---
+
+## 👨‍💻 Author
+
+Mani Sharma  
+Master’s in Business Analytics – Maynooth University  
+
+---
