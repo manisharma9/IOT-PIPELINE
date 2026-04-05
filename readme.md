@@ -21,11 +21,11 @@ Raw Data (MySQL - raw_device_data_table)
 ↓
 Semantic Connector (Python)
 ↓
-┌───────────────────────────────┐
-│ Processed MySQL (History) │
-│ Eclipse Ditto (Live State) │
-│ Orion-LD (NGSI-LD Context) │
-└───────────────────────────────┘
+
+Processed MySQL (History) 
+Eclipse Ditto (Live State) 
+Orion-LD (NGSI-LD Context) 
+
 ↓
 Streamlit Dashboard
 
