@@ -1,107 +1,78 @@
-# 🏠 Smart Home IoT Pipeline (FIWARE + Ditto + MySQL)
+🏠 Smart Home IoT Pipeline (FIWARE + Ditto + MySQL)
+📌 Project Overview
 
-## 📌 Project Overview
+This project implements a Smart Home IoT Data Pipeline that processes heterogeneous device data, applies semantic standardization, and enables real-time and historical data visualization.
 
-This project implements a **Smart Home IoT Data Pipeline** that processes heterogeneous device data, applies semantic standardization, and enables real-time and historical data visualization.
+The system simulates IoT devices (temperature, humidity, smart meter, etc.), processes raw data using a Semantic Connector, and integrates with:
 
-The system simulates IoT devices (temperature, humidity, smart meter, etc.), processes raw data using a **Semantic Connector**, and integrates with:
-
-- **MySQL** → Raw + Processed data storage  
-- **Eclipse Ditto** → Digital Twin (latest device state)  
-- **FIWARE Orion-LD** → NGSI-LD Context Broker  
-- **Streamlit Dashboard** → Visualization layer  
-
----
-
-## ⚙️ Architecture Flow
-
+MySQL → Raw + Processed data storage
+Eclipse Ditto → Digital Twin (latest device state)
+FIWARE Orion-LD → NGSI-LD Context Broker
+Streamlit Dashboard → Visualization layer
+⚙️ Architecture Flow
 Devices / Consumer
-↓
+        ↓
 Raw Data (MySQL - raw_device_data_table)
-↓
+        ↓
 Semantic Connector (Python)
-↓
-
-Processed MySQL (History) 
-Eclipse Ditto (Live State) 
-Orion-LD (NGSI-LD Context) 
-
-↓
+        ↓
+   ┌───────────────────────────────┬───────────────────────────────┬───────────────────────────────┐
+   │ Processed MySQL (History)     │ Eclipse Ditto (Live State)     │ Orion-LD (NGSI-LD Context)    │
+   └───────────────────────────────┴───────────────────────────────┴───────────────────────────────┘
+        ↓
 Streamlit Dashboard
+🧠 Key Components
+1. Consumer (Data Generator)
+Simulates IoT devices
+Inserts raw data into MySQL
+2. Raw Database
+Table: raw_device_data_table
+Stores unprocessed device data
+3. Semantic Connector
 
-
-
----
-
-## 🧠 Key Components
-
-### 1. Consumer (Data Generator)
-- Simulates IoT devices
-- Inserts raw data into MySQL
-
-### 2. Raw Database
-- Table: `raw_device_data_table`
-- Stores unprocessed device data
-
-### 3. Semantic Connector
 Core processing layer:
-- Reads raw data
-- Applies **SAREF-based semantic mapping**
-- Converts data to:
-  - Ditto format
-  - NGSI-LD format
-- Sends data to:
-  - Eclipse Ditto
-  - Orion-LD
-- Stores processed data in MySQL
 
-### 4. Processed Database
-- Table: `processed_device_data`
-- Stores:
-  - Cleaned values
-  - SAREF metadata
-  - NGSI-LD metadata
-  - Historical records
-
-### 5. Eclipse Ditto
-- Stores **latest device state**
-- Used for real-time dashboard updates
-
-### 6. Orion-LD
-- Stores data in **NGSI-LD standard format**
-- Enables interoperability
-
-### 7. Streamlit Dashboard
-- Displays:
-  - Live device state (from Ditto)
-  - Historical data (from MySQL)
-  - NGSI-LD metadata
-  - Trends and charts
-
----
-
-## 🚀 Technologies Used
-
-- Python
-- MySQL
-- Docker
-- Eclipse Ditto
-- FIWARE Orion-LD
-- Streamlit
-- NGSI-LD
-- SAREF Ontology
-
----
-
-## 📦 Setup Instructions
-
-### 1. Clone Repository
-
-```bash
+Reads raw data
+Applies SAREF-based semantic mapping
+Converts data to:
+Ditto format
+NGSI-LD format
+Sends data to:
+Eclipse Ditto
+Orion-LD
+Stores processed data in MySQL
+4. Processed Database
+Table: processed_device_data
+Stores:
+Cleaned values
+SAREF metadata
+NGSI-LD metadata
+Historical records
+5. Eclipse Ditto
+Stores latest device state
+Used for real-time dashboard updates
+6. Orion-LD
+Stores data in NGSI-LD standard format
+Enables interoperability
+7. Streamlit Dashboard
+Displays:
+Live device state (from Ditto)
+Historical data (from MySQL)
+NGSI-LD metadata
+Trends and charts
+🚀 Technologies Used
+Python
+MySQL
+Docker
+Eclipse Ditto
+FIWARE Orion-LD
+Streamlit
+NGSI-LD
+SAREF Ontology
+📦 Setup Instructions
+1. Clone Repository
 git clone https://github.com/manisharma9/IOT-PIPELINE.git
 cd IOT-PIPELINE
-
-
 2. Install Requirements
 pip install -r requirements.txt
 3. Start Docker Services
@@ -180,9 +151,3 @@ Semantic data modeling using SAREF
 NGSI-LD standard usage
 Digital twin representation using Ditto
 Real-time + historical data integration
-📌 Future Improvements
-Add authentication (Keyrock + PEP Proxy)
-Deploy dashboard to cloud
-Add Kafka or MQTT for real-time ingestion
-Improve UI/UX
-Add analytics layer
