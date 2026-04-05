@@ -346,6 +346,22 @@ def get_ditto_metric(df, device_type):
     except Exception:
         return f"{value} {unit}"
 
+
+
+
+
+
+def parse_ngsi_payload(value):
+    try:
+        if isinstance(value, str):
+            return json.loads(value)
+        elif isinstance(value, dict):
+            return value
+    except Exception:
+        pass
+    return None
+
+
 # ============================================================
 # SIDEBAR
 # ============================================================
@@ -582,10 +598,26 @@ try:
     with st.expander("Show raw data from Ditto API"):
         st.json(ditto_raw)
 
+
     st.markdown("## Raw NGSI-LD Payload from MySQL")
     with st.expander("Show stored NGSI payloads from processed table"):
-        ngsi_payloads = filtered_df[["ngsi_id", "ngsi_payload"]].dropna().to_dict(orient="records")
-        st.json(ngsi_payloads)
+        ngsi_payload_rows = filtered_df["ngsi_payload"].dropna().tolist()
+        parsed_payloads = [parse_ngsi_payload(x) for x in ngsi_payload_rows]
+        parsed_payloads = [x for x in parsed_payloads if x is not None]
+        st.json(parsed_payloads)
+    # st.markdown("## Raw NGSI-LD Payload from MySQL")
+    # with st.expander("Show stored NGSI payloads from processed table"):
+    #     ngsi_payload_rows = filtered_df[["ngsi_id", "ngsi_payload"]].dropna().copy()
+
+    #     parsed_payloads = []
+    #     for _, row in ngsi_payload_rows.iterrows():
+    #         parsed_payload = parse_ngsi_payload(row["ngsi_payload"])
+    #         parsed_payloads.append({
+    #             "ngsi_id": row["ngsi_id"],
+    #             "ngsi_payload": parsed_payload
+    #         })
+
+    #     st.json(parsed_payloads)
 
 except Exception as e:
     st.error(f"Error loading dashboard: {e}")
