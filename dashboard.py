@@ -224,6 +224,17 @@ def parse_attribute_value(value):
     return {"value": None, "unit": None}
 
 
+def parse_ngsi_payload(value):
+    try:
+        if isinstance(value, str):
+            return json.loads(value)
+        elif isinstance(value, dict):
+            return value
+    except Exception:
+        pass
+    return None
+
+
 def prepare_data(df):
     df = df.copy()
     parsed = df["attribute_value"].apply(parse_attribute_value)
@@ -234,6 +245,26 @@ def prepare_data(df):
     return df
 
 
+def pretty_label(device_type):
+    return device_type.replace("_", " ").title()
+
+
+def format_sensor_value(entity_type, value, unit):
+    if pd.isna(value):
+        return "N/A"
+
+    if entity_type == "door_sensor":
+        return "Open" if float(value) == 1 else "Closed"
+
+    if entity_type == "motion_sensor":
+        return "Motion Detected" if float(value) == 1 else "No Motion"
+
+    try:
+        return f"{round(float(value), 2)} {unit}"
+    except Exception:
+        return f"{value} {unit}"
+
+
 def get_device_summary(df):
     latest_rows = (
         df.sort_values("created_at", ascending=False)
@@ -242,8 +273,7 @@ def get_device_summary(df):
     )
 
     latest_rows["latest_value"] = latest_rows.apply(
-        lambda row: f"{round(float(row['numeric_value']), 2)} {row['unit']}"
-        if pd.notna(row["numeric_value"]) else "N/A",
+        lambda row: format_sensor_value(row["entity_type"], row["numeric_value"], row["unit"]),
         axis=1
     )
 
@@ -259,10 +289,6 @@ def get_device_summary(df):
             "ngsi_property"
         ]
     ]
-
-
-def pretty_label(device_type):
-    return device_type.replace("_", " ").title()
 
 # ============================================================
 # DITTO FUNCTIONS
@@ -341,26 +367,7 @@ def get_ditto_metric(df, device_type):
     if value is None:
         return "N/A"
 
-    try:
-        return f"{round(float(value), 2)} {unit}"
-    except Exception:
-        return f"{value} {unit}"
-
-
-
-
-
-
-def parse_ngsi_payload(value):
-    try:
-        if isinstance(value, str):
-            return json.loads(value)
-        elif isinstance(value, dict):
-            return value
-    except Exception:
-        pass
-    return None
-
+    return format_sensor_value(device_type, value, unit)
 
 # ============================================================
 # SIDEBAR
@@ -477,8 +484,7 @@ try:
 
     ngsi_df["value_only"] = ngsi_df["numeric_value"]
     ngsi_df["display_value"] = ngsi_df.apply(
-        lambda row: f"{round(float(row['numeric_value']), 2)} {row['unit']}"
-        if pd.notna(row["numeric_value"]) else "N/A",
+        lambda row: format_sensor_value(row["entity_type"], row["numeric_value"], row["unit"]),
         axis=1
     )
 
@@ -530,8 +536,7 @@ try:
     if not ditto_df.empty:
         ditto_display = ditto_df.copy()
         ditto_display["latest_value"] = ditto_display.apply(
-            lambda row: f"{round(float(row['value']), 2)} {row['unit']}"
-            if pd.notna(row["value"]) else "N/A",
+            lambda row: format_sensor_value(row["device_type"], row["value"], row["unit"]),
             axis=1
         )
 
@@ -568,8 +573,7 @@ try:
 
     display_df = filtered_df.copy()
     display_df["attribute_value"] = display_df.apply(
-        lambda row: f"{round(float(row['numeric_value']), 2)} {row['unit']}"
-        if pd.notna(row["numeric_value"]) else "N/A",
+        lambda row: format_sensor_value(row["entity_type"], row["numeric_value"], row["unit"]),
         axis=1
     )
 
@@ -598,26 +602,19 @@ try:
     with st.expander("Show raw data from Ditto API"):
         st.json(ditto_raw)
 
-
     st.markdown("## Raw NGSI-LD Payload from MySQL")
     with st.expander("Show stored NGSI payloads from processed table"):
-        ngsi_payload_rows = filtered_df["ngsi_payload"].dropna().tolist()
-        parsed_payloads = [parse_ngsi_payload(x) for x in ngsi_payload_rows]
-        parsed_payloads = [x for x in parsed_payloads if x is not None]
+        ngsi_payload_rows = filtered_df[["ngsi_id", "ngsi_payload"]].dropna().copy()
+
+        parsed_payloads = []
+        for _, row in ngsi_payload_rows.iterrows():
+            parsed_payload = parse_ngsi_payload(row["ngsi_payload"])
+            parsed_payloads.append({
+                "ngsi_id": row["ngsi_id"],
+                "ngsi_payload": parsed_payload
+            })
+
         st.json(parsed_payloads)
-    # st.markdown("## Raw NGSI-LD Payload from MySQL")
-    # with st.expander("Show stored NGSI payloads from processed table"):
-    #     ngsi_payload_rows = filtered_df[["ngsi_id", "ngsi_payload"]].dropna().copy()
-
-    #     parsed_payloads = []
-    #     for _, row in ngsi_payload_rows.iterrows():
-    #         parsed_payload = parse_ngsi_payload(row["ngsi_payload"])
-    #         parsed_payloads.append({
-    #             "ngsi_id": row["ngsi_id"],
-    #             "ngsi_payload": parsed_payload
-    #         })
-
-    #     st.json(parsed_payloads)
 
 except Exception as e:
     st.error(f"Error loading dashboard: {e}")
