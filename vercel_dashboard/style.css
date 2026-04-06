@@ -323,10 +323,7 @@ th {
     grid-template-columns: 1fr;
   }
 }
-/* =========================================================
-   TABLET RESPONSIVE
-   ========================================================= */
-@media (max-width: 1024px) {
+/* @media (max-width: 1024px) {
   .app {
     grid-template-columns: 1fr;
   }
@@ -340,12 +337,8 @@ th {
     padding: 14px;
   }
 
-  .sidebar-inner {
-    gap: 10px;
-  }
-
   .main {
-    padding: 20px 18px 32px;
+    padding: 20px 16px 28px;
   }
 
   .hero h1 {
@@ -354,39 +347,17 @@ th {
   }
 
   .hero p {
-    font-size: 18px;
-    margin-bottom: 20px;
-  }
-
-  .section h2 {
-    font-size: 28px;
+    font-size: 16px;
   }
 
   .metrics-grid {
     grid-template-columns: repeat(2, minmax(140px, 1fr));
-    gap: 14px;
+    gap: 12px;
   }
 
   .overview-grid,
   .trend-grid {
     grid-template-columns: 1fr;
-  }
-
-  .metric-card {
-    min-height: 110px;
-    padding: 18px;
-  }
-
-  .metric-label {
-    font-size: 15px;
-  }
-
-  .metric-value {
-    font-size: 24px;
-  }
-
-  .card {
-    padding: 18px;
   }
 
   .table-card {
@@ -395,34 +366,19 @@ th {
   }
 
   table {
-    min-width: 760px;
-  }
-
-  th, td {
-    font-size: 14px;
-    padding: 12px 10px;
-  }
-
-  .fake-chart {
-    height: 200px;
+    min-width: 720px;
   }
 }
 
-/* =========================================================
-   MOBILE APP-LIKE LAYOUT
-   ========================================================= */
 @media (max-width: 767px) {
-  body {
-    background: var(--bg);
-  }
-
   .sidebar {
     padding: 12px;
+    border-radius: 0;
   }
 
   .sidebar-title {
     font-size: 22px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .sidebar-subtitle {
@@ -443,11 +399,6 @@ th {
 
   .status-line {
     font-size: 14px;
-    margin: 6px 0;
-  }
-
-  .sidebar-label {
-    font-size: 13px;
   }
 
   .sidebar-select {
@@ -456,11 +407,7 @@ th {
   }
 
   .main {
-    padding: 14px 12px 28px;
-  }
-
-  .hero {
-    margin-bottom: 14px;
+    padding: 12px 12px 24px;
   }
 
   .hero h1 {
@@ -470,12 +417,11 @@ th {
 
   .hero p {
     font-size: 14px;
-    margin-top: 8px;
     margin-bottom: 14px;
   }
 
   .section {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
 
   .section h2 {
@@ -485,12 +431,12 @@ th {
 
   .metrics-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 
   .metric-card {
-    min-height: auto;
     padding: 16px;
+    min-height: auto;
     border-radius: 14px;
   }
 
@@ -503,12 +449,6 @@ th {
     font-size: 22px;
   }
 
-  .overview-grid,
-  .trend-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
   .card,
   .table-card,
   .json-box {
@@ -519,21 +459,10 @@ th {
     padding: 14px;
   }
 
-  .card h3 {
-    font-size: 16px;
-    margin-bottom: 10px;
-  }
-
-  .bars {
-    gap: 10px;
-  }
-
-  .bar-wrap span {
-    font-size: 12px;
-  }
-
-  .bar {
-    height: 12px;
+  .overview-grid,
+  .trend-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .table-card {
@@ -563,5 +492,9 @@ th {
   .json-box pre {
     padding: 0 16px 16px;
     font-size: 12px;
+  }
+
+  .hide-on-mobile {
+    display: none !important;
   }
 }
