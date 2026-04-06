@@ -8,7 +8,13 @@ const values = {
   pressureValue: ["1006.08 hPa", "1001.31 hPa", "1009.20 hPa"],
   lightValue: ["398.88 lux", "410.21 lux", "382.64 lux"],
   batteryValue: ["85.79 %", "85.56 %", "84.92 %"],
-  flowValue: ["19.31 L/min", "18.82 L/min", "20.10 L/min"]
+  flowValue: ["19.31 L/min", "18.82 L/min", "20.10 L/min"],
+
+  mTempValue: ["27.94 C", "28.02 C", "27.31 C", "26.88 C", "28.15 C"],
+  mHumidityValue: ["59.3 %", "58.46 %", "60.12 %", "57.9 %", "61.4 %"],
+  mMeterValue: ["984.65 kWh", "986.11 kWh", "990.22 kWh", "995.10 kWh"],
+  mDoorValue: ["Open", "Closed"],
+  mMotionValue: ["Motion Detected", "No Motion"]
 };
 
 function pick(arr) {
@@ -27,7 +33,7 @@ function drawLineChart(canvasId, dataPoints, lineColor = "#60a5fa") {
   if (!canvas) return;
 
   const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width - 24;
+  canvas.width = Math.max(250, rect.width - 24);
   canvas.height = 190;
 
   const ctx = canvas.getContext("2d");
@@ -79,6 +85,8 @@ function renderCharts() {
   drawLineChart("humidityChart", [62, 61, 60.4, 59.9, 59.3, 58.8, 59.4], "#38bdf8");
   drawLineChart("meterChart", [950, 955, 962, 971, 978, 984, 990], "#4ade80");
   drawLineChart("co2Chart", [580, 601, 615, 630, 653, 640, 620], "#f59e0b");
+  drawLineChart("mobileTempChart", [24.8, 25.2, 26.1, 27.4, 27.9, 28.0, 27.6]);
+  drawLineChart("mobileHumidityChart", [62, 61, 60.4, 59.9, 59.3, 58.8, 59.4], "#38bdf8");
 }
 
 const dittoJson = [
@@ -141,8 +149,11 @@ const ngsiJson = [
   }
 ];
 
-document.getElementById("dittoJson").textContent = JSON.stringify(dittoJson, null, 2);
-document.getElementById("ngsiJson").textContent = JSON.stringify(ngsiJson, null, 2);
+const dittoEl = document.getElementById("dittoJson");
+const ngsiEl = document.getElementById("ngsiJson");
+
+if (dittoEl) dittoEl.textContent = JSON.stringify(dittoJson, null, 2);
+if (ngsiEl) ngsiEl.textContent = JSON.stringify(ngsiJson, null, 2);
 
 window.addEventListener("load", () => {
   renderCharts();
