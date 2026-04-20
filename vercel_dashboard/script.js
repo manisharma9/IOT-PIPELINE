@@ -361,7 +361,13 @@ const appState = {
   tick: 0,
   activeSensorIndex: 0,
   lastSync: new Date(),
-  chartAnimations: new Map()
+  chartAnimations: new Map(),
+  openCharts: new Set(),
+  openAccordions: {
+    twinState: new Set(),
+    ngsiRecords: new Set(),
+    processedRecords: new Set()
+  }
 };
 
 const refs = {
@@ -449,6 +455,28 @@ function getProgress(sensor, value) {
   const max = Math.max(...rangeValues);
   const normalized = ((value - min) / (max - min || 1)) * 100;
   return Math.max(18, Math.min(96, normalized));
+}
+
+function isAccordionOpen(group, key) {
+  return appState.openAccordions[group].has(key);
+}
+
+function bindAccordionState(container, group) {
+  Array.from(container.querySelectorAll(".accordion-card")).forEach((card) => {
+    const key = card.dataset.openKey;
+
+    card.addEventListener("toggle", () => {
+      if (!key) {
+        return;
+      }
+
+      if (card.open) {
+        appState.openAccordions[group].add(key);
+      } else {
+        appState.openAccordions[group].delete(key);
+      }
+    });
+  });
 }
 
 function buildNgsiPayload(sensor, value, createdAt) {
@@ -697,8 +725,11 @@ function renderActivityList() {
       (sensor) => `
         <div class="activity-row" style="--tone:${sensor.tone}">
           <div class="activity-head">
-            <strong>${sensor.entityType}</strong>
-            <span>${sensor.activityCount} recent updates</span>
+            <p class="activity-name">${sensor.label}</p>
+            <div class="activity-meta">
+              <strong>${sensor.activityCount}</strong>
+              <span>recent updates</span>
+            </div>
           </div>
           <div class="activity-bar">
             <span class="activity-fill" style="width:${sensor.activityCount}%"></span>
@@ -909,20 +940,21 @@ function bindLiveCards() {
 function renderTwinStateList(data) {
   refs.twinStateList.innerHTML = data.twinState
     .map(
-      (row) => `
-        <details class="accordion-card" style="--tone:${row.tone}">
+      (row) => {
+        const openKey = row.thing_id;
+
+        return `
+        <details class="accordion-card" style="--tone:${row.tone}" data-open-key="${openKey}"${isAccordionOpen("twinState", openKey) ? " open" : ""}>
           <summary class="accordion-summary">
-            <div class="accordion-summary-main">
-              <span class="icon-shell">${iconSet[getSensorByEntityType(row.device_type).icon]}</span>
-              <div class="accordion-copy">
-                <p class="accordion-kicker">Latest Twin State</p>
-                <h3 class="accordion-title">${row.device_type}</h3>
-                <p class="accordion-preview">${row.thing_id}</p>
-              </div>
+            <span class="icon-shell accordion-icon">${iconSet[getSensorByEntityType(row.device_type).icon]}</span>
+            <div class="accordion-copy">
+              <p class="accordion-kicker">Latest Twin State</p>
+              <h3 class="accordion-title">${row.device_type}</h3>
+              <p class="accordion-preview">${row.thing_id}</p>
             </div>
+            <span class="accordion-caret" aria-hidden="true">v</span>
             <div class="accordion-value">
               <span class="accordion-value-text">${row.latest_value}</span>
-              <span class="accordion-caret" aria-hidden="true">v</span>
             </div>
           </summary>
           <div class="accordion-body">
@@ -954,19 +986,23 @@ function renderTwinStateList(data) {
             </div>
           </div>
         </details>
-      `
+      `;
+      }
     )
     .join("");
+
+  bindAccordionState(refs.twinStateList, "twinState");
 }
 
 function renderChartStack() {
   refs.chartStack.innerHTML = chartDefinitions
-    .map((chart, index) => {
+    .map((chart) => {
       const sensor = getSensor(chart.key);
+      const isOpen = appState.openCharts.has(chart.key);
 
       return `
-        <article class="chart-card${index === 0 ? " is-open" : ""}" data-key="${chart.key}" style="--tone:${sensor.tone}">
-          <button class="chart-toggle" type="button" aria-expanded="${index === 0}">
+        <article class="chart-card${isOpen ? " is-open" : ""}" data-key="${chart.key}" style="--tone:${sensor.tone}">
+          <button class="chart-toggle" type="button" aria-expanded="${isOpen}">
             <div class="chart-toggle-main">
               <p>${chart.subtitle}</p>
               <h3 class="chart-title">${chart.title}</h3>
@@ -1033,6 +1069,12 @@ function bindChartCards() {
       const willOpen = !card.classList.contains("is-open");
       card.classList.toggle("is-open", willOpen);
       toggle.setAttribute("aria-expanded", String(willOpen));
+
+      if (willOpen) {
+        appState.openCharts.add(key);
+      } else {
+        appState.openCharts.delete(key);
+      }
 
       if (willOpen) {
         requestAnimationFrame(() => animateChartDraw(key));
@@ -1251,23 +1293,22 @@ function renderDataSummary(data) {
 
 function renderNgsiRecordList(data) {
   refs.ngsiRecordList.innerHTML = data.ngsiRecords
-    .map((record, index) => {
+    .map((record) => {
       const sensor = getSensorByEntityType(record.entity_type);
+      const openKey = `${record.ngsi_id}|${record.created_at}`;
 
       return `
-        <details class="accordion-card" style="--tone:${sensor.tone}"${index === 0 ? " open" : ""}>
+        <details class="accordion-card" style="--tone:${sensor.tone}" data-open-key="${openKey}"${isAccordionOpen("ngsiRecords", openKey) ? " open" : ""}>
           <summary class="accordion-summary">
-            <div class="accordion-summary-main">
-              <span class="icon-shell">${iconSet[sensor.icon]}</span>
-              <div class="accordion-copy">
-                <p class="accordion-kicker">Structured Device Record</p>
-                <h3 class="accordion-title">${record.ngsi_type}</h3>
-                <p class="accordion-preview">${record.ngsi_id}</p>
-              </div>
+            <span class="icon-shell accordion-icon">${iconSet[sensor.icon]}</span>
+            <div class="accordion-copy">
+              <p class="accordion-kicker">Structured Device Record</p>
+              <h3 class="accordion-title">${record.ngsi_type}</h3>
+              <p class="accordion-preview">${record.ngsi_id}</p>
             </div>
+            <span class="accordion-caret" aria-hidden="true">v</span>
             <div class="accordion-value">
               <span class="accordion-value-text">${record.display_value}</span>
-              <span class="accordion-caret" aria-hidden="true">v</span>
             </div>
           </summary>
           <div class="accordion-body">
@@ -1289,28 +1330,29 @@ function renderNgsiRecordList(data) {
       `;
     })
     .join("");
+
+  bindAccordionState(refs.ngsiRecordList, "ngsiRecords");
 }
 
 function renderProcessedRecordList(data) {
   refs.processedRecordList.innerHTML = data.processedRecords
     .slice(0, 10)
-    .map((record, index) => {
+    .map((record) => {
       const sensor = getSensorByEntityType(record.entity_type);
+      const openKey = String(record.id);
 
       return `
-        <details class="accordion-card" style="--tone:${sensor.tone}"${index === 0 ? " open" : ""}>
+        <details class="accordion-card" style="--tone:${sensor.tone}" data-open-key="${openKey}"${isAccordionOpen("processedRecords", openKey) ? " open" : ""}>
           <summary class="accordion-summary">
-            <div class="accordion-summary-main">
-              <span class="icon-shell">${iconSet[sensor.icon]}</span>
-              <div class="accordion-copy">
-                <p class="accordion-kicker">Recent Processed Record</p>
-                <h3 class="accordion-title">${record.entity_type}</h3>
-                <p class="accordion-preview">${record.entity_id}</p>
-              </div>
+            <span class="icon-shell accordion-icon">${iconSet[sensor.icon]}</span>
+            <div class="accordion-copy">
+              <p class="accordion-kicker">Recent Processed Record</p>
+              <h3 class="accordion-title">${record.entity_type}</h3>
+              <p class="accordion-preview">${record.entity_id}</p>
             </div>
+            <span class="accordion-caret" aria-hidden="true">v</span>
             <div class="accordion-value">
               <span class="accordion-value-text">${record.attribute_value}</span>
-              <span class="accordion-caret" aria-hidden="true">v</span>
             </div>
           </summary>
           <div class="accordion-body">
@@ -1332,6 +1374,8 @@ function renderProcessedRecordList(data) {
       `;
     })
     .join("");
+
+  bindAccordionState(refs.processedRecordList, "processedRecords");
 }
 
 function renderRawJson(data) {

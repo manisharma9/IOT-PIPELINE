@@ -568,6 +568,9 @@ a {
 }
 
 .activity-row {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   padding: 14px 16px;
   border-radius: 18px;
   border: 1px solid rgba(145, 177, 204, 0.12);
@@ -575,19 +578,37 @@ a {
 }
 
 .activity-head {
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
 }
 
-.activity-head strong {
-  font-size: 0.92rem;
+.activity-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.3;
 }
 
-.activity-head span {
+.activity-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.activity-meta strong {
+  font-family: "Sora", Arial, sans-serif;
+  font-size: 1.34rem;
+  line-height: 1;
+}
+
+.activity-meta span {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  line-height: 1.3;
 }
 
 .activity-bar {
@@ -794,23 +815,24 @@ a {
 }
 
 .accordion-summary {
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "icon copy caret"
+    ". value value";
+  align-items: start;
+  gap: 10px 12px;
   padding: 16px;
   cursor: pointer;
 }
 
-.accordion-summary-main {
-  align-items: flex-start;
-  gap: 12px;
+.accordion-copy {
+  grid-area: copy;
   min-width: 0;
-  flex: 1;
 }
 
-.accordion-copy {
-  min-width: 0;
-  flex: 1;
+.accordion-icon {
+  grid-area: icon;
 }
 
 .accordion-kicker {
@@ -818,6 +840,9 @@ a {
   color: var(--muted);
   font-size: 0.66rem;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .accordion-title {
@@ -838,26 +863,17 @@ a {
 }
 
 .accordion-value {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  min-width: max-content;
-  max-width: 42%;
-  padding-left: 8px;
-  text-align: right;
+  grid-area: value;
+  min-width: 0;
   font-size: 1rem;
   font-weight: 800;
-  line-height: 1.2;
-  flex-shrink: 0;
+  line-height: 1.28;
+  color: var(--text);
 }
 
 .accordion-value-text {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .accordion-caret,
@@ -873,13 +889,14 @@ a {
   flex-shrink: 0;
 }
 
+.accordion-caret {
+  grid-area: caret;
+  align-self: start;
+}
+
 @media (max-width: 560px) {
   .accordion-summary {
-    gap: 12px;
-  }
-
-  .accordion-value {
-    max-width: 46%;
+    gap: 10px;
   }
 }
 
@@ -1016,6 +1033,115 @@ a {
 .json-card {
   margin-top: 14px;
   overflow: hidden;
+}
+
+.identity-card {
+  position: relative;
+  isolation: isolate;
+  border-color: rgba(255, 123, 109, 0.18);
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 109, 92, 0.24), transparent 28%),
+    radial-gradient(circle at 86% 84%, rgba(255, 180, 92, 0.12), transparent 30%),
+    linear-gradient(145deg, rgba(46, 12, 24, 0.96), rgba(24, 17, 32, 0.96) 48%, rgba(8, 17, 28, 0.96));
+  box-shadow:
+    0 26px 70px rgba(0, 0, 0, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.identity-card::before,
+.identity-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.identity-card::before {
+  inset: 1px;
+  border: 1px solid rgba(255, 144, 120, 0.12);
+  opacity: 0.8;
+}
+
+.identity-card::after {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.04), transparent 34%),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 24%);
+  opacity: 0.9;
+}
+
+.identity-top,
+.identity-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.identity-top {
+  display: block;
+}
+
+.identity-copy {
+  min-width: 0;
+}
+
+.identity-copy h2 {
+  margin: 0;
+  font-family: "Sora", Arial, sans-serif;
+  font-size: clamp(1.55rem, 4vw, 2.4rem);
+  line-height: 1.08;
+}
+
+.identity-subtitle {
+  margin: 10px 0 0;
+  color: rgba(243, 224, 224, 0.74);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.identity-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.identity-tile {
+  min-width: 0;
+  padding: 15px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 173, 144, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.identity-label {
+  display: block;
+  margin-bottom: 10px;
+  color: rgba(255, 203, 183, 0.66);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.identity-value {
+  display: block;
+  font-family: "Sora", Arial, sans-serif;
+  font-size: clamp(1.08rem, 2.8vw, 1.46rem);
+  line-height: 1.2;
+  color: #fff4e5;
+  overflow-wrap: anywhere;
+}
+
+.identity-meta {
+  display: block;
+  margin-top: 8px;
+  color: rgba(244, 225, 220, 0.72);
+  font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .json-card summary {
@@ -1279,6 +1405,7 @@ a {
 
   #home .app-header,
   #data .data-summary-card,
+  #more .identity-card,
   #more .github-card {
     grid-column: 1 / -1;
   }
@@ -1295,6 +1422,11 @@ a {
 
   .github-card {
     gap: 20px;
+  }
+
+  .identity-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
   }
 
   .json-card pre {
@@ -1358,6 +1490,10 @@ a {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .activity-row {
+    min-height: 146px;
+  }
+
   .accordion-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1396,6 +1532,25 @@ a {
   .github-card {
     align-items: center;
     justify-content: space-between;
+  }
+
+  .identity-card {
+    padding: 24px;
+  }
+
+  .identity-top {
+    display: block;
+  }
+
+  .identity-grid {
+    margin-top: 24px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .identity-grid {
+    grid-template-columns: 1fr;
   }
 }
 
