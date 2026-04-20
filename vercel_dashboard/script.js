@@ -380,6 +380,7 @@ const refs = {
   dittoJson: document.getElementById("dittoJson"),
   ngsiJson: document.getElementById("ngsiJson"),
   splashScreen: document.getElementById("splashScreen"),
+  swipeHint: document.querySelector(".swipe-hint"),
   navButtons: Array.from(document.querySelectorAll(".nav-item")),
   sections: Array.from(document.querySelectorAll(".screen-section"))
 };
@@ -913,15 +914,15 @@ function renderTwinStateList(data) {
           <summary class="accordion-summary">
             <div class="accordion-summary-main">
               <span class="icon-shell">${iconSet[getSensorByEntityType(row.device_type).icon]}</span>
-              <div>
+              <div class="accordion-copy">
                 <p class="accordion-kicker">Latest Twin State</p>
                 <h3 class="accordion-title">${row.device_type}</h3>
                 <p class="accordion-preview">${row.thing_id}</p>
               </div>
             </div>
             <div class="accordion-value">
-              ${row.latest_value}
-              <span class="accordion-caret">v</span>
+              <span class="accordion-value-text">${row.latest_value}</span>
+              <span class="accordion-caret" aria-hidden="true">v</span>
             </div>
           </summary>
           <div class="accordion-body">
@@ -1195,6 +1196,39 @@ function drawChart(canvas, sensor, progress = 1) {
   });
 }
 
+function getViewportMode() {
+  if (window.innerWidth >= 1100) {
+    return "desktop";
+  }
+
+  if (window.innerWidth >= 768) {
+    return "tablet";
+  }
+
+  return "mobile";
+}
+
+function updateResponsiveUi() {
+  const viewportMode = getViewportMode();
+  document.body.dataset.viewport = viewportMode;
+
+  if (!refs.swipeHint) {
+    return;
+  }
+
+  if (viewportMode === "desktop") {
+    refs.swipeHint.textContent = "Scroll or tap to compare devices";
+    return;
+  }
+
+  if (viewportMode === "tablet") {
+    refs.swipeHint.textContent = "Swipe or scroll to compare devices";
+    return;
+  }
+
+  refs.swipeHint.textContent = "Swipe to compare devices";
+}
+
 function renderDataSummary(data) {
   const summaryTiles = [
     { label: "Structured records", value: `${data.ngsiRecords.length} shown` },
@@ -1225,15 +1259,15 @@ function renderNgsiRecordList(data) {
           <summary class="accordion-summary">
             <div class="accordion-summary-main">
               <span class="icon-shell">${iconSet[sensor.icon]}</span>
-              <div>
+              <div class="accordion-copy">
                 <p class="accordion-kicker">Structured Device Record</p>
                 <h3 class="accordion-title">${record.ngsi_type}</h3>
                 <p class="accordion-preview">${record.ngsi_id}</p>
               </div>
             </div>
             <div class="accordion-value">
-              ${record.display_value}
-              <span class="accordion-caret">v</span>
+              <span class="accordion-value-text">${record.display_value}</span>
+              <span class="accordion-caret" aria-hidden="true">v</span>
             </div>
           </summary>
           <div class="accordion-body">
@@ -1268,15 +1302,15 @@ function renderProcessedRecordList(data) {
           <summary class="accordion-summary">
             <div class="accordion-summary-main">
               <span class="icon-shell">${iconSet[sensor.icon]}</span>
-              <div>
+              <div class="accordion-copy">
                 <p class="accordion-kicker">Recent Processed Record</p>
                 <h3 class="accordion-title">${record.entity_type}</h3>
                 <p class="accordion-preview">${record.entity_id}</p>
               </div>
             </div>
             <div class="accordion-value">
-              ${record.attribute_value}
-              <span class="accordion-caret">v</span>
+              <span class="accordion-value-text">${record.attribute_value}</span>
+              <span class="accordion-caret" aria-hidden="true">v</span>
             </div>
           </summary>
           <div class="accordion-body">
@@ -1409,12 +1443,14 @@ function setupResizeHandler() {
   window.addEventListener("resize", () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
+      updateResponsiveUi();
       drawOpenCharts();
     }, 120);
   });
 }
 
 function initializeApp() {
+  updateResponsiveUi();
   renderLiveCarousel();
   renderChartStack();
   renderDashboardSections(true);

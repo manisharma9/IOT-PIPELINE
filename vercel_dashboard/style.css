@@ -20,6 +20,8 @@
   --radius-lg: 24px;
   --radius-md: 18px;
   --nav-height: 82px;
+  --shell-max: 480px;
+  --nav-max: 456px;
   --transition: 240ms ease;
 }
 
@@ -176,12 +178,12 @@ a {
 .app-shell {
   position: relative;
   z-index: 1;
-  width: min(100%, 480px);
+  width: min(100%, var(--shell-max));
 }
 
 .mobile-frame {
   min-height: 100svh;
-  padding: calc(14px + env(safe-area-inset-top)) 16px
+  padding: calc(14px + env(safe-area-inset-top)) clamp(16px, 4vw, 28px)
     calc(var(--nav-height) + 32px + env(safe-area-inset-bottom));
   opacity: 0.01;
   transform: translateY(14px);
@@ -191,13 +193,14 @@ a {
 .app-main {
   display: flex;
   flex-direction: column;
-  gap: 26px;
+  gap: clamp(26px, 3.4vw, 38px);
 }
 
 .screen-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  scroll-margin-top: 18px;
 }
 
 .section-reveal {
@@ -254,7 +257,7 @@ a {
 
 .brand-block h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: clamp(2rem, 4.8vw, 3.35rem);
   line-height: 1.08;
 }
 
@@ -318,6 +321,7 @@ a {
     linear-gradient(180deg, rgba(15, 27, 40, 0.96), rgba(8, 17, 28, 0.92));
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px);
+  overflow: hidden;
 }
 
 .hero-card,
@@ -345,7 +349,7 @@ a {
 
 .hero-card h2 {
   margin: 0;
-  font-size: 1.22rem;
+  font-size: clamp(1.22rem, 2vw, 1.6rem);
   line-height: 1.25;
 }
 
@@ -425,7 +429,7 @@ a {
 
 .section-heading h2 {
   margin: 0;
-  font-size: 1.38rem;
+  font-size: clamp(1.38rem, 2.5vw, 1.92rem);
   line-height: 1.22;
   max-width: 16rem;
 }
@@ -764,7 +768,7 @@ a {
 .focus-value {
   margin: 16px 0 10px;
   font-family: "Sora", Arial, sans-serif;
-  font-size: 1.92rem;
+  font-size: clamp(1.92rem, 3.5vw, 2.4rem);
   line-height: 1.1;
 }
 
@@ -790,7 +794,7 @@ a {
 }
 
 .accordion-summary {
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
   padding: 16px;
@@ -798,8 +802,13 @@ a {
 }
 
 .accordion-summary-main {
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.accordion-copy {
   min-width: 0;
   flex: 1;
 }
@@ -815,19 +824,40 @@ a {
   margin: 0;
   font-size: 0.98rem;
   line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .accordion-preview {
   margin: 6px 0 0;
   font-size: 0.8rem;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .accordion-value {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: max-content;
+  max-width: 42%;
+  padding-left: 8px;
   text-align: right;
   font-size: 1rem;
   font-weight: 800;
   line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.accordion-value-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .accordion-caret,
@@ -841,6 +871,16 @@ a {
   border: 1px solid rgba(145, 177, 204, 0.12);
   transition: transform var(--transition), border-color var(--transition);
   flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .accordion-summary {
+    gap: 12px;
+  }
+
+  .accordion-value {
+    max-width: 46%;
+  }
 }
 
 .accordion-card[open] .accordion-caret {
@@ -1046,7 +1086,7 @@ a {
   bottom: calc(12px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 20;
-  width: min(calc(100% - 24px), 456px);
+  width: min(calc(100% - 24px), var(--nav-max));
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -1096,6 +1136,267 @@ a {
 
 .nav-item.is-active .nav-icon {
   color: var(--accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .info-drawer summary:hover,
+  .json-card summary:hover,
+  .chart-toggle:hover,
+  .accordion-summary:hover,
+  .github-button:hover,
+  .nav-item:hover {
+    transition: background var(--transition), border-color var(--transition),
+      color var(--transition), transform var(--transition);
+  }
+
+  .info-drawer summary:hover,
+  .json-card summary:hover {
+    background: rgba(127, 213, 255, 0.12);
+  }
+
+  .chart-toggle:hover,
+  .accordion-summary:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .live-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--tone);
+  }
+
+  .github-button:hover {
+    background: rgba(127, 213, 255, 0.14);
+    transform: translateY(-1px);
+  }
+
+  .nav-item:hover {
+    color: var(--text);
+    background: rgba(127, 213, 255, 0.08);
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --shell-max: 980px;
+    --nav-max: 760px;
+  }
+
+  .ambient-one {
+    width: 300px;
+    height: 300px;
+    top: -70px;
+    right: 4%;
+  }
+
+  .ambient-two {
+    width: 320px;
+    height: 320px;
+    bottom: 8%;
+    left: 3%;
+  }
+
+  .mobile-frame {
+    padding-top: calc(24px + env(safe-area-inset-top));
+    padding-bottom: calc(var(--nav-height) + 38px + env(safe-area-inset-bottom));
+  }
+
+  .screen-section {
+    gap: 18px;
+  }
+
+  .app-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+    align-items: stretch;
+    gap: 18px;
+  }
+
+  .brand-block {
+    max-width: none;
+  }
+
+  .header-row,
+  .hero-card {
+    min-height: 100%;
+  }
+
+  .hero-card,
+  .section-card,
+  .focus-card,
+  .data-summary-card,
+  .record-card,
+  .more-card,
+  .github-card {
+    padding: 22px;
+  }
+
+  .hero-metrics,
+  .summary-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .home-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .status-list,
+  .activity-list,
+  .accordion-list,
+  .chart-stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .activity-list {
+    gap: 14px;
+  }
+
+  .chart-stack {
+    margin-top: 18px;
+  }
+
+  .chart-canvas-wrap {
+    height: 210px;
+  }
+
+  .focus-grid,
+  .accordion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .info-drawer {
+    width: min(100%, 17rem);
+  }
+
+  #home,
+  #data,
+  #more {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  #home .app-header,
+  #data .data-summary-card,
+  #more .github-card {
+    grid-column: 1 / -1;
+  }
+
+  #home > .section-card:first-of-type {
+    grid-column: 1 / -1;
+  }
+
+  .live-card {
+    flex: 0 0 clamp(280px, 42vw, 360px);
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  .github-card {
+    gap: 20px;
+  }
+
+  .json-card pre {
+    max-height: 430px;
+    font-size: 0.82rem;
+  }
+
+  .bottom-nav {
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    padding-inline: 14px;
+  }
+}
+
+@media (min-width: 1100px) {
+  :root {
+    --shell-max: 1440px;
+    --nav-max: 840px;
+  }
+
+  .mobile-frame {
+    padding-top: calc(28px + env(safe-area-inset-top));
+    padding-bottom: calc(var(--nav-height) + 44px + env(safe-area-inset-bottom));
+  }
+
+  .app-main {
+    gap: 40px;
+  }
+
+  .screen-section {
+    gap: 22px;
+  }
+
+  .section-heading h2 {
+    max-width: 24rem;
+  }
+
+  #home {
+    grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+  }
+
+  #live {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+    align-items: start;
+  }
+
+  #data,
+  #more {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-kpi-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .status-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .activity-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .accordion-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chart-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .chart-canvas-wrap {
+    height: 224px;
+  }
+
+  .live-carousel {
+    gap: 14px;
+    padding-bottom: 8px;
+  }
+
+  .live-card {
+    flex: 0 0 clamp(255px, 23vw, 320px);
+  }
+
+  .focus-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .accordion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .json-card pre {
+    max-height: 520px;
+    font-size: 0.84rem;
+  }
+
+  .github-card {
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 @keyframes pulseDot {
