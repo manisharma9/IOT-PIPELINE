@@ -1,0 +1,3104 @@
+﻿<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#08111a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Mobile-first smart home dashboard for live device status, twin state, structured records, and trends.">
+  <title>Smart Home IoT Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Sora:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-ready">
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <div class="splash-screen" id="splashScreen" aria-hidden="true">
+    <div class="splash-panel">
+      <span class="splash-chip">Smart Home Monitoring</span>
+      <h1>Smart Home IoT Dashboard</h1>
+      <p>Live status, structured records, and trends</p>
+      <div class="splash-loader" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <div class="mobile-frame">
+      <main class="app-main">
+        <section class="screen-section section-reveal is-visible" id="home" data-nav="home">
+          <header class="app-header">
+            <div class="header-row">
+              <div class="brand-block">
+                <p class="eyebrow">Smart Home IoT Dashboard</p>
+                <h1>Live home monitoring in one mobile view</h1>
+                <p class="header-copy">
+                  The same insight layers from the Streamlit dashboard, refined for
+                  fast mobile browsing and simple presentation.
+                </p>
+              </div>
+              <div class="live-badge">
+                <span class="status-dot"></span>
+                <span>Live</span>
+              </div>
+            </div>
+
+            <div class="hero-card">
+              <div class="hero-card-top">
+                <div>
+                  <p class="hero-label">Dashboard Overview</p>
+                  <h2>Track live conditions, latest device state, and structured updates</h2>
+                </div>
+              </div>
+              <p class="hero-text">
+                This mobile dashboard brings together current readings, the latest
+                device representation, processed records, and trend history in a
+                single polished interface.
+              </p>
+              <div class="hero-metrics" id="heroMetrics">
+        <div class="hero-metric">
+          <span>Live device values</span>
+          <strong>10 devices</strong>
+        </div>
+      
+        <div class="hero-metric">
+          <span>Latest twin state</span>
+          <strong>10 live rows</strong>
+        </div>
+      
+        <div class="hero-metric">
+          <span>Processed records</span>
+          <strong>28 recent rows</strong>
+        </div>
+      
+        <div class="hero-metric">
+          <span>Last updated</span>
+          <strong>06:37</strong>
+        </div>
+      </div>
+            </div>
+          </header>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Home</p>
+                <h2>Live KPI Overview</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  These are the key live readings that give a quick picture of what
+                  is happening in the monitored home right now.
+                </p>
+              </details>
+            </div>
+            <div class="home-kpi-grid" id="homeKpiGrid">
+        <article class="home-kpi-card" style="--tone:#7fd5ff">
+          <div class="home-kpi-top">
+            <div class="home-kpi-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 14.5V5a2.5 2.5 0 0 0-5 0v9.5a4.5 4.5 0 1 0 5 0Z"></path>
+      <path d="M9.5 10.5h2.5"></path>
+    </svg>
+  </span>
+              <div>
+                <h3>Temperature Sensor</h3>
+                <p>Comfortable</p>
+              </div>
+            </div>
+          </div>
+          <div class="home-kpi-value">28.02 C</div>
+          <div class="home-kpi-meta">Indoor temperature is currently slightly warm but still within a comfortable occupied-home range.</div>
+        </article>
+      
+        <article class="home-kpi-card" style="--tone:#7ce8d0">
+          <div class="home-kpi-top">
+            <div class="home-kpi-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5c3 4 5.5 6.7 5.5 10a5.5 5.5 0 1 1-11 0c0-3.3 2.5-6 5.5-10Z"></path>
+    </svg>
+  </span>
+              <div>
+                <h3>Humidity Sensor</h3>
+                <p>Balanced</p>
+              </div>
+            </div>
+          </div>
+          <div class="home-kpi-value">58.5 %</div>
+          <div class="home-kpi-meta">Humidity levels look balanced, helping the home feel comfortable and well-managed.</div>
+        </article>
+      
+        <article class="home-kpi-card" style="--tone:#ffbf74">
+          <div class="home-kpi-top">
+            <div class="home-kpi-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-4"></path>
+      <path d="M7 18h10"></path>
+    </svg>
+  </span>
+              <div>
+                <h3>Smart Meter</h3>
+                <p>Active</p>
+              </div>
+            </div>
+          </div>
+          <div class="home-kpi-value">986.11 kWh</div>
+          <div class="home-kpi-meta">Energy use is building through the day in a way that looks normal for an occupied home.</div>
+        </article>
+      
+        <article class="home-kpi-card" style="--tone:#66c5ff">
+          <div class="home-kpi-top">
+            <div class="home-kpi-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 17h9a3 3 0 0 0 .3-6A4.5 4.5 0 0 0 7.6 10 3.5 3.5 0 0 0 7 17Z"></path>
+      <path d="M8 20h8"></path>
+    </svg>
+  </span>
+              <div>
+                <h3>CO2 Sensor</h3>
+                <p>Watch</p>
+              </div>
+            </div>
+          </div>
+          <div class="home-kpi-value">600.19 ppm</div>
+          <div class="home-kpi-meta">CO2 is visible at a level worth watching, which is useful when discussing air quality and ventilation.</div>
+        </article>
+      
+        <article class="home-kpi-card" style="--tone:#8ea6ff">
+          <div class="home-kpi-top">
+            <div class="home-kpi-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 4h9a1 1 0 0 1 1 1v14H7z"></path>
+      <path d="M10.5 12.5h.01"></path>
+    </svg>
+  </span>
+              <div>
+                <h3>Door Sensor</h3>
+                <p>Secure</p>
+              </div>
+            </div>
+          </div>
+          <div class="home-kpi-value">Closed</div>
+          <div class="home-kpi-meta">The main entry is currently closed, so the home appears secure right now.</div>
+        </article>
+      </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Home</p>
+                <h2>Latest Device State</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This shows the newest stored status for each device so you can
+                  compare the latest monitored conditions quickly.
+                </p>
+              </details>
+            </div>
+            <div class="status-list" id="latestStatusList">
+        <article class="status-card" style="--tone:#7fd5ff">
+          <div class="status-card-top">
+            <div class="status-card-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 14.5V5a2.5 2.5 0 0 0-5 0v9.5a4.5 4.5 0 1 0 5 0Z"></path>
+      <path d="M9.5 10.5h2.5"></path>
+    </svg>
+  </span>
+              <div>
+                <h3>Temperature Sensor</h3>
+                <p>temperature</p>
+              </div>
+            </div>
+            <span class="status-pill">Comfortable</span>
+          </div>
+          <div class="status-card-value">28.02 C</div>
+          <div class="status-card-meta">Updated 2026-04-20 06:37:54</div>
+        </article>
+      
+        <article class="status-card" style="--tone:#7ce8d0">
+          <div class="status-card-top">
+            <div class="status-card-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5c3 4 5.5 6.7 5.5 10a5.5 5.5 0 1 1-11 0c0-3.3 2.5-6 5.5-10Z"></path>
+    </svg>
+  </span>
+              <div>
+                <h3>Humidity Sensor</h3>
+                <p>humidity</p>
+              </div>
+            </div>
+            <span class="status-pill">Balanced</span>
+          </div>
+          <div class="status-card-value">58.5 %</div>
+          <div class="status-card-meta">Updated 2026-04-20 06:35:48</div>
+        </article>
+      
+        <article class="status-card" style="--tone:#ffbf74">
+          <div class="status-card-top">
+            <div class="status-card-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-4"></path>
+      <path d="M7 18h10"></path>
+    </svg>
+  </span>
+              <div>
+                <h3>Smart Meter</h3>
+                <p>meter</p>
+              </div>
+            </div>
+            <span class="status-pill">Active</span>
+          </div>
+          <div class="status-card-value">986.11 kWh</div>
+          <div class="status-card-meta">Updated 2026-04-20 06:33:42</div>
+        </article>
+      
+        <article class="status-card" style="--tone:#8ea6ff">
+          <div class="status-card-top">
+            <div class="status-card-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 4h9a1 1 0 0 1 1 1v14H7z"></path>
+      <path d="M10.5 12.5h.01"></path>
+    </svg>
+  </span>
+              <div>
+                <h3>Door Sensor</h3>
+                <p>door</p>
+              </div>
+            </div>
+            <span class="status-pill">Secure</span>
+          </div>
+          <div class="status-card-value">Closed</div>
+          <div class="status-card-meta">Updated 2026-04-20 06:31:36</div>
+        </article>
+      
+        <article class="status-card" style="--tone:#ff8d9a">
+          <div class="status-card-top">
+            <div class="status-card-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 12c2.4-3.4 5-5 8-5s5.6 1.6 8 5c-2.4 3.4-5 5-8 5s-5.6-1.6-8-5Z"></path>
+      <circle cx="12" cy="12" r="2.2"></circle>
+    </svg>
+  </span>
+              <div>
+                <h3>Motion Sensor</h3>
+                <p>motion</p>
+              </div>
+            </div>
+            <span class="status-pill">Occupied</span>
+          </div>
+          <div class="status-card-value">No Motion</div>
+          <div class="status-card-meta">Updated 2026-04-20 06:29:30</div>
+        </article>
+      
+        <article class="status-card" style="--tone:#66c5ff">
+          <div class="status-card-top">
+            <div class="status-card-title">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 17h9a3 3 0 0 0 .3-6A4.5 4.5 0 0 0 7.6 10 3.5 3.5 0 0 0 7 17Z"></path>
+      <path d="M8 20h8"></path>
+    </svg>
+  </span>
+              <div>
+                <h3>CO2 Sensor</h3>
+                <p>co2</p>
+              </div>
+            </div>
+            <span class="status-pill">Watch</span>
+          </div>
+          <div class="status-card-value">600.19 ppm</div>
+          <div class="status-card-meta">Updated 2026-04-20 06:27:24</div>
+        </article>
+      </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Home</p>
+                <h2>Activity Summary</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This compact view shows which device categories are producing the
+                  most recent activity in the dashboard.
+                </p>
+              </details>
+            </div>
+            <div class="activity-list" id="activityList">
+        <div class="activity-row" style="--tone:#ffbf74">
+          <div class="activity-head">
+            <strong>smart_meter</strong>
+            <span>92 recent updates</span>
+          </div>
+          <div class="activity-bar">
+            <span class="activity-fill" style="width:92%"></span>
+          </div>
+        </div>
+      
+        <div class="activity-row" style="--tone:#7fd5ff">
+          <div class="activity-head">
+            <strong>temperature_sensor</strong>
+            <span>82 recent updates</span>
+          </div>
+          <div class="activity-bar">
+            <span class="activity-fill" style="width:82%"></span>
+          </div>
+        </div>
+      
+        <div class="activity-row" style="--tone:#7ce8d0">
+          <div class="activity-head">
+            <strong>humidity_sensor</strong>
+            <span>76 recent updates</span>
+          </div>
+          <div class="activity-bar">
+            <span class="activity-fill" style="width:76%"></span>
+          </div>
+        </div>
+      
+        <div class="activity-row" style="--tone:#7df0a7">
+          <div class="activity-head">
+            <strong>battery_sensor</strong>
+            <span>72 recent updates</span>
+          </div>
+          <div class="activity-bar">
+            <span class="activity-fill" style="width:72%"></span>
+          </div>
+        </div>
+      
+        <div class="activity-row" style="--tone:#66c5ff">
+          <div class="activity-head">
+            <strong>co2_sensor</strong>
+            <span>68 recent updates</span>
+          </div>
+          <div class="activity-bar">
+            <span class="activity-fill" style="width:68%"></span>
+          </div>
+        </div>
+      
+        <div class="activity-row" style="--tone:#7ce8ff">
+          <div class="activity-head">
+            <strong>water_flow_sensor</strong>
+            <span>64 recent updates</span>
+          </div>
+          <div class="activity-bar">
+            <span class="activity-fill" style="width:64%"></span>
+          </div>
+        </div>
+      </div>
+          </div>
+        </section>
+
+        <section class="screen-section section-reveal" id="live" data-nav="live">
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Live</p>
+                <h2>Live Device Status</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  These are the latest readings coming from devices in the monitored
+                  environment.
+                </p>
+              </details>
+            </div>
+
+            <div class="live-carousel" id="liveCarousel" aria-label="Live sensor cards">
+    <button class="live-card is-active" data-index="0" type="button" style="--tone:#7fd5ff">
+      <div class="live-card-top">
+        <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 14.5V5a2.5 2.5 0 0 0-5 0v9.5a4.5 4.5 0 1 0 5 0Z"></path>
+      <path d="M9.5 10.5h2.5"></path>
+    </svg>
+  </span>
+        <span class="status-pill">Comfortable</span>
+      </div>
+      <div class="metric-name">Temperature Sensor</div>
+      <div class="metric-value">
+        <span class="metric-number" data-role="value" data-value="27.94">-56.51</span>
+        <span class="metric-unit">C</span>
+      </div>
+      <div class="metric-track">
+        <span class="metric-fill" data-role="fill" style="width: 96%;"></span>
+      </div>
+      <div class="metric-footer">
+        <span>Comfort is holding steady</span>
+        <span>Warm side of normal</span>
+      </div>
+    </button>
+  
+    <button class="live-card" data-index="1" type="button" style="--tone:#7ce8d0">
+      <div class="live-card-top">
+        <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5c3 4 5.5 6.7 5.5 10a5.5 5.5 0 1 1-11 0c0-3.3 2.5-6 5.5-10Z"></path>
+    </svg>
+  </span>
+        <span class="status-pill">Balanced</span>
+      </div>
+      <div class="metric-name">Humidity Sensor</div>
+      <div class="metric-value">
+        <span class="metric-number" data-role="value" data-value="59.3">946.0</span>
+        <span class="metric-unit">%</span>
+      </div>
+      <div class="metric-track">
+        <span class="metric-fill" data-role="fill" style="width: 18%;"></span>
+      </div>
+      <div class="metric-footer">
+        <span>Moisture is balanced</span>
+        <span>Healthy indoor level</span>
+      </div>
+    </button>
+  
+    <button class="live-card" data-index="2" type="button" style="--tone:#ffbf74">
+      <div class="live-card-top">
+        <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-4"></path>
+      <path d="M7 18h10"></path>
+    </svg>
+  </span>
+        <span class="status-pill">Active</span>
+      </div>
+      <div class="metric-name">Smart Meter</div>
+      <div class="metric-value">
+        <span class="metric-number" data-role="value" data-value="984.65">-556.52</span>
+        <span class="metric-unit">kWh</span>
+      </div>
+      <div class="metric-track">
+        <span class="metric-fill" data-role="fill" style="width: 76.4395%;"></span>
+      </div>
+      <div class="metric-footer">
+        <span>Usage is moving upward</span>
+        <span>Demand is increasing</span>
+      </div>
+    </button>
+  
+    <button class="live-card" data-index="3" type="button" style="--tone:#8ea6ff">
+      <div class="live-card-top">
+        <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 4h9a1 1 0 0 1 1 1v14H7z"></path>
+      <path d="M10.5 12.5h.01"></path>
+    </svg>
+  </span>
+        <span class="status-pill">Secure</span>
+      </div>
+      <div class="metric-name">Door Sensor</div>
+      <div class="metric-value">
+        <span class="metric-number is-text" data-role="value" data-value="Closed">Closed</span>
+        
+      </div>
+      <div class="metric-track">
+        <span class="metric-fill" data-role="fill" style="width: 84%;"></span>
+      </div>
+      <div class="metric-footer">
+        <span>Entry looks secure</span>
+        <span>No open access now</span>
+      </div>
+    </button>
+  
+    <button class="live-card" data-index="4" type="button" style="--tone:#ff8d9a">
+      <div class="live-card-top">
+        <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 12c2.4-3.4 5-5 8-5s5.6 1.6 8 5c-2.4 3.4-5 5-8 5s-5.6-1.6-8-5Z"></path>
+      <circle cx="12" cy="12" r="2.2"></circle>
+    </svg>
+  </span>
+        <span class="status-pill">Occupied</span>
+      </div>
+      <div class="metric-name">Motion Sensor</div>
+      <div class="metric-value">
+        <span class="metric-number is-text is-flip" data-role="value" data-value="No Motion">No Motion</span>
+        
+      </div>
+      <div class="metric-track">
+        <span class="metric-fill" data-role="fill" style="width: 28%;"></span>
+      </div>
+      <div class="metric-footer">
+        <span>Movement has been seen</span>
+        <span>Live activity detected</span>
+      </div>
+    </button>
+  
+    <button class="live-card" data-index="5" type="button" style="--tone:#66c5ff">
+      <div class="live-card-top">
+        <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 17h9a3 3 0 0 0 .3-6A4.5 4.5 0 0 0 7.6 10 3.5 3.5 0 0 0 7 17Z"></path>
+      <path d="M8 20h8"></path>
+    </svg>
+  </span>
+        <span class="status-pill">Watch</span>
+      </div>
+      <div class="metric-name">CO2 Sensor</div>
+      <div class="metric-value">
+        <span class="metric-number" data-role="value" data-value="653.02">56419.99</span>
+        <span class="metric-unit">ppm</span>
+      </div>
+      <div class="metric-track">
+        <span class="metric-fill" data-role="fill" style="width: 25.5894%;"></span>
+      </div>
+      <div class="metric-footer">
+        <span>Air quality is visible</span>
+        <span>Slightly elevated indoor air</span>
+      </div>
+    </button>
+  
+    <button class="live-card" data-index="6" type="button" style="--tone:#8db9ff">
+      <div class="live-card-top">
+        <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="7.5"></circle>
+      <path d="m12 12 3-4"></path>
+      <path d="M12 6v1"></path>
+    </svg>
+  </span>
+        <span class="status-pill">Stable</span>
+      </div>
+      <div class="metric-name">Pressure Sensor</div>
+      <div class="metric-value">
+        <span class="metric-number" data-role="value" data-value="1006.08">6041.26</span>
+        <span class="metric-unit">hPa</span>
+      </div>
+      <div class="metric-track">
+        <span class="metric-fill" data-role="fill" style="width: 18%;"></span>
+      </div>
+      <div class="metric-footer">
+        <span>Background conditions are stable</span>
+        <span>Little change in pressure</span>
+      </div>
+    </button>
+  
+    <button class="live-card" data-index="7" type="button" style="--tone:#ffd36b">
+      <div class="live-card-top">
+        <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 4.5a5 5 0 0 0-3 9v1.5h6V13.5a5 5 0 0 0-3-9Z"></path>
+      <path d="M10 18h4"></path>
+      <path d="M9.5 20h5"></path>
+    </svg>
+  </span>
+        <span class="status-pill">Bright</span>
+      </div>
+      <div class="metric-name">Light Sensor</div>
+      <div class="metric-value">
+        <span class="metric-number" data-role="value" data-value="398.88">-11560.99</span>
+        <span class="metric-unit">lux</span>
+      </div>
+      <div class="metric-track">
+        <span class="metric-fill" data-role="fill" style="width: 96%;"></span>
+      </div>
+      <div class="metric-footer">
+        <span>Lighting looks consistent</span>
+        <span>Brightness is steady</span>
+      </div>
+    </button>
+  
+    <button class="live-card" data-index="8" type="button" style="--tone:#7df0a7">
+      <div class="live-card-top">
+        <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4" y="8" width="14" height="8" rx="2"></rect>
+      <path d="M18 10h2v4h-2"></path>
+      <path d="M7 12h4"></path>
+    </svg>
+  </span>
+        <span class="status-pill">Healthy</span>
+      </div>
+      <div class="metric-name">Battery Sensor</div>
+      <div class="metric-value">
+        <span class="metric-number" data-role="value" data-value="85.79">328.58</span>
+        <span class="metric-unit">%</span>
+      </div>
+      <div class="metric-track">
+        <span class="metric-fill" data-role="fill" style="width: 19.337%;"></span>
+      </div>
+      <div class="metric-footer">
+        <span>Device health looks good</span>
+        <span>Strong remaining charge</span>
+      </div>
+    </button>
+  
+    <button class="live-card" data-index="9" type="button" style="--tone:#7ce8ff">
+      <div class="live-card-top">
+        <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 6h10"></path>
+      <path d="M10 6v4"></path>
+      <path d="M14 10c0 4-4 4-4 7a3 3 0 1 0 6 0c0-3-2-3-2-7Z"></path>
+    </svg>
+  </span>
+        <span class="status-pill">Normal</span>
+      </div>
+      <div class="metric-name">Water Flow Sensor</div>
+      <div class="metric-value">
+        <span class="metric-number" data-role="value" data-value="19.31">536.55</span>
+        <span class="metric-unit">L/min</span>
+      </div>
+      <div class="metric-track">
+        <span class="metric-fill" data-role="fill" style="width: 70.2326%;"></span>
+      </div>
+      <div class="metric-footer">
+        <span>Water use is easy to follow</span>
+        <span>No unusual surge seen</span>
+      </div>
+    </button>
+  </div>
+
+            <div class="carousel-meta">
+              <span class="swipe-hint">Swipe to compare devices</span>
+              <div class="carousel-dots" id="carouselDots" aria-hidden="true">
+        <span class="carousel-dot is-active"></span>
+      
+        <span class="carousel-dot"></span>
+      
+        <span class="carousel-dot"></span>
+      
+        <span class="carousel-dot"></span>
+      
+        <span class="carousel-dot"></span>
+      
+        <span class="carousel-dot"></span>
+      
+        <span class="carousel-dot"></span>
+      
+        <span class="carousel-dot"></span>
+      
+        <span class="carousel-dot"></span>
+      
+        <span class="carousel-dot"></span>
+      </div>
+            </div>
+
+            <article class="focus-card" id="liveFocus" style="--tone: #7fd5ff;">
+    <div class="focus-top">
+      <div>
+        <p class="eyebrow">What it means</p>
+        <h3>Temperature Sensor</h3>
+      </div>
+      <span class="focus-chip">Comfortable</span>
+    </div>
+    <div class="focus-value">28.02 C</div>
+    <p class="focus-copy">Indoor temperature is currently slightly warm but still within a comfortable occupied-home range.</p>
+    <div class="focus-grid">
+      <div class="focus-detail">
+        <span>device_type</span>
+        <strong>temperature_sensor</strong>
+      </div>
+      <div class="focus-detail">
+        <span>feature_name</span>
+        <strong>temperature</strong>
+      </div>
+      <div class="focus-detail">
+        <span>Why it matters</span>
+        <strong>Useful for comfort and climate control decisions.</strong>
+      </div>
+      <div class="focus-detail">
+        <span>Updated</span>
+        <strong>06:37</strong>
+      </div>
+    </div>
+  </article>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Live</p>
+                <h2>Latest Twin State</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This shows the most recent live digital representation of each
+                  device and its current value.
+                </p>
+              </details>
+            </div>
+            <div class="accordion-list" id="twinStateList">
+        <details class="accordion-card" style="--tone:#7fd5ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 14.5V5a2.5 2.5 0 0 0-5 0v9.5a4.5 4.5 0 1 0 5 0Z"></path>
+      <path d="M9.5 10.5h2.5"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Latest Twin State</p>
+                <h3 class="accordion-title">temperature_sensor</h3>
+                <p class="accordion-preview">smarthome:dev001</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              28.02 C
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field">
+                <span>thing_id</span>
+                <strong>smarthome:dev001</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_id</span>
+                <strong>dev001</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_type</span>
+                <strong>temperature_sensor</strong>
+              </div>
+              <div class="accordion-field">
+                <span>feature_name</span>
+                <strong>temperature</strong>
+              </div>
+              <div class="accordion-field">
+                <span>latest_value</span>
+                <strong>28.02 C</strong>
+              </div>
+              <div class="accordion-field">
+                <span>saref_type</span>
+                <strong>saref:Temperature</strong>
+              </div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7ce8d0">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5c3 4 5.5 6.7 5.5 10a5.5 5.5 0 1 1-11 0c0-3.3 2.5-6 5.5-10Z"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Latest Twin State</p>
+                <h3 class="accordion-title">humidity_sensor</h3>
+                <p class="accordion-preview">smarthome:dev002</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              58.5 %
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field">
+                <span>thing_id</span>
+                <strong>smarthome:dev002</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_id</span>
+                <strong>dev002</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_type</span>
+                <strong>humidity_sensor</strong>
+              </div>
+              <div class="accordion-field">
+                <span>feature_name</span>
+                <strong>humidity</strong>
+              </div>
+              <div class="accordion-field">
+                <span>latest_value</span>
+                <strong>58.5 %</strong>
+              </div>
+              <div class="accordion-field">
+                <span>saref_type</span>
+                <strong>saref:Humidity</strong>
+              </div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#ffbf74">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-4"></path>
+      <path d="M7 18h10"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Latest Twin State</p>
+                <h3 class="accordion-title">smart_meter</h3>
+                <p class="accordion-preview">smarthome:dev003</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              986.11 kWh
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field">
+                <span>thing_id</span>
+                <strong>smarthome:dev003</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_id</span>
+                <strong>dev003</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_type</span>
+                <strong>smart_meter</strong>
+              </div>
+              <div class="accordion-field">
+                <span>feature_name</span>
+                <strong>meter</strong>
+              </div>
+              <div class="accordion-field">
+                <span>latest_value</span>
+                <strong>986.11 kWh</strong>
+              </div>
+              <div class="accordion-field">
+                <span>saref_type</span>
+                <strong>saref:Energy</strong>
+              </div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#8ea6ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 4h9a1 1 0 0 1 1 1v14H7z"></path>
+      <path d="M10.5 12.5h.01"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Latest Twin State</p>
+                <h3 class="accordion-title">door_sensor</h3>
+                <p class="accordion-preview">smarthome:dev010</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              Closed
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field">
+                <span>thing_id</span>
+                <strong>smarthome:dev010</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_id</span>
+                <strong>dev010</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_type</span>
+                <strong>door_sensor</strong>
+              </div>
+              <div class="accordion-field">
+                <span>feature_name</span>
+                <strong>door</strong>
+              </div>
+              <div class="accordion-field">
+                <span>latest_value</span>
+                <strong>Closed</strong>
+              </div>
+              <div class="accordion-field">
+                <span>saref_type</span>
+                <strong>saref:OpenCloseState</strong>
+              </div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#ff8d9a">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 12c2.4-3.4 5-5 8-5s5.6 1.6 8 5c-2.4 3.4-5 5-8 5s-5.6-1.6-8-5Z"></path>
+      <circle cx="12" cy="12" r="2.2"></circle>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Latest Twin State</p>
+                <h3 class="accordion-title">motion_sensor</h3>
+                <p class="accordion-preview">smarthome:dev011</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              No Motion
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field">
+                <span>thing_id</span>
+                <strong>smarthome:dev011</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_id</span>
+                <strong>dev011</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_type</span>
+                <strong>motion_sensor</strong>
+              </div>
+              <div class="accordion-field">
+                <span>feature_name</span>
+                <strong>motion</strong>
+              </div>
+              <div class="accordion-field">
+                <span>latest_value</span>
+                <strong>No Motion</strong>
+              </div>
+              <div class="accordion-field">
+                <span>saref_type</span>
+                <strong>saref:Occupancy</strong>
+              </div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#66c5ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 17h9a3 3 0 0 0 .3-6A4.5 4.5 0 0 0 7.6 10 3.5 3.5 0 0 0 7 17Z"></path>
+      <path d="M8 20h8"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Latest Twin State</p>
+                <h3 class="accordion-title">co2_sensor</h3>
+                <p class="accordion-preview">smarthome:dev006</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              600.19 ppm
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field">
+                <span>thing_id</span>
+                <strong>smarthome:dev006</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_id</span>
+                <strong>dev006</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_type</span>
+                <strong>co2_sensor</strong>
+              </div>
+              <div class="accordion-field">
+                <span>feature_name</span>
+                <strong>co2</strong>
+              </div>
+              <div class="accordion-field">
+                <span>latest_value</span>
+                <strong>600.19 ppm</strong>
+              </div>
+              <div class="accordion-field">
+                <span>saref_type</span>
+                <strong>saref:AirQuality</strong>
+              </div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#8db9ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="7.5"></circle>
+      <path d="m12 12 3-4"></path>
+      <path d="M12 6v1"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Latest Twin State</p>
+                <h3 class="accordion-title">pressure_sensor</h3>
+                <p class="accordion-preview">smarthome:dev007</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              1001.31 hPa
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field">
+                <span>thing_id</span>
+                <strong>smarthome:dev007</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_id</span>
+                <strong>dev007</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_type</span>
+                <strong>pressure_sensor</strong>
+              </div>
+              <div class="accordion-field">
+                <span>feature_name</span>
+                <strong>pressure</strong>
+              </div>
+              <div class="accordion-field">
+                <span>latest_value</span>
+                <strong>1001.31 hPa</strong>
+              </div>
+              <div class="accordion-field">
+                <span>saref_type</span>
+                <strong>saref:Pressure</strong>
+              </div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#ffd36b">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 4.5a5 5 0 0 0-3 9v1.5h6V13.5a5 5 0 0 0-3-9Z"></path>
+      <path d="M10 18h4"></path>
+      <path d="M9.5 20h5"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Latest Twin State</p>
+                <h3 class="accordion-title">light_sensor</h3>
+                <p class="accordion-preview">smarthome:dev008</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              410.21 lux
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field">
+                <span>thing_id</span>
+                <strong>smarthome:dev008</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_id</span>
+                <strong>dev008</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_type</span>
+                <strong>light_sensor</strong>
+              </div>
+              <div class="accordion-field">
+                <span>feature_name</span>
+                <strong>light</strong>
+              </div>
+              <div class="accordion-field">
+                <span>latest_value</span>
+                <strong>410.21 lux</strong>
+              </div>
+              <div class="accordion-field">
+                <span>saref_type</span>
+                <strong>saref:Light</strong>
+              </div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7df0a7">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4" y="8" width="14" height="8" rx="2"></rect>
+      <path d="M18 10h2v4h-2"></path>
+      <path d="M7 12h4"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Latest Twin State</p>
+                <h3 class="accordion-title">battery_sensor</h3>
+                <p class="accordion-preview">smarthome:dev009</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              85.56 %
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field">
+                <span>thing_id</span>
+                <strong>smarthome:dev009</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_id</span>
+                <strong>dev009</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_type</span>
+                <strong>battery_sensor</strong>
+              </div>
+              <div class="accordion-field">
+                <span>feature_name</span>
+                <strong>battery</strong>
+              </div>
+              <div class="accordion-field">
+                <span>latest_value</span>
+                <strong>85.56 %</strong>
+              </div>
+              <div class="accordion-field">
+                <span>saref_type</span>
+                <strong>saref:BatteryLevel</strong>
+              </div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7ce8ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 6h10"></path>
+      <path d="M10 6v4"></path>
+      <path d="M14 10c0 4-4 4-4 7a3 3 0 1 0 6 0c0-3-2-3-2-7Z"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Latest Twin State</p>
+                <h3 class="accordion-title">water_flow_sensor</h3>
+                <p class="accordion-preview">smarthome:dev012</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              18.82 L/min
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field">
+                <span>thing_id</span>
+                <strong>smarthome:dev012</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_id</span>
+                <strong>dev012</strong>
+              </div>
+              <div class="accordion-field">
+                <span>device_type</span>
+                <strong>water_flow_sensor</strong>
+              </div>
+              <div class="accordion-field">
+                <span>feature_name</span>
+                <strong>water_flow</strong>
+              </div>
+              <div class="accordion-field">
+                <span>latest_value</span>
+                <strong>18.82 L/min</strong>
+              </div>
+              <div class="accordion-field">
+                <span>saref_type</span>
+                <strong>saref:Flow</strong>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+          </div>
+        </section>
+
+        <section class="screen-section section-reveal" id="charts" data-nav="charts">
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Charts</p>
+                <h2>Sensor Trends</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  These charts help show how monitored values change over time
+                  instead of only showing the latest reading.
+                </p>
+              </details>
+            </div>
+            <div class="chart-stack" id="chartStack">
+        <article class="chart-card is-open" data-key="temperature" style="--tone:#7fd5ff">
+          <button class="chart-toggle" type="button" aria-expanded="true">
+            <div class="chart-toggle-main">
+              <p>Temperature trend</p>
+              <h3 class="chart-title">Temperature Sensor</h3>
+            </div>
+            <div class="chart-toggle-meta">
+              <span class="chart-current" data-current="temperature">28.02 C</span>
+              <span class="chart-caret">v</span>
+            </div>
+          </button>
+          <div class="chart-panel">
+            <div class="chart-panel-inner">
+              <div class="chart-canvas-wrap">
+                <canvas id="chart-temperature" width="370" height="186"></canvas>
+              </div>
+              <div class="chart-labels">
+                <span>08:00</span>
+                <span>10:00</span>
+                <span>12:00</span>
+                <span>14:00</span>
+                <span>16:00</span>
+                <span>18:00</span>
+              </div>
+              <div class="chart-stat-row">
+                
+    <div class="chart-stat">
+      <span>Highest</span>
+      <strong>28.00 C</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Lowest</span>
+      <strong>24.80 C</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Change</span>
+      <strong>+2.80 C</strong>
+    </div>
+  
+              </div>
+            </div>
+          </div>
+        </article>
+      
+        <article class="chart-card" data-key="humidity" style="--tone:#7ce8d0">
+          <button class="chart-toggle" type="button" aria-expanded="false">
+            <div class="chart-toggle-main">
+              <p>Humidity trend</p>
+              <h3 class="chart-title">Humidity Sensor</h3>
+            </div>
+            <div class="chart-toggle-meta">
+              <span class="chart-current" data-current="humidity">58.5 %</span>
+              <span class="chart-caret">v</span>
+            </div>
+          </button>
+          <div class="chart-panel">
+            <div class="chart-panel-inner">
+              <div class="chart-canvas-wrap">
+                <canvas id="chart-humidity"></canvas>
+              </div>
+              <div class="chart-labels">
+                <span>08:00</span>
+                <span>10:00</span>
+                <span>12:00</span>
+                <span>14:00</span>
+                <span>16:00</span>
+                <span>18:00</span>
+              </div>
+              <div class="chart-stat-row">
+                
+    <div class="chart-stat">
+      <span>Highest</span>
+      <strong>62.0 %</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Lowest</span>
+      <strong>58.8 %</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Change</span>
+      <strong>-3.2 %</strong>
+    </div>
+  
+              </div>
+            </div>
+          </div>
+        </article>
+      
+        <article class="chart-card" data-key="meter" style="--tone:#ffbf74">
+          <button class="chart-toggle" type="button" aria-expanded="false">
+            <div class="chart-toggle-main">
+              <p>Smart meter trend</p>
+              <h3 class="chart-title">Smart Meter</h3>
+            </div>
+            <div class="chart-toggle-meta">
+              <span class="chart-current" data-current="meter">986.11 kWh</span>
+              <span class="chart-caret">v</span>
+            </div>
+          </button>
+          <div class="chart-panel">
+            <div class="chart-panel-inner">
+              <div class="chart-canvas-wrap">
+                <canvas id="chart-meter"></canvas>
+              </div>
+              <div class="chart-labels">
+                <span>08:00</span>
+                <span>10:00</span>
+                <span>12:00</span>
+                <span>14:00</span>
+                <span>16:00</span>
+                <span>18:00</span>
+              </div>
+              <div class="chart-stat-row">
+                
+    <div class="chart-stat">
+      <span>Highest</span>
+      <strong>990.00 kWh</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Lowest</span>
+      <strong>950.00 kWh</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Change</span>
+      <strong>+40.00 kWh</strong>
+    </div>
+  
+              </div>
+            </div>
+          </div>
+        </article>
+      
+        <article class="chart-card" data-key="co2" style="--tone:#66c5ff">
+          <button class="chart-toggle" type="button" aria-expanded="false">
+            <div class="chart-toggle-main">
+              <p>CO2 trend</p>
+              <h3 class="chart-title">CO2 Sensor</h3>
+            </div>
+            <div class="chart-toggle-meta">
+              <span class="chart-current" data-current="co2">600.19 ppm</span>
+              <span class="chart-caret">v</span>
+            </div>
+          </button>
+          <div class="chart-panel">
+            <div class="chart-panel-inner">
+              <div class="chart-canvas-wrap">
+                <canvas id="chart-co2"></canvas>
+              </div>
+              <div class="chart-labels">
+                <span>08:00</span>
+                <span>10:00</span>
+                <span>12:00</span>
+                <span>14:00</span>
+                <span>16:00</span>
+                <span>18:00</span>
+              </div>
+              <div class="chart-stat-row">
+                
+    <div class="chart-stat">
+      <span>Highest</span>
+      <strong>653.00 ppm</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Lowest</span>
+      <strong>580.00 ppm</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Change</span>
+      <strong>+40.00 ppm</strong>
+    </div>
+  
+              </div>
+            </div>
+          </div>
+        </article>
+      
+        <article class="chart-card" data-key="pressure" style="--tone:#8db9ff">
+          <button class="chart-toggle" type="button" aria-expanded="false">
+            <div class="chart-toggle-main">
+              <p>Pressure trend</p>
+              <h3 class="chart-title">Pressure Sensor</h3>
+            </div>
+            <div class="chart-toggle-meta">
+              <span class="chart-current" data-current="pressure">1001.31 hPa</span>
+              <span class="chart-caret">v</span>
+            </div>
+          </button>
+          <div class="chart-panel">
+            <div class="chart-panel-inner">
+              <div class="chart-canvas-wrap">
+                <canvas id="chart-pressure"></canvas>
+              </div>
+              <div class="chart-labels">
+                <span>08:00</span>
+                <span>10:00</span>
+                <span>12:00</span>
+                <span>14:00</span>
+                <span>16:00</span>
+                <span>18:00</span>
+              </div>
+              <div class="chart-stat-row">
+                
+    <div class="chart-stat">
+      <span>Highest</span>
+      <strong>1006.08 hPa</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Lowest</span>
+      <strong>1001.80 hPa</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Change</span>
+      <strong>+3.90 hPa</strong>
+    </div>
+  
+              </div>
+            </div>
+          </div>
+        </article>
+      
+        <article class="chart-card" data-key="light" style="--tone:#ffd36b">
+          <button class="chart-toggle" type="button" aria-expanded="false">
+            <div class="chart-toggle-main">
+              <p>Light trend</p>
+              <h3 class="chart-title">Light Sensor</h3>
+            </div>
+            <div class="chart-toggle-meta">
+              <span class="chart-current" data-current="light">410.21 lux</span>
+              <span class="chart-caret">v</span>
+            </div>
+          </button>
+          <div class="chart-panel">
+            <div class="chart-panel-inner">
+              <div class="chart-canvas-wrap">
+                <canvas id="chart-light"></canvas>
+              </div>
+              <div class="chart-labels">
+                <span>08:00</span>
+                <span>10:00</span>
+                <span>12:00</span>
+                <span>14:00</span>
+                <span>16:00</span>
+                <span>18:00</span>
+              </div>
+              <div class="chart-stat-row">
+                
+    <div class="chart-stat">
+      <span>Highest</span>
+      <strong>405.20 lux</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Lowest</span>
+      <strong>340.00 lux</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Change</span>
+      <strong>+65.20 lux</strong>
+    </div>
+  
+              </div>
+            </div>
+          </div>
+        </article>
+      
+        <article class="chart-card" data-key="battery" style="--tone:#7df0a7">
+          <button class="chart-toggle" type="button" aria-expanded="false">
+            <div class="chart-toggle-main">
+              <p>Battery trend</p>
+              <h3 class="chart-title">Battery Sensor</h3>
+            </div>
+            <div class="chart-toggle-meta">
+              <span class="chart-current" data-current="battery">85.56 %</span>
+              <span class="chart-caret">v</span>
+            </div>
+          </button>
+          <div class="chart-panel">
+            <div class="chart-panel-inner">
+              <div class="chart-canvas-wrap">
+                <canvas id="chart-battery"></canvas>
+              </div>
+              <div class="chart-labels">
+                <span>08:00</span>
+                <span>10:00</span>
+                <span>12:00</span>
+                <span>14:00</span>
+                <span>16:00</span>
+                <span>18:00</span>
+              </div>
+              <div class="chart-stat-row">
+                
+    <div class="chart-stat">
+      <span>Highest</span>
+      <strong>91.40 %</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Lowest</span>
+      <strong>85.10 %</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Change</span>
+      <strong>-6.30 %</strong>
+    </div>
+  
+              </div>
+            </div>
+          </div>
+        </article>
+      
+        <article class="chart-card" data-key="water" style="--tone:#7ce8ff">
+          <button class="chart-toggle" type="button" aria-expanded="false">
+            <div class="chart-toggle-main">
+              <p>Water flow trend</p>
+              <h3 class="chart-title">Water Flow Sensor</h3>
+            </div>
+            <div class="chart-toggle-meta">
+              <span class="chart-current" data-current="water">18.82 L/min</span>
+              <span class="chart-caret">v</span>
+            </div>
+          </button>
+          <div class="chart-panel">
+            <div class="chart-panel-inner">
+              <div class="chart-canvas-wrap">
+                <canvas id="chart-water"></canvas>
+              </div>
+              <div class="chart-labels">
+                <span>08:00</span>
+                <span>10:00</span>
+                <span>12:00</span>
+                <span>14:00</span>
+                <span>16:00</span>
+                <span>18:00</span>
+              </div>
+              <div class="chart-stat-row">
+                
+    <div class="chart-stat">
+      <span>Highest</span>
+      <strong>19.31 L/min</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Lowest</span>
+      <strong>15.80 L/min</strong>
+    </div>
+    <div class="chart-stat">
+      <span>Change</span>
+      <strong>+3.20 L/min</strong>
+    </div>
+  
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+          </div>
+        </section>
+
+        <section class="screen-section section-reveal" id="data" data-nav="data">
+          <div class="data-summary-card">
+            <div class="summary-grid" id="dataSummary">
+        <div class="summary-tile">
+          <span>Structured records</span>
+          <strong>10 shown</strong>
+        </div>
+      
+        <div class="summary-tile">
+          <span>Processed rows</span>
+          <strong>28 recent rows</strong>
+        </div>
+      
+        <div class="summary-tile">
+          <span>Twin state rows</span>
+          <strong>10 live rows</strong>
+        </div>
+      
+        <div class="summary-tile">
+          <span>Last updated</span>
+          <strong>06:37</strong>
+        </div>
+      </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Data</p>
+                <h2>Structured Device Records</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This is structured data so other systems can easily understand and
+                  use the latest device information.
+                </p>
+              </details>
+            </div>
+            <div class="accordion-list" id="ngsiRecordList">
+        <details class="accordion-card" style="--tone:#7fd5ff" open="">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 14.5V5a2.5 2.5 0 0 0-5 0v9.5a4.5 4.5 0 1 0 5 0Z"></path>
+      <path d="M9.5 10.5h2.5"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Structured Device Record</p>
+                <h3 class="accordion-title">TemperatureSensor</h3>
+                <p class="accordion-preview">urn:ngsi-ld:TemperatureSensor:dev001</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              28.02 C
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:TemperatureSensor:dev001</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>TemperatureSensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>value_only</span><strong>28.02</strong></div>
+              <div class="accordion-field"><span>unit</span><strong>C</strong></div>
+              <div class="accordion-field"><span>display_value</span><strong>28.02 C</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>temperature_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Temperature</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:DegreeCelsius</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:37:54</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7fd5ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 14.5V5a2.5 2.5 0 0 0-5 0v9.5a4.5 4.5 0 1 0 5 0Z"></path>
+      <path d="M9.5 10.5h2.5"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Structured Device Record</p>
+                <h3 class="accordion-title">TemperatureSensor</h3>
+                <p class="accordion-preview">urn:ngsi-ld:TemperatureSensor:dev001</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              27.94 C
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:TemperatureSensor:dev001</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>TemperatureSensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>value_only</span><strong>27.94</strong></div>
+              <div class="accordion-field"><span>unit</span><strong>C</strong></div>
+              <div class="accordion-field"><span>display_value</span><strong>27.94 C</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>temperature_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Temperature</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:DegreeCelsius</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:37:12</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7fd5ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 14.5V5a2.5 2.5 0 0 0-5 0v9.5a4.5 4.5 0 1 0 5 0Z"></path>
+      <path d="M9.5 10.5h2.5"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Structured Device Record</p>
+                <h3 class="accordion-title">TemperatureSensor</h3>
+                <p class="accordion-preview">urn:ngsi-ld:TemperatureSensor:dev001</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              28.15 C
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:TemperatureSensor:dev001</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>TemperatureSensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>value_only</span><strong>28.15</strong></div>
+              <div class="accordion-field"><span>unit</span><strong>C</strong></div>
+              <div class="accordion-field"><span>display_value</span><strong>28.15 C</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>temperature_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Temperature</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:DegreeCelsius</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:36:30</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7ce8d0">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5c3 4 5.5 6.7 5.5 10a5.5 5.5 0 1 1-11 0c0-3.3 2.5-6 5.5-10Z"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Structured Device Record</p>
+                <h3 class="accordion-title">HumiditySensor</h3>
+                <p class="accordion-preview">urn:ngsi-ld:HumiditySensor:dev002</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              58.5 %
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:HumiditySensor:dev002</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>HumiditySensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>value_only</span><strong>58.46</strong></div>
+              <div class="accordion-field"><span>unit</span><strong>%</strong></div>
+              <div class="accordion-field"><span>display_value</span><strong>58.5 %</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>humidity_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Humidity</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:Percent</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:35:48</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7ce8d0">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5c3 4 5.5 6.7 5.5 10a5.5 5.5 0 1 1-11 0c0-3.3 2.5-6 5.5-10Z"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Structured Device Record</p>
+                <h3 class="accordion-title">HumiditySensor</h3>
+                <p class="accordion-preview">urn:ngsi-ld:HumiditySensor:dev002</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              59.3 %
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:HumiditySensor:dev002</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>HumiditySensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>value_only</span><strong>59.3</strong></div>
+              <div class="accordion-field"><span>unit</span><strong>%</strong></div>
+              <div class="accordion-field"><span>display_value</span><strong>59.3 %</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>humidity_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Humidity</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:Percent</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:35:06</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7ce8d0">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5c3 4 5.5 6.7 5.5 10a5.5 5.5 0 1 1-11 0c0-3.3 2.5-6 5.5-10Z"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Structured Device Record</p>
+                <h3 class="accordion-title">HumiditySensor</h3>
+                <p class="accordion-preview">urn:ngsi-ld:HumiditySensor:dev002</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              61.4 %
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:HumiditySensor:dev002</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>HumiditySensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>value_only</span><strong>61.4</strong></div>
+              <div class="accordion-field"><span>unit</span><strong>%</strong></div>
+              <div class="accordion-field"><span>display_value</span><strong>61.4 %</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>humidity_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Humidity</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:Percent</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:34:24</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#ffbf74">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-4"></path>
+      <path d="M7 18h10"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Structured Device Record</p>
+                <h3 class="accordion-title">SmartMeter</h3>
+                <p class="accordion-preview">urn:ngsi-ld:SmartMeter:dev003</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              986.11 kWh
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:SmartMeter:dev003</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>SmartMeter</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>energy</strong></div>
+              <div class="accordion-field"><span>value_only</span><strong>986.11</strong></div>
+              <div class="accordion-field"><span>unit</span><strong>kWh</strong></div>
+              <div class="accordion-field"><span>display_value</span><strong>986.11 kWh</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>smart_meter</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>meter</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Energy</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:KilowattHour</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:33:42</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#ffbf74">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-4"></path>
+      <path d="M7 18h10"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Structured Device Record</p>
+                <h3 class="accordion-title">SmartMeter</h3>
+                <p class="accordion-preview">urn:ngsi-ld:SmartMeter:dev003</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              984.65 kWh
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:SmartMeter:dev003</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>SmartMeter</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>energy</strong></div>
+              <div class="accordion-field"><span>value_only</span><strong>984.65</strong></div>
+              <div class="accordion-field"><span>unit</span><strong>kWh</strong></div>
+              <div class="accordion-field"><span>display_value</span><strong>984.65 kWh</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>smart_meter</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>meter</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Energy</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:KilowattHour</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:33:00</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#ffbf74">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-4"></path>
+      <path d="M7 18h10"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Structured Device Record</p>
+                <h3 class="accordion-title">SmartMeter</h3>
+                <p class="accordion-preview">urn:ngsi-ld:SmartMeter:dev003</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              997.24 kWh
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:SmartMeter:dev003</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>SmartMeter</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>energy</strong></div>
+              <div class="accordion-field"><span>value_only</span><strong>997.24</strong></div>
+              <div class="accordion-field"><span>unit</span><strong>kWh</strong></div>
+              <div class="accordion-field"><span>display_value</span><strong>997.24 kWh</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>smart_meter</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>meter</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Energy</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:KilowattHour</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:32:18</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#8ea6ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 4h9a1 1 0 0 1 1 1v14H7z"></path>
+      <path d="M10.5 12.5h.01"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Structured Device Record</p>
+                <h3 class="accordion-title">DoorSensor</h3>
+                <p class="accordion-preview">urn:ngsi-ld:DoorSensor:dev010</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              Closed
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:DoorSensor:dev010</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>DoorSensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>doorState</strong></div>
+              <div class="accordion-field"><span>value_only</span><strong>0</strong></div>
+              <div class="accordion-field"><span>unit</span><strong>state</strong></div>
+              <div class="accordion-field"><span>display_value</span><strong>Closed</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>door_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>door</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:OpenCloseState</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:State</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:31:36</strong></div>
+            </div>
+          </div>
+        </details>
+      </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Data</p>
+                <h2>Recent Processed Records</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  These are the most recent cleaned and structured records stored
+                  after processing.
+                </p>
+              </details>
+            </div>
+            <div class="accordion-list" id="processedRecordList">
+        <details class="accordion-card" style="--tone:#7fd5ff" open="">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 14.5V5a2.5 2.5 0 0 0-5 0v9.5a4.5 4.5 0 1 0 5 0Z"></path>
+      <path d="M9.5 10.5h2.5"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Recent Processed Record</p>
+                <h3 class="accordion-title">temperature_sensor</h3>
+                <p class="accordion-preview">smarthome:dev001</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              28.02 C
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>id</span><strong>33652</strong></div>
+              <div class="accordion-field"><span>entity_id</span><strong>smarthome:dev001</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>temperature_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>attribute_value</span><strong>28.02 C</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Temperature</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:DegreeCelsius</strong></div>
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:TemperatureSensor:dev001</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>TemperatureSensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:37:54</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7fd5ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 14.5V5a2.5 2.5 0 0 0-5 0v9.5a4.5 4.5 0 1 0 5 0Z"></path>
+      <path d="M9.5 10.5h2.5"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Recent Processed Record</p>
+                <h3 class="accordion-title">temperature_sensor</h3>
+                <p class="accordion-preview">smarthome:dev001</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              27.94 C
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>id</span><strong>33653</strong></div>
+              <div class="accordion-field"><span>entity_id</span><strong>smarthome:dev001</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>temperature_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>attribute_value</span><strong>27.94 C</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Temperature</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:DegreeCelsius</strong></div>
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:TemperatureSensor:dev001</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>TemperatureSensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:37:12</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7fd5ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 14.5V5a2.5 2.5 0 0 0-5 0v9.5a4.5 4.5 0 1 0 5 0Z"></path>
+      <path d="M9.5 10.5h2.5"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Recent Processed Record</p>
+                <h3 class="accordion-title">temperature_sensor</h3>
+                <p class="accordion-preview">smarthome:dev001</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              28.15 C
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>id</span><strong>33654</strong></div>
+              <div class="accordion-field"><span>entity_id</span><strong>smarthome:dev001</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>temperature_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>attribute_value</span><strong>28.15 C</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Temperature</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:DegreeCelsius</strong></div>
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:TemperatureSensor:dev001</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>TemperatureSensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>temperature</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:36:30</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7ce8d0">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5c3 4 5.5 6.7 5.5 10a5.5 5.5 0 1 1-11 0c0-3.3 2.5-6 5.5-10Z"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Recent Processed Record</p>
+                <h3 class="accordion-title">humidity_sensor</h3>
+                <p class="accordion-preview">smarthome:dev002</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              58.5 %
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>id</span><strong>33655</strong></div>
+              <div class="accordion-field"><span>entity_id</span><strong>smarthome:dev002</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>humidity_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>attribute_value</span><strong>58.5 %</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Humidity</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:Percent</strong></div>
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:HumiditySensor:dev002</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>HumiditySensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:35:48</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7ce8d0">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5c3 4 5.5 6.7 5.5 10a5.5 5.5 0 1 1-11 0c0-3.3 2.5-6 5.5-10Z"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Recent Processed Record</p>
+                <h3 class="accordion-title">humidity_sensor</h3>
+                <p class="accordion-preview">smarthome:dev002</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              59.3 %
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>id</span><strong>33656</strong></div>
+              <div class="accordion-field"><span>entity_id</span><strong>smarthome:dev002</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>humidity_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>attribute_value</span><strong>59.3 %</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Humidity</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:Percent</strong></div>
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:HumiditySensor:dev002</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>HumiditySensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:35:06</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#7ce8d0">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5c3 4 5.5 6.7 5.5 10a5.5 5.5 0 1 1-11 0c0-3.3 2.5-6 5.5-10Z"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Recent Processed Record</p>
+                <h3 class="accordion-title">humidity_sensor</h3>
+                <p class="accordion-preview">smarthome:dev002</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              61.4 %
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>id</span><strong>33657</strong></div>
+              <div class="accordion-field"><span>entity_id</span><strong>smarthome:dev002</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>humidity_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>attribute_value</span><strong>61.4 %</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Humidity</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:Percent</strong></div>
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:HumiditySensor:dev002</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>HumiditySensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>humidity</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:34:24</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#ffbf74">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-4"></path>
+      <path d="M7 18h10"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Recent Processed Record</p>
+                <h3 class="accordion-title">smart_meter</h3>
+                <p class="accordion-preview">smarthome:dev003</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              986.11 kWh
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>id</span><strong>33658</strong></div>
+              <div class="accordion-field"><span>entity_id</span><strong>smarthome:dev003</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>smart_meter</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>meter</strong></div>
+              <div class="accordion-field"><span>attribute_value</span><strong>986.11 kWh</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Energy</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:KilowattHour</strong></div>
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:SmartMeter:dev003</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>SmartMeter</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>energy</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:33:42</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#ffbf74">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-4"></path>
+      <path d="M7 18h10"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Recent Processed Record</p>
+                <h3 class="accordion-title">smart_meter</h3>
+                <p class="accordion-preview">smarthome:dev003</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              984.65 kWh
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>id</span><strong>33659</strong></div>
+              <div class="accordion-field"><span>entity_id</span><strong>smarthome:dev003</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>smart_meter</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>meter</strong></div>
+              <div class="accordion-field"><span>attribute_value</span><strong>984.65 kWh</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Energy</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:KilowattHour</strong></div>
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:SmartMeter:dev003</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>SmartMeter</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>energy</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:33:00</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#ffbf74">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 14a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-4"></path>
+      <path d="M7 18h10"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Recent Processed Record</p>
+                <h3 class="accordion-title">smart_meter</h3>
+                <p class="accordion-preview">smarthome:dev003</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              997.24 kWh
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>id</span><strong>33660</strong></div>
+              <div class="accordion-field"><span>entity_id</span><strong>smarthome:dev003</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>smart_meter</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>meter</strong></div>
+              <div class="accordion-field"><span>attribute_value</span><strong>997.24 kWh</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:Energy</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:KilowattHour</strong></div>
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:SmartMeter:dev003</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>SmartMeter</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>energy</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:32:18</strong></div>
+            </div>
+          </div>
+        </details>
+      
+        <details class="accordion-card" style="--tone:#8ea6ff">
+          <summary class="accordion-summary">
+            <div class="accordion-summary-main">
+              <span class="icon-shell">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 4h9a1 1 0 0 1 1 1v14H7z"></path>
+      <path d="M10.5 12.5h.01"></path>
+    </svg>
+  </span>
+              <div>
+                <p class="accordion-kicker">Recent Processed Record</p>
+                <h3 class="accordion-title">door_sensor</h3>
+                <p class="accordion-preview">smarthome:dev010</p>
+              </div>
+            </div>
+            <div class="accordion-value">
+              Closed
+              <span class="accordion-caret">v</span>
+            </div>
+          </summary>
+          <div class="accordion-body">
+            <div class="accordion-grid">
+              <div class="accordion-field"><span>id</span><strong>33661</strong></div>
+              <div class="accordion-field"><span>entity_id</span><strong>smarthome:dev010</strong></div>
+              <div class="accordion-field"><span>entity_type</span><strong>door_sensor</strong></div>
+              <div class="accordion-field"><span>attribute_name</span><strong>door</strong></div>
+              <div class="accordion-field"><span>attribute_value</span><strong>Closed</strong></div>
+              <div class="accordion-field"><span>saref_type</span><strong>saref:OpenCloseState</strong></div>
+              <div class="accordion-field"><span>saref_unit</span><strong>saref:State</strong></div>
+              <div class="accordion-field"><span>ngsi_id</span><strong>urn:ngsi-ld:DoorSensor:dev010</strong></div>
+              <div class="accordion-field"><span>ngsi_type</span><strong>DoorSensor</strong></div>
+              <div class="accordion-field"><span>ngsi_property</span><strong>doorState</strong></div>
+              <div class="accordion-field"><span>created_at</span><strong>2026-04-20 06:31:36</strong></div>
+            </div>
+          </div>
+        </details>
+      </div>
+          </div>
+        </section>
+
+        <section class="screen-section section-reveal" id="more" data-nav="more">
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">More</p>
+                <h2>Raw Ditto JSON</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This is the original machine-readable data behind the live device
+                  view.
+                </p>
+              </details>
+            </div>
+
+            <details class="json-card">
+              <summary>Show raw Ditto JSON</summary>
+              <pre id="dittoJson">[
+  {
+    "thingId": "smarthome:dev001",
+    "attributes": {
+      "device_id": "dev001",
+      "device_type": "temperature_sensor"
+    },
+    "features": {
+      "temperature": {
+        "properties": {
+          "value": 28.02,
+          "unit": "C",
+          "@type": "saref:Temperature",
+          "saref:isMeasuredIn": "saref:DegreeCelsius"
+        }
+      }
+    }
+  },
+  {
+    "thingId": "smarthome:dev002",
+    "attributes": {
+      "device_id": "dev002",
+      "device_type": "humidity_sensor"
+    },
+    "features": {
+      "humidity": {
+        "properties": {
+          "value": 58.46,
+          "unit": "%",
+          "@type": "saref:Humidity",
+          "saref:isMeasuredIn": "saref:Percent"
+        }
+      }
+    }
+  },
+  {
+    "thingId": "smarthome:dev003",
+    "attributes": {
+      "device_id": "dev003",
+      "device_type": "smart_meter"
+    },
+    "features": {
+      "meter": {
+        "properties": {
+          "value": 986.11,
+          "unit": "kWh",
+          "@type": "saref:Energy",
+          "saref:isMeasuredIn": "saref:KilowattHour"
+        }
+      }
+    }
+  },
+  {
+    "thingId": "smarthome:dev010",
+    "attributes": {
+      "device_id": "dev010",
+      "device_type": "door_sensor"
+    },
+    "features": {
+      "door": {
+        "properties": {
+          "value": 0,
+          "unit": "state",
+          "@type": "saref:OpenCloseState",
+          "saref:isMeasuredIn": "saref:State"
+        }
+      }
+    }
+  },
+  {
+    "thingId": "smarthome:dev011",
+    "attributes": {
+      "device_id": "dev011",
+      "device_type": "motion_sensor"
+    },
+    "features": {
+      "motion": {
+        "properties": {
+          "value": 0,
+          "unit": "state",
+          "@type": "saref:Occupancy",
+          "saref:isMeasuredIn": "saref:State"
+        }
+      }
+    }
+  },
+  {
+    "thingId": "smarthome:dev006",
+    "attributes": {
+      "device_id": "dev006",
+      "device_type": "co2_sensor"
+    },
+    "features": {
+      "co2": {
+        "properties": {
+          "value": 600.19,
+          "unit": "ppm",
+          "@type": "saref:AirQuality",
+          "saref:isMeasuredIn": "saref:PartsPerMillion"
+        }
+      }
+    }
+  },
+  {
+    "thingId": "smarthome:dev007",
+    "attributes": {
+      "device_id": "dev007",
+      "device_type": "pressure_sensor"
+    },
+    "features": {
+      "pressure": {
+        "properties": {
+          "value": 1001.31,
+          "unit": "hPa",
+          "@type": "saref:Pressure",
+          "saref:isMeasuredIn": "saref:HectoPascal"
+        }
+      }
+    }
+  },
+  {
+    "thingId": "smarthome:dev008",
+    "attributes": {
+      "device_id": "dev008",
+      "device_type": "light_sensor"
+    },
+    "features": {
+      "light": {
+        "properties": {
+          "value": 410.21,
+          "unit": "lux",
+          "@type": "saref:Light",
+          "saref:isMeasuredIn": "saref:Lux"
+        }
+      }
+    }
+  },
+  {
+    "thingId": "smarthome:dev009",
+    "attributes": {
+      "device_id": "dev009",
+      "device_type": "battery_sensor"
+    },
+    "features": {
+      "battery": {
+        "properties": {
+          "value": 85.56,
+          "unit": "%",
+          "@type": "saref:BatteryLevel",
+          "saref:isMeasuredIn": "saref:Percent"
+        }
+      }
+    }
+  },
+  {
+    "thingId": "smarthome:dev012",
+    "attributes": {
+      "device_id": "dev012",
+      "device_type": "water_flow_sensor"
+    },
+    "features": {
+      "water_flow": {
+        "properties": {
+          "value": 18.82,
+          "unit": "L/min",
+          "@type": "saref:Flow",
+          "saref:isMeasuredIn": "saref:LiterPerMinute"
+        }
+      }
+    }
+  }
+]</pre>
+            </details>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">More</p>
+                <h2>Raw NGSI Payload</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This is the original machine-readable data behind the structured
+                  records shown in the dashboard.
+                </p>
+              </details>
+            </div>
+
+            <details class="json-card">
+              <summary>Show raw NGSI payload</summary>
+              <pre id="ngsiJson">[
+  {
+    "ngsi_id": "urn:ngsi-ld:TemperatureSensor:dev001",
+    "ngsi_payload": {
+      "id": "urn:ngsi-ld:TemperatureSensor:dev001",
+      "type": "TemperatureSensor",
+      "temperature": {
+        "type": "Property",
+        "value": 28.02
+      },
+      "unit": {
+        "type": "Property",
+        "value": "C"
+      },
+      "displayValue": {
+        "type": "Property",
+        "value": "28.02 C"
+      },
+      "entityType": {
+        "type": "Property",
+        "value": "temperature_sensor"
+      },
+      "attributeName": {
+        "type": "Property",
+        "value": "temperature"
+      },
+      "sarefType": {
+        "type": "Property",
+        "value": "saref:Temperature"
+      },
+      "sarefUnit": {
+        "type": "Property",
+        "value": "saref:DegreeCelsius"
+      },
+      "observedAt": "2026-04-20T05:37:54.226Z",
+      "@context": [
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld"
+      ]
+    }
+  },
+  {
+    "ngsi_id": "urn:ngsi-ld:TemperatureSensor:dev001",
+    "ngsi_payload": {
+      "id": "urn:ngsi-ld:TemperatureSensor:dev001",
+      "type": "TemperatureSensor",
+      "temperature": {
+        "type": "Property",
+        "value": 27.94
+      },
+      "unit": {
+        "type": "Property",
+        "value": "C"
+      },
+      "displayValue": {
+        "type": "Property",
+        "value": "27.94 C"
+      },
+      "entityType": {
+        "type": "Property",
+        "value": "temperature_sensor"
+      },
+      "attributeName": {
+        "type": "Property",
+        "value": "temperature"
+      },
+      "sarefType": {
+        "type": "Property",
+        "value": "saref:Temperature"
+      },
+      "sarefUnit": {
+        "type": "Property",
+        "value": "saref:DegreeCelsius"
+      },
+      "observedAt": "2026-04-20T05:37:12.226Z",
+      "@context": [
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld"
+      ]
+    }
+  },
+  {
+    "ngsi_id": "urn:ngsi-ld:TemperatureSensor:dev001",
+    "ngsi_payload": {
+      "id": "urn:ngsi-ld:TemperatureSensor:dev001",
+      "type": "TemperatureSensor",
+      "temperature": {
+        "type": "Property",
+        "value": 28.15
+      },
+      "unit": {
+        "type": "Property",
+        "value": "C"
+      },
+      "displayValue": {
+        "type": "Property",
+        "value": "28.15 C"
+      },
+      "entityType": {
+        "type": "Property",
+        "value": "temperature_sensor"
+      },
+      "attributeName": {
+        "type": "Property",
+        "value": "temperature"
+      },
+      "sarefType": {
+        "type": "Property",
+        "value": "saref:Temperature"
+      },
+      "sarefUnit": {
+        "type": "Property",
+        "value": "saref:DegreeCelsius"
+      },
+      "observedAt": "2026-04-20T05:36:30.226Z",
+      "@context": [
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld"
+      ]
+    }
+  },
+  {
+    "ngsi_id": "urn:ngsi-ld:HumiditySensor:dev002",
+    "ngsi_payload": {
+      "id": "urn:ngsi-ld:HumiditySensor:dev002",
+      "type": "HumiditySensor",
+      "humidity": {
+        "type": "Property",
+        "value": 58.46
+      },
+      "unit": {
+        "type": "Property",
+        "value": "%"
+      },
+      "displayValue": {
+        "type": "Property",
+        "value": "58.5 %"
+      },
+      "entityType": {
+        "type": "Property",
+        "value": "humidity_sensor"
+      },
+      "attributeName": {
+        "type": "Property",
+        "value": "humidity"
+      },
+      "sarefType": {
+        "type": "Property",
+        "value": "saref:Humidity"
+      },
+      "sarefUnit": {
+        "type": "Property",
+        "value": "saref:Percent"
+      },
+      "observedAt": "2026-04-20T05:35:48.226Z",
+      "@context": [
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld"
+      ]
+    }
+  },
+  {
+    "ngsi_id": "urn:ngsi-ld:HumiditySensor:dev002",
+    "ngsi_payload": {
+      "id": "urn:ngsi-ld:HumiditySensor:dev002",
+      "type": "HumiditySensor",
+      "humidity": {
+        "type": "Property",
+        "value": 59.3
+      },
+      "unit": {
+        "type": "Property",
+        "value": "%"
+      },
+      "displayValue": {
+        "type": "Property",
+        "value": "59.3 %"
+      },
+      "entityType": {
+        "type": "Property",
+        "value": "humidity_sensor"
+      },
+      "attributeName": {
+        "type": "Property",
+        "value": "humidity"
+      },
+      "sarefType": {
+        "type": "Property",
+        "value": "saref:Humidity"
+      },
+      "sarefUnit": {
+        "type": "Property",
+        "value": "saref:Percent"
+      },
+      "observedAt": "2026-04-20T05:35:06.226Z",
+      "@context": [
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld"
+      ]
+    }
+  },
+  {
+    "ngsi_id": "urn:ngsi-ld:HumiditySensor:dev002",
+    "ngsi_payload": {
+      "id": "urn:ngsi-ld:HumiditySensor:dev002",
+      "type": "HumiditySensor",
+      "humidity": {
+        "type": "Property",
+        "value": 61.4
+      },
+      "unit": {
+        "type": "Property",
+        "value": "%"
+      },
+      "displayValue": {
+        "type": "Property",
+        "value": "61.4 %"
+      },
+      "entityType": {
+        "type": "Property",
+        "value": "humidity_sensor"
+      },
+      "attributeName": {
+        "type": "Property",
+        "value": "humidity"
+      },
+      "sarefType": {
+        "type": "Property",
+        "value": "saref:Humidity"
+      },
+      "sarefUnit": {
+        "type": "Property",
+        "value": "saref:Percent"
+      },
+      "observedAt": "2026-04-20T05:34:24.226Z",
+      "@context": [
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld"
+      ]
+    }
+  },
+  {
+    "ngsi_id": "urn:ngsi-ld:SmartMeter:dev003",
+    "ngsi_payload": {
+      "id": "urn:ngsi-ld:SmartMeter:dev003",
+      "type": "SmartMeter",
+      "energy": {
+        "type": "Property",
+        "value": 986.11
+      },
+      "unit": {
+        "type": "Property",
+        "value": "kWh"
+      },
+      "displayValue": {
+        "type": "Property",
+        "value": "986.11 kWh"
+      },
+      "entityType": {
+        "type": "Property",
+        "value": "smart_meter"
+      },
+      "attributeName": {
+        "type": "Property",
+        "value": "meter"
+      },
+      "sarefType": {
+        "type": "Property",
+        "value": "saref:Energy"
+      },
+      "sarefUnit": {
+        "type": "Property",
+        "value": "saref:KilowattHour"
+      },
+      "observedAt": "2026-04-20T05:33:42.226Z",
+      "@context": [
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld"
+      ]
+    }
+  },
+  {
+    "ngsi_id": "urn:ngsi-ld:SmartMeter:dev003",
+    "ngsi_payload": {
+      "id": "urn:ngsi-ld:SmartMeter:dev003",
+      "type": "SmartMeter",
+      "energy": {
+        "type": "Property",
+        "value": 984.65
+      },
+      "unit": {
+        "type": "Property",
+        "value": "kWh"
+      },
+      "displayValue": {
+        "type": "Property",
+        "value": "984.65 kWh"
+      },
+      "entityType": {
+        "type": "Property",
+        "value": "smart_meter"
+      },
+      "attributeName": {
+        "type": "Property",
+        "value": "meter"
+      },
+      "sarefType": {
+        "type": "Property",
+        "value": "saref:Energy"
+      },
+      "sarefUnit": {
+        "type": "Property",
+        "value": "saref:KilowattHour"
+      },
+      "observedAt": "2026-04-20T05:33:00.226Z",
+      "@context": [
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld"
+      ]
+    }
+  },
+  {
+    "ngsi_id": "urn:ngsi-ld:SmartMeter:dev003",
+    "ngsi_payload": {
+      "id": "urn:ngsi-ld:SmartMeter:dev003",
+      "type": "SmartMeter",
+      "energy": {
+        "type": "Property",
+        "value": 997.24
+      },
+      "unit": {
+        "type": "Property",
+        "value": "kWh"
+      },
+      "displayValue": {
+        "type": "Property",
+        "value": "997.24 kWh"
+      },
+      "entityType": {
+        "type": "Property",
+        "value": "smart_meter"
+      },
+      "attributeName": {
+        "type": "Property",
+        "value": "meter"
+      },
+      "sarefType": {
+        "type": "Property",
+        "value": "saref:Energy"
+      },
+      "sarefUnit": {
+        "type": "Property",
+        "value": "saref:KilowattHour"
+      },
+      "observedAt": "2026-04-20T05:32:18.226Z",
+      "@context": [
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld"
+      ]
+    }
+  },
+  {
+    "ngsi_id": "urn:ngsi-ld:DoorSensor:dev010",
+    "ngsi_payload": {
+      "id": "urn:ngsi-ld:DoorSensor:dev010",
+      "type": "DoorSensor",
+      "doorState": {
+        "type": "Property",
+        "value": 0
+      },
+      "unit": {
+        "type": "Property",
+        "value": "state"
+      },
+      "displayValue": {
+        "type": "Property",
+        "value": "Closed"
+      },
+      "entityType": {
+        "type": "Property",
+        "value": "door_sensor"
+      },
+      "attributeName": {
+        "type": "Property",
+        "value": "door"
+      },
+      "sarefType": {
+        "type": "Property",
+        "value": "saref:OpenCloseState"
+      },
+      "sarefUnit": {
+        "type": "Property",
+        "value": "saref:State"
+      },
+      "observedAt": "2026-04-20T05:31:36.226Z",
+      "@context": [
+        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld"
+      ]
+    }
+  }
+]</pre>
+            </details>
+          </div>
+
+          <div class="section-card github-card">
+            <div class="github-copy">
+              <p class="eyebrow">Project</p>
+              <h2>View Full Project</h2>
+              <p>
+                Explore the full implementation, code, and pipeline details on
+                GitHub.
+              </p>
+            </div>
+            <a class="github-button" href="https://github.com/manisharma9/IOT-PIPELINE" target="_blank" rel="noopener noreferrer">
+              Open GitHub
+            </a>
+          </div>
+        </section>
+
+        <div class="bottom-spacer" aria-hidden="true"></div>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Primary navigation">
+        <button class="nav-item is-active" data-target="home" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4.5v-5.5h-5V21H5a1 1 0 0 1-1-1z"></path>
+            </svg>
+          </span>
+          <span>Home</span>
+        </button>
+        <button class="nav-item" data-target="live" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 13h3l2-5 4 10 2-5h5"></path>
+            </svg>
+          </span>
+          <span>Live</span>
+        </button>
+        <button class="nav-item" data-target="charts" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 18h14"></path>
+              <path d="M7 16V9"></path>
+              <path d="M12 16V6"></path>
+              <path d="M17 16v-4"></path>
+            </svg>
+          </span>
+          <span>Charts</span>
+        </button>
+        <button class="nav-item" data-target="data" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 7h12"></path>
+              <path d="M6 12h12"></path>
+              <path d="M6 17h8"></path>
+            </svg>
+          </span>
+          <span>Data</span>
+        </button>
+        <button class="nav-item" data-target="more" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="2"></circle>
+              <circle cx="5" cy="12" r="2"></circle>
+              <circle cx="19" cy="12" r="2"></circle>
+            </svg>
+          </span>
+          <span>More</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+
+
+</body></html>

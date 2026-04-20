@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta
     name="description"
-    content="Mobile-first smart home dashboard for live home performance and energy monitoring."
+    content="Mobile-first smart home dashboard for live device status, twin state, structured records, and trends."
   />
   <title>Smart Home IoT Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,9 +28,9 @@
 
   <div class="splash-screen" id="splashScreen" aria-hidden="false">
     <div class="splash-panel">
-      <span class="splash-chip">Live Home Monitoring</span>
+      <span class="splash-chip">Smart Home Monitoring</span>
       <h1>Smart Home IoT Dashboard</h1>
-      <p>Smart energy and home insights</p>
+      <p>Live status, structured records, and trends</p>
       <div class="splash-loader" aria-hidden="true">
         <span></span>
         <span></span>
@@ -47,10 +47,10 @@
             <div class="header-row">
               <div class="brand-block">
                 <p class="eyebrow">Smart Home IoT Dashboard</p>
-                <h1>Live home performance in one glance</h1>
+                <h1>Live home monitoring in one mobile view</h1>
                 <p class="header-copy">
-                  A polished mobile view of comfort, activity, energy use, and
-                  device health designed for quick presentation-ready monitoring.
+                  The same insight layers from the Streamlit dashboard, refined for
+                  fast mobile browsing and simple presentation.
                 </p>
               </div>
               <div class="live-badge">
@@ -62,13 +62,14 @@
             <div class="hero-card">
               <div class="hero-card-top">
                 <div>
-                  <p class="hero-label">Home Snapshot</p>
-                  <h2>Current conditions are easy to read and compare</h2>
+                  <p class="hero-label">Dashboard Overview</p>
+                  <h2>Track live conditions, latest device state, and structured updates</h2>
                 </div>
               </div>
               <p class="hero-text">
-                See what is happening in the smart home right now, which changes
-                matter most, and where trends can support faster decisions.
+                This mobile dashboard brings together current readings, the latest
+                device representation, processed records, and trend history in a
+                single polished interface.
               </p>
               <div class="hero-metrics" id="heroMetrics"></div>
             </div>
@@ -77,152 +78,218 @@
           <div class="section-card">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">At A Glance</p>
-                <h2>What this dashboard helps you understand</h2>
+                <p class="eyebrow">Home</p>
+                <h2>Live KPI Overview</h2>
               </div>
-              <p class="section-copy">
-                The key stories a panel can understand in seconds from a single
-                mobile view.
-              </p>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  These are the key live readings that give a quick picture of what
+                  is happening in the monitored home right now.
+                </p>
+              </details>
             </div>
-            <div class="story-flow" id="storyHighlights"></div>
+            <div class="home-kpi-grid" id="homeKpiGrid"></div>
           </div>
 
           <div class="section-card">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">Key Highlights</p>
-                <h2>Latest device insights</h2>
+                <p class="eyebrow">Home</p>
+                <h2>Latest Device State</h2>
               </div>
-              <p class="section-copy">
-                The most important readings and what they suggest for the home
-                right now.
-              </p>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This shows the newest stored status for each device so you can
+                  compare the latest monitored conditions quickly.
+                </p>
+              </details>
             </div>
-            <div class="insight-list" id="latestInsightList"></div>
+            <div class="status-list" id="latestStatusList"></div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Home</p>
+                <h2>Activity Summary</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This compact view shows which device categories are producing the
+                  most recent activity in the dashboard.
+                </p>
+              </details>
+            </div>
+            <div class="activity-list" id="activityList"></div>
           </div>
         </section>
 
         <section class="screen-section section-reveal" id="live" data-nav="live">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Live Status</p>
-              <h2>Swipe through live device status</h2>
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Live</p>
+                <h2>Live Device Status</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  These are the latest readings coming from devices in the monitored
+                  environment.
+                </p>
+              </details>
             </div>
-            <p class="section-copy">
-              Tap any card to pin the reading and see what it means at a glance.
-            </p>
+
+            <div class="live-carousel" id="liveCarousel" aria-label="Live sensor cards"></div>
+
+            <div class="carousel-meta">
+              <span class="swipe-hint">Swipe to compare devices</span>
+              <div class="carousel-dots" id="carouselDots" aria-hidden="true"></div>
+            </div>
+
+            <article class="focus-card" id="liveFocus"></article>
           </div>
 
-          <div class="live-carousel" id="liveCarousel" aria-label="Live sensor cards"></div>
-
-          <div class="carousel-meta">
-            <span class="swipe-hint">Swipe to compare devices</span>
-            <div class="carousel-dots" id="carouselDots" aria-hidden="true"></div>
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Live</p>
+                <h2>Latest Twin State</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This shows the most recent live digital representation of each
+                  device and its current value.
+                </p>
+              </details>
+            </div>
+            <div class="accordion-list" id="twinStateList"></div>
           </div>
-
-          <article class="focus-card" id="liveFocus"></article>
         </section>
 
         <section class="screen-section section-reveal" id="charts" data-nav="charts">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Trends</p>
-              <h2>Recent changes over time</h2>
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Charts</p>
+                <h2>Sensor Trends</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  These charts help show how monitored values change over time
+                  instead of only showing the latest reading.
+                </p>
+              </details>
             </div>
-            <p class="section-copy">
-              Expand a chart to see how key readings have moved through the day.
-            </p>
+            <div class="chart-stack" id="chartStack"></div>
           </div>
-
-          <div class="chart-stack" id="chartStack"></div>
         </section>
 
         <section class="screen-section section-reveal" id="data" data-nav="data">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Data Summary</p>
-              <h2>Structured device records</h2>
-            </div>
-            <p class="section-copy">
-              Organised device records make the latest reading, status, and timing
-              easy to scan.
-            </p>
-          </div>
-
           <div class="data-summary-card">
             <div class="summary-grid" id="dataSummary"></div>
           </div>
 
-          <div class="record-list" id="recordList"></div>
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Data</p>
+                <h2>Structured Device Records</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This is structured data so other systems can easily understand and
+                  use the latest device information.
+                </p>
+              </details>
+            </div>
+            <div class="accordion-list" id="ngsiRecordList"></div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Data</p>
+                <h2>Recent Processed Records</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  These are the most recent cleaned and structured records stored
+                  after processing.
+                </p>
+              </details>
+            </div>
+            <div class="accordion-list" id="processedRecordList"></div>
+          </div>
         </section>
 
         <section class="screen-section section-reveal" id="more" data-nav="more">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">More</p>
-              <h2>Why this view matters</h2>
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">More</p>
+                <h2>Raw Ditto JSON</h2>
+              </div>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
+                <p>
+                  This is the original machine-readable data behind the live device
+                  view.
+                </p>
+              </details>
             </div>
-            <p class="section-copy">
-              A light presentation tab focused on outcomes and quick takeaways.
-            </p>
+
+            <details class="json-card">
+              <summary>Show raw Ditto JSON</summary>
+              <pre id="dittoJson"></pre>
+            </details>
           </div>
 
-          <div class="more-stack">
-            <article class="more-card">
-              <h3>How to read this app</h3>
-              <p>
-                Home gives the overall picture, Live shows the current situation,
-                Charts shows direction over time, and Data keeps the latest device
-                records easy to scan.
-              </p>
-            </article>
-
-            <article class="more-card">
-              <h3>What this helps you spot</h3>
-              <div class="benefit-grid">
-                <div class="benefit-card">
-                  <h3>Comfort</h3>
-                  <p>
-                    Temperature, humidity, and air quality help show whether the
-                    home feels balanced and healthy.
-                  </p>
-                </div>
-                <div class="benefit-card">
-                  <h3>Energy use</h3>
-                  <p>
-                    Meter and utility readings show how usage is moving and where
-                    efficiency conversations can start.
-                  </p>
-                </div>
-                <div class="benefit-card">
-                  <h3>Activity</h3>
-                  <p>
-                    Door and motion updates make it easy to see whether the home is
-                    secure and active.
-                  </p>
-                </div>
-                <div class="benefit-card">
-                  <h3>Reliability</h3>
-                  <p>
-                    Device health readings help confirm the monitoring system is
-                    ready and trustworthy.
-                  </p>
-                </div>
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">More</p>
+                <h2>Raw NGSI Payload</h2>
               </div>
-            </article>
-
-            <article class="more-card qr-card">
-              <div class="qr-art" id="qrArt" aria-hidden="true"></div>
-              <div class="qr-copy">
-                <span class="tag">Presentation Access</span>
-                <h3>Demo QR placeholder</h3>
+              <details class="info-drawer">
+                <summary>What is this?</summary>
                 <p>
-                  Use this space for a QR code to the live demo, project page, or
-                  presentation slides before presenting.
+                  This is the original machine-readable data behind the structured
+                  records shown in the dashboard.
                 </p>
-              </div>
-            </article>
+              </details>
+            </div>
+
+            <details class="json-card">
+              <summary>Show raw NGSI payload</summary>
+              <pre id="ngsiJson"></pre>
+            </details>
+          </div>
+
+          <div class="section-card github-card">
+            <div class="github-copy">
+              <p class="eyebrow">Project</p>
+              <h2>View Full Project</h2>
+              <p>
+                Explore the full implementation, code, and pipeline details on
+                GitHub.
+              </p>
+            </div>
+            <a
+              class="github-button"
+              href="https://github.com/manisharma9/IOT-PIPELINE"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open GitHub
+            </a>
           </div>
         </section>
 
