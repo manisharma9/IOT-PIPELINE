@@ -2,433 +2,291 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0e1117" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <meta name="theme-color" content="#08111a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta
+    name="description"
+    content="Mobile-first Smart Home IoT Dashboard for semantic smart energy insights."
+  />
   <title>Smart Home IoT Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- DESKTOP LAYOUT -->
-  <div class="desktop-layout">
-    <div class="app">
-      <aside class="sidebar">
-        <div class="sidebar-inner">
-          <h2 class="sidebar-title">Pipeline Controls</h2>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
 
-          <div class="button-grid">
-            <button class="sidebar-btn">Start Consumer</button>
-            <button class="sidebar-btn">Stop Consumer</button>
-            <button class="sidebar-btn">Start Semantic</button>
-            <button class="sidebar-btn">Stop Semantic</button>
-          </div>
-
-          <div class="sidebar-divider"></div>
-
-          <h3 class="sidebar-subtitle">Current Status</h3>
-          <p class="status-line"><strong>Consumer:</strong> <span class="status-running">🟢 Running</span></p>
-          <p class="status-line"><strong>Semantic Connector:</strong> <span class="status-running">🟢 Running</span></p>
-
-          <div class="sidebar-divider"></div>
-
-          <h3 class="sidebar-subtitle">Filter Data</h3>
-
-          <label class="sidebar-label">Select Device Type</label>
-          <select class="sidebar-select">
-            <option>All</option>
-            <option>temperature_sensor</option>
-            <option>humidity_sensor</option>
-            <option>smart_meter</option>
-            <option>light_sensor</option>
-            <option>motion_sensor</option>
-            <option>door_sensor</option>
-            <option>co2_sensor</option>
-            <option>pressure_sensor</option>
-            <option>battery_sensor</option>
-            <option>water_flow_sensor</option>
-          </select>
-
-          <label class="sidebar-label top-gap">Recent Records to Show</label>
-          <input type="range" min="5" max="100" value="20" class="sidebar-slider" />
-          <div class="slider-value">20</div>
-        </div>
-      </aside>
-
-      <main class="main">
-        <section class="hero">
-          <h1>🏠 Smart Home IoT Dashboard</h1>
-          <p>MySQL processed history + Ditto live twin state + Orion-LD NGSI-LD view</p>
-        </section>
-
-        <section class="section">
-          <h2>Eclipse Ditto Live Twin State</h2>
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <div class="metric-label">Temperature Sensor</div>
-              <div class="metric-value" id="tempValue">27.94 C</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Humidity Sensor</div>
-              <div class="metric-value" id="humidityValue">59.3 %</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Smart Meter</div>
-              <div class="metric-value" id="meterValue">984.65 kWh</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Door Sensor</div>
-              <div class="metric-value" id="doorValue">Closed</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Motion Sensor</div>
-              <div class="metric-value" id="motionValue">Motion Detected</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">CO2 Sensor</div>
-              <div class="metric-value" id="co2Value">653.02 ppm</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Pressure Sensor</div>
-              <div class="metric-value" id="pressureValue">1006.08 hPa</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Light Sensor</div>
-              <div class="metric-value" id="lightValue">398.88 lux</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Battery Sensor</div>
-              <div class="metric-value" id="batteryValue">85.79 %</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Water Flow Sensor</div>
-              <div class="metric-value" id="flowValue">19.31 L/min</div>
-            </div>
-          </div>
-        </section>
-
-        <section class="section">
-          <h2>NGSI-LD View from Processed MySQL Table</h2>
-          <div class="table-card">
-            <table>
-              <thead>
-                <tr>
-                  <th>ngsi_id</th>
-                  <th>ngsi_type</th>
-                  <th>ngsi_property</th>
-                  <th>value_only</th>
-                  <th>unit</th>
-                  <th>display_value</th>
-                  <th>entity_type</th>
-                  <th>attribute_name</th>
-                  <th>saref_type</th>
-                  <th>saref_unit</th>
-                  <th>created_at</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>urn:ngsi-ld:TemperatureSensor:dev001</td>
-                  <td>TemperatureSensor</td>
-                  <td>temperature</td>
-                  <td>27.94</td>
-                  <td>C</td>
-                  <td>27.94 C</td>
-                  <td>temperature_sensor</td>
-                  <td>temperature</td>
-                  <td>saref:Temperature</td>
-                  <td>saref:DegreeCelsius</td>
-                  <td>2026-04-05 14:22:05</td>
-                </tr>
-                <tr>
-                  <td>urn:ngsi-ld:HumiditySensor:dev002</td>
-                  <td>HumiditySensor</td>
-                  <td>humidity</td>
-                  <td>59.3</td>
-                  <td>%</td>
-                  <td>59.3 %</td>
-                  <td>humidity_sensor</td>
-                  <td>humidity</td>
-                  <td>saref:Humidity</td>
-                  <td>saref:Percent</td>
-                  <td>2026-04-05 14:21:50</td>
-                </tr>
-                <tr>
-                  <td>urn:ngsi-ld:SmartMeter:dev003</td>
-                  <td>SmartMeter</td>
-                  <td>energy</td>
-                  <td>984.65</td>
-                  <td>kWh</td>
-                  <td>984.65 kWh</td>
-                  <td>smart_meter</td>
-                  <td>meter</td>
-                  <td>saref:Energy</td>
-                  <td>saref:KilowattHour</td>
-                  <td>2026-04-05 14:22:05</td>
-                </tr>
-                <tr>
-                  <td>urn:ngsi-ld:DoorSensor:dev010</td>
-                  <td>DoorSensor</td>
-                  <td>doorState</td>
-                  <td>0</td>
-                  <td>state</td>
-                  <td>Closed</td>
-                  <td>door_sensor</td>
-                  <td>door</td>
-                  <td>saref:OpenCloseState</td>
-                  <td>saref:State</td>
-                  <td>2026-04-05 14:22:16</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="section">
-          <h2>Overview</h2>
-          <div class="overview-grid">
-            <div class="card">
-              <h3>Device Activity</h3>
-              <div class="bars">
-                <div class="bar-wrap"><span>temperature_sensor</span><div class="bar"><div class="bar-fill" style="width: 82%"></div></div></div>
-                <div class="bar-wrap"><span>humidity_sensor</span><div class="bar"><div class="bar-fill" style="width: 76%"></div></div></div>
-                <div class="bar-wrap"><span>smart_meter</span><div class="bar"><div class="bar-fill" style="width: 92%"></div></div></div>
-                <div class="bar-wrap"><span>light_sensor</span><div class="bar"><div class="bar-fill" style="width: 58%"></div></div></div>
-                <div class="bar-wrap"><span>motion_sensor</span><div class="bar"><div class="bar-fill" style="width: 63%"></div></div></div>
-                <div class="bar-wrap"><span>door_sensor</span><div class="bar"><div class="bar-fill" style="width: 55%"></div></div></div>
-                <div class="bar-wrap"><span>co2_sensor</span><div class="bar"><div class="bar-fill" style="width: 68%"></div></div></div>
-                <div class="bar-wrap"><span>pressure_sensor</span><div class="bar"><div class="bar-fill" style="width: 60%"></div></div></div>
-                <div class="bar-wrap"><span>battery_sensor</span><div class="bar"><div class="bar-fill" style="width: 72%"></div></div></div>
-                <div class="bar-wrap"><span>water_flow_sensor</span><div class="bar"><div class="bar-fill" style="width: 64%"></div></div></div>
-              </div>
-            </div>
-
-            <div class="card">
-              <h3>Latest Device Status from MySQL</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>entity_type</th>
-                    <th>attribute_name</th>
-                    <th>latest_value</th>
-                    <th>created_at</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>temperature_sensor</td><td>temperature</td><td>27.94 C</td><td>2026-04-05 14:22:05</td></tr>
-                  <tr><td>humidity_sensor</td><td>humidity</td><td>59.3 %</td><td>2026-04-05 14:21:50</td></tr>
-                  <tr><td>smart_meter</td><td>meter</td><td>984.65 kWh</td><td>2026-04-05 14:22:05</td></tr>
-                  <tr><td>door_sensor</td><td>door</td><td>Closed</td><td>2026-04-05 14:22:16</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section class="section">
-          <h2>Ditto Latest Twin State</h2>
-          <div class="table-card">
-            <table>
-              <thead>
-                <tr>
-                  <th>thing_id</th>
-                  <th>device_id</th>
-                  <th>device_type</th>
-                  <th>feature_name</th>
-                  <th>latest_value</th>
-                  <th>saref_type</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>smarthome:dev001</td><td>dev001</td><td>temperature_sensor</td><td>temperature</td><td>27.94 C</td><td>saref:Temperature</td></tr>
-                <tr><td>smarthome:dev002</td><td>dev002</td><td>humidity_sensor</td><td>humidity</td><td>59.3 %</td><td>saref:Humidity</td></tr>
-                <tr><td>smarthome:dev003</td><td>dev003</td><td>smart_meter</td><td>meter</td><td>984.65 kWh</td><td>saref:Energy</td></tr>
-                <tr><td>smarthome:dev010</td><td>dev010</td><td>door_sensor</td><td>door</td><td>Closed</td><td>saref:OpenCloseState</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="section">
-          <h2>Sensor Trends from MySQL History</h2>
-          <div class="trend-grid">
-            <div class="card">
-              <h3>Temperature Sensor</h3>
-              <div class="fake-chart"><canvas id="tempChart"></canvas></div>
-            </div>
-            <div class="card">
-              <h3>Humidity Sensor</h3>
-              <div class="fake-chart"><canvas id="humidityChart"></canvas></div>
-            </div>
-            <div class="card">
-              <h3>Smart Meter</h3>
-              <div class="fake-chart"><canvas id="meterChart"></canvas></div>
-            </div>
-            <div class="card">
-              <h3>CO2 Sensor</h3>
-              <div class="fake-chart"><canvas id="co2Chart"></canvas></div>
-            </div>
-          </div>
-        </section>
-
-        <section class="section">
-          <h2>Recent Processed Records from MySQL</h2>
-          <div class="table-card">
-            <table>
-              <thead>
-                <tr>
-                  <th>id</th>
-                  <th>entity_id</th>
-                  <th>entity_type</th>
-                  <th>attribute_name</th>
-                  <th>attribute_value</th>
-                  <th>saref_type</th>
-                  <th>ngsi_type</th>
-                  <th>created_at</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>33652</td><td>smarthome:dev001</td><td>temperature_sensor</td><td>temperature</td><td>28.02 C</td><td>saref:Temperature</td><td>TemperatureSensor</td><td>2026-04-05 14:22:41</td></tr>
-                <tr><td>33653</td><td>smarthome:dev006</td><td>co2_sensor</td><td>co2</td><td>600.19 ppm</td><td>saref:AirQuality</td><td>CO2Sensor</td><td>2026-04-05 14:22:42</td></tr>
-                <tr><td>33654</td><td>smarthome:dev010</td><td>door_sensor</td><td>door</td><td>Closed</td><td>saref:OpenCloseState</td><td>DoorSensor</td><td>2026-04-05 14:22:42</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="section desktop-json">
-          <details class="json-box">
-            <summary>Raw Ditto JSON</summary>
-            <pre id="dittoJson"></pre>
-          </details>
-        </section>
-
-        <section class="section desktop-json">
-          <details class="json-box">
-            <summary>Raw NGSI-LD Payload from MySQL</summary>
-            <pre id="ngsiJson"></pre>
-          </details>
-        </section>
-      </main>
+  <div class="splash-screen" id="splashScreen" aria-hidden="false">
+    <div class="splash-panel">
+      <span class="splash-chip">Semantic Pipeline Demo</span>
+      <h1>Smart Home IoT Dashboard</h1>
+      <p>Semantic smart energy insights</p>
+      <div class="splash-loader" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
   </div>
 
-  <!-- MOBILE LAYOUT -->
-  <div class="mobile-layout">
-    <div class="mobile-app">
-      <header class="mobile-header">
-        <div class="mobile-title">🏠 Smart Home IoT</div>
-        <div class="mobile-subtitle">Live pipeline dashboard</div>
-      </header>
+  <div class="app-shell">
+    <div class="mobile-frame">
+      <main class="app-main">
+        <section class="screen-section section-reveal" id="home" data-nav="home">
+          <header class="app-header">
+            <div class="header-row">
+              <div class="brand-block">
+                <p class="eyebrow">Smart Home IoT Dashboard</p>
+                <h1>Semantic smart energy insights</h1>
+                <p class="header-copy">
+                  A polished mobile view of your smart home pipeline, turning raw
+                  telemetry into clear live state, trends, and semantic context.
+                </p>
+              </div>
+              <div class="live-badge">
+                <span class="status-dot"></span>
+                <span>Live</span>
+              </div>
+            </div>
 
-      <section class="mobile-section">
-        <div class="mobile-hero-card">
-          <div class="mobile-hero-top">
+            <div class="hero-card">
+              <div class="hero-card-top">
+                <div>
+                  <p class="hero-label">Pipeline health</p>
+                  <h2>All semantic services synchronized</h2>
+                </div>
+                <button class="ghost-action" id="refreshButton" type="button">
+                  Refresh feed
+                </button>
+              </div>
+              <p class="hero-text">
+                Raw IoT data lands in MySQL, the Semantic Connector enriches it,
+                and the dashboard explains the latest picture from Processed MySQL,
+                Eclipse Ditto, and Orion-LD in one phone-first interface.
+              </p>
+              <div class="hero-metrics" id="heroMetrics"></div>
+            </div>
+          </header>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Pipeline</p>
+                <h2>From raw device data to business insight</h2>
+              </div>
+              <p class="section-copy">
+                This condensed flow keeps the architecture easy to explain during a
+                live demo or presentation.
+              </p>
+            </div>
+            <div class="pipeline-flow" id="pipelineFlow"></div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Latest Insights</p>
+                <h2>Current device summaries</h2>
+              </div>
+              <p class="section-copy">
+                Clean cards keep the story readable for non-technical viewers at a
+                glance.
+              </p>
+            </div>
+            <div class="insight-list" id="latestInsightList"></div>
+          </div>
+        </section>
+
+        <section class="screen-section section-reveal" id="live" data-nav="live">
+          <div class="section-heading">
             <div>
-              <div class="mobile-hero-label">Pipeline Status</div>
-              <div class="mobile-hero-value">Running</div>
+              <p class="eyebrow">Live View</p>
+              <h2>Swipe through the latest sensor state</h2>
             </div>
-            <div class="mobile-dot"></div>
+            <p class="section-copy">
+              Tap a card to pin the device and reveal a quick explanation below.
+            </p>
           </div>
-          <div class="mobile-hero-meta">
-            Consumer, Semantic Connector, Ditto and Orion-LD demo view
-          </div>
-        </div>
-      </section>
 
-      <section class="mobile-section">
-        <h2 class="mobile-section-title">Live Device State</h2>
-        <div class="mobile-metrics">
-          <div class="mobile-metric-card">
-            <div class="mobile-metric-label">Temperature</div>
-            <div class="mobile-metric-value" id="mTempValue">27.94 C</div>
-          </div>
-          <div class="mobile-metric-card">
-            <div class="mobile-metric-label">Humidity</div>
-            <div class="mobile-metric-value" id="mHumidityValue">59.3 %</div>
-          </div>
-          <div class="mobile-metric-card">
-            <div class="mobile-metric-label">Smart Meter</div>
-            <div class="mobile-metric-value" id="mMeterValue">984.65 kWh</div>
-          </div>
-          <div class="mobile-metric-card">
-            <div class="mobile-metric-label">Door</div>
-            <div class="mobile-metric-value" id="mDoorValue">Closed</div>
-          </div>
-          <div class="mobile-metric-card">
-            <div class="mobile-metric-label">Motion</div>
-            <div class="mobile-metric-value" id="mMotionValue">Motion Detected</div>
-          </div>
-        </div>
-      </section>
+          <div class="live-carousel" id="liveCarousel" aria-label="Live sensor cards"></div>
 
-      <section class="mobile-section">
-        <h2 class="mobile-section-title">Quick Summary</h2>
-        <div class="mobile-card-list">
-          <div class="mobile-info-card">
-            <div class="mobile-info-title">Ditto</div>
-            <div class="mobile-info-text">Stores latest digital twin state for each device.</div>
+          <div class="carousel-meta">
+            <span class="swipe-hint">Swipe to compare devices</span>
+            <div class="carousel-dots" id="carouselDots" aria-hidden="true"></div>
           </div>
-          <div class="mobile-info-card">
-            <div class="mobile-info-title">Processed MySQL</div>
-            <div class="mobile-info-text">Stores history, semantic mapping, and NGSI-LD metadata.</div>
-          </div>
-          <div class="mobile-info-card">
-            <div class="mobile-info-title">Orion-LD</div>
-            <div class="mobile-info-text">Stores device context in NGSI-LD format.</div>
-          </div>
-        </div>
-      </section>
 
-      <section class="mobile-section">
-        <h2 class="mobile-section-title">Latest Devices</h2>
-        <div class="mobile-device-list">
-          <div class="mobile-device-card">
-            <div class="mobile-device-top">
-              <span>Temperature Sensor</span>
-              <span class="mobile-pill">Ditto</span>
+          <article class="focus-card" id="liveFocus"></article>
+        </section>
+
+        <section class="screen-section section-reveal" id="charts" data-nav="charts">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Trends</p>
+              <h2>Historical patterns in expandable chart cards</h2>
             </div>
-            <div class="mobile-device-value">27.94 C</div>
-            <div class="mobile-device-meta">saref:Temperature</div>
+            <p class="section-copy">
+              The charts stay compact by default, then expand when you want more
+              detail.
+            </p>
           </div>
 
-          <div class="mobile-device-card">
-            <div class="mobile-device-top">
-              <span>Humidity Sensor</span>
-              <span class="mobile-pill">NGSI-LD</span>
+          <div class="chart-stack" id="chartStack"></div>
+        </section>
+
+        <section class="screen-section section-reveal" id="data" data-nav="data">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Structured Context</p>
+              <h2>NGSI-LD insights as stacked cards</h2>
             </div>
-            <div class="mobile-device-value">59.3 %</div>
-            <div class="mobile-device-meta">HumiditySensor</div>
+            <p class="section-copy">
+              The semantic output is still visible, but presented in a way that fits
+              naturally on a phone screen.
+            </p>
           </div>
 
-          <div class="mobile-device-card">
-            <div class="mobile-device-top">
-              <span>Smart Meter</span>
-              <span class="mobile-pill">MySQL</span>
+          <div class="data-summary-card">
+            <div class="summary-grid" id="dataSummary"></div>
+          </div>
+
+          <div class="ngsi-list" id="ngsiList"></div>
+        </section>
+
+        <section class="screen-section section-reveal" id="more" data-nav="more">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">More</p>
+              <h2>Architecture notes and presentation support</h2>
             </div>
-            <div class="mobile-device-value">984.65 kWh</div>
-            <div class="mobile-device-meta">Historical processed value</div>
+            <p class="section-copy">
+              Keep the technical depth available while preserving a simple mobile
+              experience.
+            </p>
           </div>
-        </div>
-      </section>
 
-      <section class="mobile-section">
-        <h2 class="mobile-section-title">Charts</h2>
-        <div class="mobile-chart-card">
-          <div class="mobile-chart-title">Temperature Trend</div>
-          <div class="fake-chart mobile-chart"><canvas id="mobileTempChart"></canvas></div>
-        </div>
-        <div class="mobile-chart-card">
-          <div class="mobile-chart-title">Humidity Trend</div>
-          <div class="fake-chart mobile-chart"><canvas id="mobileHumidityChart"></canvas></div>
-        </div>
-      </section>
+          <div class="more-stack">
+            <article class="more-card">
+              <h3>Architecture summary</h3>
+              <p>
+                The Smart Home IoT Pipeline collects raw device events in MySQL,
+                enriches them through a Semantic Connector, then publishes
+                presentation-ready outputs to processed MySQL history, Eclipse Ditto
+                live digital twins, and Orion-LD context entities.
+              </p>
+            </article>
 
-      <nav class="mobile-bottom-nav">
-        <div class="mobile-nav-item active">Home</div>
-        <div class="mobile-nav-item">Live</div>
-        <div class="mobile-nav-item">Charts</div>
-        <div class="mobile-nav-item">Data</div>
+            <article class="more-card service-grid">
+              <div class="service-card">
+                <span class="service-kicker">Latest twin</span>
+                <h3>Eclipse Ditto</h3>
+                <p>
+                  Stores the newest device state so the app can show real-time
+                  conditions instantly.
+                </p>
+              </div>
+              <div class="service-card">
+                <span class="service-kicker">Historical memory</span>
+                <h3>Processed MySQL</h3>
+                <p>
+                  Keeps the semantic history used for trends, summaries, and
+                  presentation-friendly monitoring.
+                </p>
+              </div>
+              <div class="service-card">
+                <span class="service-kicker">Structured context</span>
+                <h3>Orion-LD</h3>
+                <p>
+                  Exposes NGSI-LD entities so the same sensor state is understood as
+                  reusable smart context.
+                </p>
+              </div>
+            </article>
+
+            <article class="more-card qr-card">
+              <div class="qr-art" id="qrArt" aria-hidden="true"></div>
+              <div class="qr-copy">
+                <span class="tag">Presentation slot</span>
+                <h3>Demo QR placeholder</h3>
+                <p>
+                  Reserve this space for a QR code to the Vercel deployment,
+                  architecture diagram, or project report before presenting.
+                </p>
+              </div>
+            </article>
+
+            <details class="details-card">
+              <summary>Raw Ditto twin JSON</summary>
+              <pre id="dittoJson"></pre>
+            </details>
+
+            <details class="details-card">
+              <summary>Raw Orion-LD JSON</summary>
+              <pre id="ngsiJson"></pre>
+            </details>
+          </div>
+        </section>
+
+        <div class="bottom-spacer" aria-hidden="true"></div>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Primary navigation">
+        <button class="nav-item is-active" data-target="home" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4.5v-5.5h-5V21H5a1 1 0 0 1-1-1z" />
+            </svg>
+          </span>
+          <span>Home</span>
+        </button>
+        <button class="nav-item" data-target="live" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 13h3l2-5 4 10 2-5h5" />
+            </svg>
+          </span>
+          <span>Live</span>
+        </button>
+        <button class="nav-item" data-target="charts" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 18h14" />
+              <path d="M7 16V9" />
+              <path d="M12 16V6" />
+              <path d="M17 16v-4" />
+            </svg>
+          </span>
+          <span>Charts</span>
+        </button>
+        <button class="nav-item" data-target="data" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 7h12" />
+              <path d="M6 12h12" />
+              <path d="M6 17h8" />
+            </svg>
+          </span>
+          <span>Data</span>
+        </button>
+        <button class="nav-item" data-target="more" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="2" />
+              <circle cx="5" cy="12" r="2" />
+              <circle cx="19" cy="12" r="2" />
+            </svg>
+          </span>
+          <span>More</span>
+        </button>
       </nav>
     </div>
   </div>
