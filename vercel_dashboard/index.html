@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta
     name="description"
-    content="Mobile-first Smart Home IoT Dashboard for semantic smart energy insights."
+    content="Mobile-first smart home dashboard for live home performance and energy monitoring."
   />
   <title>Smart Home IoT Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,9 +28,9 @@
 
   <div class="splash-screen" id="splashScreen" aria-hidden="false">
     <div class="splash-panel">
-      <span class="splash-chip">Semantic Pipeline Demo</span>
+      <span class="splash-chip">Live Home Monitoring</span>
       <h1>Smart Home IoT Dashboard</h1>
-      <p>Semantic smart energy insights</p>
+      <p>Smart energy and home insights</p>
       <div class="splash-loader" aria-hidden="true">
         <span></span>
         <span></span>
@@ -47,10 +47,10 @@
             <div class="header-row">
               <div class="brand-block">
                 <p class="eyebrow">Smart Home IoT Dashboard</p>
-                <h1>Semantic smart energy insights</h1>
+                <h1>Live home performance in one glance</h1>
                 <p class="header-copy">
-                  A polished mobile view of your smart home pipeline, turning raw
-                  telemetry into clear live state, trends, and semantic context.
+                  A polished mobile view of comfort, activity, energy use, and
+                  device health designed for quick presentation-ready monitoring.
                 </p>
               </div>
               <div class="live-badge">
@@ -62,17 +62,13 @@
             <div class="hero-card">
               <div class="hero-card-top">
                 <div>
-                  <p class="hero-label">Pipeline health</p>
-                  <h2>All semantic services synchronized</h2>
+                  <p class="hero-label">Home Snapshot</p>
+                  <h2>Current conditions are easy to read and compare</h2>
                 </div>
-                <button class="ghost-action" id="refreshButton" type="button">
-                  Refresh feed
-                </button>
               </div>
               <p class="hero-text">
-                Raw IoT data lands in MySQL, the Semantic Connector enriches it,
-                and the dashboard explains the latest picture from Processed MySQL,
-                Eclipse Ditto, and Orion-LD in one phone-first interface.
+                See what is happening in the smart home right now, which changes
+                matter most, and where trends can support faster decisions.
               </p>
               <div class="hero-metrics" id="heroMetrics"></div>
             </div>
@@ -81,26 +77,26 @@
           <div class="section-card">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">Pipeline</p>
-                <h2>From raw device data to business insight</h2>
+                <p class="eyebrow">At A Glance</p>
+                <h2>What this dashboard helps you understand</h2>
               </div>
               <p class="section-copy">
-                This condensed flow keeps the architecture easy to explain during a
-                live demo or presentation.
+                The key stories a panel can understand in seconds from a single
+                mobile view.
               </p>
             </div>
-            <div class="pipeline-flow" id="pipelineFlow"></div>
+            <div class="story-flow" id="storyHighlights"></div>
           </div>
 
           <div class="section-card">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">Latest Insights</p>
-                <h2>Current device summaries</h2>
+                <p class="eyebrow">Key Highlights</p>
+                <h2>Latest device insights</h2>
               </div>
               <p class="section-copy">
-                Clean cards keep the story readable for non-technical viewers at a
-                glance.
+                The most important readings and what they suggest for the home
+                right now.
               </p>
             </div>
             <div class="insight-list" id="latestInsightList"></div>
@@ -110,11 +106,11 @@
         <section class="screen-section section-reveal" id="live" data-nav="live">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Live View</p>
-              <h2>Swipe through the latest sensor state</h2>
+              <p class="eyebrow">Live Status</p>
+              <h2>Swipe through live device status</h2>
             </div>
             <p class="section-copy">
-              Tap a card to pin the device and reveal a quick explanation below.
+              Tap any card to pin the reading and see what it means at a glance.
             </p>
           </div>
 
@@ -132,11 +128,10 @@
           <div class="section-heading">
             <div>
               <p class="eyebrow">Trends</p>
-              <h2>Historical patterns in expandable chart cards</h2>
+              <h2>Recent changes over time</h2>
             </div>
             <p class="section-copy">
-              The charts stay compact by default, then expand when you want more
-              detail.
+              Expand a chart to see how key readings have moved through the day.
             </p>
           </div>
 
@@ -146,12 +141,12 @@
         <section class="screen-section section-reveal" id="data" data-nav="data">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Structured Context</p>
-              <h2>NGSI-LD insights as stacked cards</h2>
+              <p class="eyebrow">Data Summary</p>
+              <h2>Structured device records</h2>
             </div>
             <p class="section-copy">
-              The semantic output is still visible, but presented in a way that fits
-              naturally on a phone screen.
+              Organised device records make the latest reading, status, and timing
+              easy to scan.
             </p>
           </div>
 
@@ -159,80 +154,75 @@
             <div class="summary-grid" id="dataSummary"></div>
           </div>
 
-          <div class="ngsi-list" id="ngsiList"></div>
+          <div class="record-list" id="recordList"></div>
         </section>
 
         <section class="screen-section section-reveal" id="more" data-nav="more">
           <div class="section-heading">
             <div>
               <p class="eyebrow">More</p>
-              <h2>Architecture notes and presentation support</h2>
+              <h2>Why this view matters</h2>
             </div>
             <p class="section-copy">
-              Keep the technical depth available while preserving a simple mobile
-              experience.
+              A light presentation tab focused on outcomes and quick takeaways.
             </p>
           </div>
 
           <div class="more-stack">
             <article class="more-card">
-              <h3>Architecture summary</h3>
+              <h3>How to read this app</h3>
               <p>
-                The Smart Home IoT Pipeline collects raw device events in MySQL,
-                enriches them through a Semantic Connector, then publishes
-                presentation-ready outputs to processed MySQL history, Eclipse Ditto
-                live digital twins, and Orion-LD context entities.
+                Home gives the overall picture, Live shows the current situation,
+                Charts shows direction over time, and Data keeps the latest device
+                records easy to scan.
               </p>
             </article>
 
-            <article class="more-card service-grid">
-              <div class="service-card">
-                <span class="service-kicker">Latest twin</span>
-                <h3>Eclipse Ditto</h3>
-                <p>
-                  Stores the newest device state so the app can show real-time
-                  conditions instantly.
-                </p>
-              </div>
-              <div class="service-card">
-                <span class="service-kicker">Historical memory</span>
-                <h3>Processed MySQL</h3>
-                <p>
-                  Keeps the semantic history used for trends, summaries, and
-                  presentation-friendly monitoring.
-                </p>
-              </div>
-              <div class="service-card">
-                <span class="service-kicker">Structured context</span>
-                <h3>Orion-LD</h3>
-                <p>
-                  Exposes NGSI-LD entities so the same sensor state is understood as
-                  reusable smart context.
-                </p>
+            <article class="more-card">
+              <h3>What this helps you spot</h3>
+              <div class="benefit-grid">
+                <div class="benefit-card">
+                  <h3>Comfort</h3>
+                  <p>
+                    Temperature, humidity, and air quality help show whether the
+                    home feels balanced and healthy.
+                  </p>
+                </div>
+                <div class="benefit-card">
+                  <h3>Energy use</h3>
+                  <p>
+                    Meter and utility readings show how usage is moving and where
+                    efficiency conversations can start.
+                  </p>
+                </div>
+                <div class="benefit-card">
+                  <h3>Activity</h3>
+                  <p>
+                    Door and motion updates make it easy to see whether the home is
+                    secure and active.
+                  </p>
+                </div>
+                <div class="benefit-card">
+                  <h3>Reliability</h3>
+                  <p>
+                    Device health readings help confirm the monitoring system is
+                    ready and trustworthy.
+                  </p>
+                </div>
               </div>
             </article>
 
             <article class="more-card qr-card">
               <div class="qr-art" id="qrArt" aria-hidden="true"></div>
               <div class="qr-copy">
-                <span class="tag">Presentation slot</span>
+                <span class="tag">Presentation Access</span>
                 <h3>Demo QR placeholder</h3>
                 <p>
-                  Reserve this space for a QR code to the Vercel deployment,
-                  architecture diagram, or project report before presenting.
+                  Use this space for a QR code to the live demo, project page, or
+                  presentation slides before presenting.
                 </p>
               </div>
             </article>
-
-            <details class="details-card">
-              <summary>Raw Ditto twin JSON</summary>
-              <pre id="dittoJson"></pre>
-            </details>
-
-            <details class="details-card">
-              <summary>Raw Orion-LD JSON</summary>
-              <pre id="ngsiJson"></pre>
-            </details>
           </div>
         </section>
 

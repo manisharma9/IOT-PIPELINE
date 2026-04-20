@@ -69,98 +69,86 @@ const sensors = [
   {
     key: "temperature",
     label: "Temperature Sensor",
-    shortLabel: "Temperature",
     icon: "temperature",
     type: "number",
     unit: "C",
     decimals: 2,
-    property: "temperature",
+    category: "Comfort",
+    status: "Stable",
     sequence: [27.94, 28.08, 27.88, 28.12, 27.99],
     history: [25.8, 26.2, 26.9, 27.3, 27.7, 27.94],
-    source: "Ditto",
-    semantic: "saref:Temperature",
-    ngsiType: "TemperatureSensor",
-    ngsiId: "urn:ngsi-ld:TemperatureSensor:dev001",
-    entityId: "smarthome:dev001",
-    twinPath: "/features/temperature/properties/value",
-    description: "Comfort remains slightly warm, which is easy to justify as normal occupied-room behavior.",
-    insight: "Comfort band monitored",
-    deltaLabel: "+0.42 C",
+    summary: "Rooms are slightly warm but still within a comfortable occupied-home range.",
+    insight: "Comfort looks steady",
+    changeLabel: "Warm side of normal",
+    decisionHint: "Supports heating and cooling decisions.",
+    recordId: "TEMP-001",
+    recordType: "Comfort reading",
     tone: "#7fd5ff"
   },
   {
     key: "humidity",
     label: "Humidity Sensor",
-    shortLabel: "Humidity",
     icon: "humidity",
     type: "number",
     unit: "%",
     decimals: 1,
-    property: "humidity",
+    category: "Comfort",
+    status: "Stable",
     sequence: [59.3, 58.9, 59.7, 59.1, 59.4],
     history: [62.0, 61.4, 60.8, 60.1, 59.6, 59.3],
-    source: "Ditto",
-    semantic: "saref:Humidity",
-    ngsiType: "HumiditySensor",
-    ngsiId: "urn:ngsi-ld:HumiditySensor:dev002",
-    entityId: "smarthome:dev002",
-    twinPath: "/features/humidity/properties/value",
-    description: "Moisture levels are balanced for a residential environment with steady occupancy.",
-    insight: "Moisture balanced",
-    deltaLabel: "-0.60 %",
+    summary: "Humidity is balanced, helping the space feel comfortable and well-managed.",
+    insight: "Moisture looks balanced",
+    changeLabel: "Within a healthy band",
+    decisionHint: "Useful for comfort and ventilation decisions.",
+    recordId: "HUM-002",
+    recordType: "Air moisture record",
     tone: "#7ce8d0"
   },
   {
     key: "meter",
     label: "Smart Meter",
-    shortLabel: "Smart Meter",
     icon: "meter",
     type: "number",
     unit: "kWh",
     decimals: 2,
-    property: "energy",
+    category: "Energy",
+    status: "Active",
     sequence: [984.65, 986.11, 987.52, 988.44, 989.26],
     history: [954.2, 962.7, 970.1, 976.8, 981.4, 984.65],
-    source: "MySQL",
-    semantic: "saref:Energy",
-    ngsiType: "SmartMeter",
-    ngsiId: "urn:ngsi-ld:SmartMeter:dev003",
-    entityId: "smarthome:dev003",
-    twinPath: "/features/meter/properties/value",
-    description: "Energy consumption keeps climbing smoothly, making the household load pattern easy to explain.",
-    insight: "Energy tracked",
-    deltaLabel: "+4.25 kWh",
+    summary: "Energy use is rising through the day in a way that looks normal for an occupied home.",
+    insight: "Usage is building normally",
+    changeLabel: "Demand is increasing",
+    decisionHint: "Helps track consumption and efficiency.",
+    recordId: "MTR-003",
+    recordType: "Energy use record",
     tone: "#ffbf74"
   },
   {
     key: "door",
     label: "Door Sensor",
-    shortLabel: "Door",
     icon: "door",
     type: "state",
     unit: "state",
-    property: "doorState",
+    category: "Access",
+    status: "Secure",
     sequence: ["Closed", "Closed", "Open", "Closed", "Closed"],
     history: [0, 0, 1, 0, 0, 0],
-    source: "Ditto",
-    semantic: "saref:OpenCloseState",
-    ngsiType: "DoorSensor",
-    ngsiId: "urn:ngsi-ld:DoorSensor:dev010",
-    entityId: "smarthome:dev010",
-    twinPath: "/features/door/properties/value",
-    description: "Entry access is visible instantly, making safety status intuitive for the panel.",
-    insight: "Entry secure",
-    deltaLabel: "Secure",
+    summary: "The main entry is currently closed, so the home appears secure right now.",
+    insight: "Entry looks secure",
+    changeLabel: "No open access now",
+    decisionHint: "Useful for safety and access monitoring.",
+    recordId: "DR-010",
+    recordType: "Entry status record",
     tone: "#8ea6ff"
   },
   {
     key: "motion",
     label: "Motion Sensor",
-    shortLabel: "Motion",
     icon: "motion",
     type: "state",
     unit: "state",
-    property: "motion",
+    category: "Activity",
+    status: "Active",
     sequence: [
       "Motion Detected",
       "No Motion",
@@ -169,157 +157,138 @@ const sensors = [
       "No Motion"
     ],
     history: [0, 1, 0, 1, 1, 0],
-    source: "Ditto",
-    semantic: "saref:Occupancy",
-    ngsiType: "MotionSensor",
-    ngsiId: "urn:ngsi-ld:MotionSensor:dev011",
-    entityId: "smarthome:dev011",
-    twinPath: "/features/motion/properties/value",
-    description: "Motion updates help explain occupant activity without exposing raw event logs.",
-    insight: "Occupancy event seen",
-    deltaLabel: "Activity",
+    summary: "Motion has been detected recently, showing live occupancy activity in the home.",
+    insight: "Occupancy is being tracked",
+    changeLabel: "Movement seen recently",
+    decisionHint: "Helps explain whether spaces are active or quiet.",
+    recordId: "MOT-011",
+    recordType: "Activity record",
     tone: "#ff8d9a"
   },
   {
     key: "co2",
     label: "CO2 Sensor",
-    shortLabel: "CO2",
     icon: "co2",
     type: "number",
     unit: "ppm",
     decimals: 2,
-    property: "co2",
+    category: "Air Quality",
+    status: "Watch",
     sequence: [653.02, 640.18, 631.44, 647.3, 658.9],
     history: [580.0, 601.5, 614.9, 628.1, 640.5, 653.02],
-    source: "Orion-LD",
-    semantic: "saref:AirQuality",
-    ngsiType: "CO2Sensor",
-    ngsiId: "urn:ngsi-ld:CO2Sensor:dev006",
-    entityId: "smarthome:dev006",
-    twinPath: "/features/co2/properties/value",
-    description: "Air quality remains readable in ppm so indoor conditions are easy to discuss during the demo.",
-    insight: "Air quality visible",
-    deltaLabel: "+12.84 ppm",
+    summary: "CO2 is visible at a level worth watching, which is helpful for ventilation decisions.",
+    insight: "Air quality is easy to follow",
+    changeLabel: "Slightly elevated indoor air",
+    decisionHint: "Useful for ventilation and comfort decisions.",
+    recordId: "CO2-006",
+    recordType: "Air quality record",
     tone: "#66c5ff"
   },
   {
     key: "pressure",
     label: "Pressure Sensor",
-    shortLabel: "Pressure",
     icon: "pressure",
     type: "number",
     unit: "hPa",
     decimals: 2,
-    property: "pressure",
+    category: "Environment",
+    status: "Stable",
     sequence: [1006.08, 1005.42, 1006.44, 1005.78, 1006.19],
     history: [1001.8, 1002.6, 1003.4, 1004.7, 1005.5, 1006.08],
-    source: "MySQL",
-    semantic: "saref:Pressure",
-    ngsiType: "PressureSensor",
-    ngsiId: "urn:ngsi-ld:PressureSensor:dev007",
-    entityId: "smarthome:dev007",
-    twinPath: "/features/pressure/properties/value",
-    description: "Pressure trends add environmental context that strengthens the semantics of the pipeline.",
-    insight: "Environmental context",
-    deltaLabel: "+0.61 hPa",
+    summary: "Pressure is steady, giving useful background context for the wider home environment.",
+    insight: "Background conditions are stable",
+    changeLabel: "Little change in pressure",
+    decisionHint: "Adds context to other home readings.",
+    recordId: "PRS-007",
+    recordType: "Environmental record",
     tone: "#8db9ff"
   },
   {
     key: "light",
     label: "Light Sensor",
-    shortLabel: "Light",
     icon: "light",
     type: "number",
     unit: "lux",
     decimals: 2,
-    property: "light",
+    category: "Lighting",
+    status: "Stable",
     sequence: [398.88, 405.24, 392.18, 401.14, 398.62],
     history: [340.0, 355.6, 371.2, 384.1, 392.4, 398.88],
-    source: "Orion-LD",
-    semantic: "saref:Light",
-    ngsiType: "LightSensor",
-    ngsiId: "urn:ngsi-ld:LightSensor:dev008",
-    entityId: "smarthome:dev008",
-    twinPath: "/features/light/properties/value",
-    description: "Brightness is translated into a clear occupancy and comfort signal instead of a dense backend record.",
-    insight: "Ambient light stable",
-    deltaLabel: "+8.12 lux",
+    summary: "The room remains well lit, which helps explain comfort and present activity levels.",
+    insight: "Lighting looks consistent",
+    changeLabel: "Brightness is steady",
+    decisionHint: "Useful for occupancy and ambience checks.",
+    recordId: "LGT-008",
+    recordType: "Lighting record",
     tone: "#ffd36b"
   },
   {
     key: "battery",
     label: "Battery Sensor",
-    shortLabel: "Battery",
     icon: "battery",
     type: "number",
     unit: "%",
     decimals: 2,
-    property: "battery",
+    category: "Device Health",
+    status: "Good",
     sequence: [85.79, 85.42, 85.11, 84.96, 84.71],
     history: [91.4, 89.8, 88.9, 87.5, 86.3, 85.79],
-    source: "MySQL",
-    semantic: "saref:BatteryLevel",
-    ngsiType: "BatterySensor",
-    ngsiId: "urn:ngsi-ld:BatterySensor:dev009",
-    entityId: "smarthome:dev009",
-    twinPath: "/features/battery/properties/value",
-    description: "Battery health confirms device readiness and supports maintenance stories in the presentation.",
-    insight: "Good battery health",
-    deltaLabel: "-0.37 %",
+    summary: "Battery level remains healthy, suggesting the monitoring network is ready for continued use.",
+    insight: "Device health looks good",
+    changeLabel: "Strong remaining charge",
+    decisionHint: "Supports maintenance planning.",
+    recordId: "BAT-009",
+    recordType: "Device health record",
     tone: "#7df0a7"
   },
   {
     key: "water",
     label: "Water Flow Sensor",
-    shortLabel: "Water Flow",
     icon: "water",
     type: "number",
     unit: "L/min",
     decimals: 2,
-    property: "waterFlow",
+    category: "Utilities",
+    status: "Normal",
     sequence: [19.31, 18.82, 19.66, 19.14, 19.48],
     history: [15.8, 16.7, 17.4, 18.5, 18.9, 19.31],
-    source: "Orion-LD",
-    semantic: "saref:Flow",
-    ngsiType: "WaterFlowSensor",
-    ngsiId: "urn:ngsi-ld:WaterFlowSensor:dev012",
-    entityId: "smarthome:dev012",
-    twinPath: "/features/waterFlow/properties/value",
-    description: "Flow is framed as a simple operating signal instead of a backend record dump.",
-    insight: "Utility usage visible",
-    deltaLabel: "+0.49 L/min",
+    summary: "Water flow is steady, giving a simple view of current household usage.",
+    insight: "Water use is easy to track",
+    changeLabel: "No unusual surge seen",
+    decisionHint: "Helps spot abnormal utility usage.",
+    recordId: "WTR-012",
+    recordType: "Usage record",
     tone: "#7ce8ff"
   }
 ];
 
 const chartDefinitions = [
-  { key: "temperature", title: "Temperature trend", subtitle: "Processed MySQL history" },
-  { key: "humidity", title: "Humidity trend", subtitle: "Semantic comfort range" },
-  { key: "meter", title: "Smart meter trend", subtitle: "Energy accumulation over time" },
-  { key: "co2", title: "CO2 trend", subtitle: "Air quality pattern" }
+  { key: "temperature", title: "Temperature trend", subtitle: "Comfort through the day" },
+  { key: "humidity", title: "Humidity trend", subtitle: "Moisture balance over time" },
+  { key: "meter", title: "Smart meter trend", subtitle: "Energy use pattern" },
+  { key: "co2", title: "CO2 trend", subtitle: "Air quality movement" }
 ];
 
-const pipelineSteps = [
+const storyHighlights = [
   {
-    title: "Devices + Consumer",
-    description: "Home sensors and the consumer capture raw telemetry events from the smart environment."
+    title: "Current comfort",
+    description: "Temperature, humidity, and air quality help show whether the home feels balanced and healthy right now.",
+    tags: ["Comfort", "Air quality"]
   },
   {
-    title: "Raw MySQL",
-    description: "Incoming data is stored exactly as received so the pipeline preserves traceable source records."
+    title: "Access and activity",
+    description: "Door and motion readings make it clear whether the home is secure and whether activity is being detected.",
+    tags: ["Entry", "Movement"]
   },
   {
-    title: "Semantic Connector",
-    description: "The connector enriches each reading with semantic meaning, units, and NGSI-LD context."
+    title: "Energy and utility use",
+    description: "Meter and water readings show how household usage is moving and where efficiency conversations can begin.",
+    tags: ["Energy", "Utilities"]
   },
   {
-    title: "Processed Outputs",
-    description: "Enriched data fans out into the stores used for history, live twin state, and context sharing.",
-    tags: ["Processed MySQL", "Eclipse Ditto", "Orion-LD"]
-  },
-  {
-    title: "Mobile Dashboard",
-    description: "This app transforms those outputs into live insight cards, trends, and structured summaries."
+    title: "Monitoring reliability",
+    description: "Battery and supporting sensor signals help confirm the system is healthy enough for ongoing monitoring.",
+    tags: ["Device health", "Confidence"]
   }
 ];
 
@@ -332,22 +301,23 @@ const appState = {
 
 const refs = {
   heroMetrics: document.getElementById("heroMetrics"),
-  pipelineFlow: document.getElementById("pipelineFlow"),
+  storyHighlights: document.getElementById("storyHighlights"),
   latestInsightList: document.getElementById("latestInsightList"),
   liveCarousel: document.getElementById("liveCarousel"),
   carouselDots: document.getElementById("carouselDots"),
   liveFocus: document.getElementById("liveFocus"),
   chartStack: document.getElementById("chartStack"),
   dataSummary: document.getElementById("dataSummary"),
-  ngsiList: document.getElementById("ngsiList"),
+  recordList: document.getElementById("recordList"),
   qrArt: document.getElementById("qrArt"),
-  dittoJson: document.getElementById("dittoJson"),
-  ngsiJson: document.getElementById("ngsiJson"),
-  refreshButton: document.getElementById("refreshButton"),
   splashScreen: document.getElementById("splashScreen"),
   navButtons: Array.from(document.querySelectorAll(".nav-item")),
   sections: Array.from(document.querySelectorAll(".screen-section"))
 };
+
+function findSensor(key) {
+  return sensors.find((sensor) => sensor.key === key);
+}
 
 function getCurrentValue(sensor) {
   return sensor.sequence[appState.tick % sensor.sequence.length];
@@ -398,24 +368,16 @@ function formatTimestamp(offsetMinutes) {
   }).format(new Date(appState.lastSync.getTime() - offsetMinutes * 60000));
 }
 
-function getStatePayload(sensor, rawValue) {
-  if (sensor.type !== "state") {
-    return rawValue;
-  }
-
-  if (sensor.key === "door") {
-    return rawValue === "Open" ? 1 : 0;
-  }
-
-  return rawValue === "Motion Detected" ? 1 : 0;
-}
-
 function renderHeroMetrics() {
+  const doorValue = getCurrentValue(findSensor("door"));
+  const homeStatus = doorValue === "Closed" ? "Secure and monitored" : "Entry needs attention";
+  const meterSensor = findSensor("meter");
+
   const summaryTiles = [
-    { label: "Live devices", value: `${sensors.length}` },
-    { label: "Semantic outputs", value: "3 services" },
-    { label: "Smart meter", value: formatValue(findSensor("meter"), getCurrentValue(findSensor("meter"))) },
-    { label: "Last sync", value: formatTime(appState.lastSync) }
+    { label: "Sensors online", value: `${sensors.length} live readings` },
+    { label: "Home status", value: homeStatus },
+    { label: "Energy reading", value: formatValue(meterSensor, getCurrentValue(meterSensor)) },
+    { label: "Last updated", value: formatTime(appState.lastSync) }
   ];
 
   refs.heroMetrics.innerHTML = summaryTiles
@@ -430,8 +392,8 @@ function renderHeroMetrics() {
     .join("");
 }
 
-function renderPipeline() {
-  refs.pipelineFlow.innerHTML = pipelineSteps
+function renderStoryHighlights() {
+  refs.storyHighlights.innerHTML = storyHighlights
     .map(
       (step, index) => `
         <article class="flow-step">
@@ -440,13 +402,9 @@ function renderPipeline() {
             <h3 class="flow-title">${step.title}</h3>
           </div>
           <p>${step.description}</p>
-          ${
-            step.tags
-              ? `<div class="flow-tags">${step.tags
-                  .map((tag) => `<span class="tag">${tag}</span>`)
-                  .join("")}</div>`
-              : ""
-          }
+          <div class="flow-tags">
+            ${step.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}
+          </div>
         </article>
       `
     )
@@ -468,15 +426,13 @@ function renderLatestInsights() {
               <span class="icon-shell">${iconSet[sensor.icon]}</span>
               <div>
                 <h3>${sensor.label}</h3>
-                <p>${sensor.source} insight layer</p>
+                <p>${sensor.category}</p>
               </div>
             </div>
-            <span class="source-pill">${sensor.source}</span>
+            <span class="status-pill">${sensor.status}</span>
           </div>
           <div class="insight-value">${formatValue(sensor, rawValue)}</div>
-          <div class="insight-meta">
-            ${sensor.semantic} | ${sensor.ngsiType} | ${sensor.description}
-          </div>
+          <div class="insight-meta">${sensor.summary}</div>
         </article>
       `;
     })
@@ -496,26 +452,25 @@ function createLiveCard(sensor, index) {
     >
       <div class="live-card-top">
         <span class="icon-shell">${iconSet[sensor.icon]}</span>
-        <span class="source-pill">${sensor.source}</span>
+        <span class="status-pill">${sensor.status}</span>
       </div>
       <div class="metric-name">${sensor.label}</div>
       <div class="metric-value">
         <span
           class="metric-number${isState ? " is-text" : ""}"
           data-role="value"
-          data-type="${sensor.type}"
           data-value="${isState ? rawValue : rawValue.toFixed(sensor.decimals)}"
         >
           ${isState ? rawValue : "0"}
         </span>
-        ${isState ? "" : `<span class="metric-unit" data-role="unit">${sensor.unit}</span>`}
+        ${isState ? "" : `<span class="metric-unit">${sensor.unit}</span>`}
       </div>
       <div class="metric-track">
         <span class="metric-fill" data-role="fill"></span>
       </div>
       <div class="metric-footer">
         <span>${sensor.insight}</span>
-        <span>${sensor.deltaLabel}</span>
+        <span>${sensor.changeLabel}</span>
       </div>
     </button>
   `;
@@ -613,25 +568,25 @@ function renderLiveFocus() {
   refs.liveFocus.innerHTML = `
     <div class="focus-top">
       <div>
-        <p class="eyebrow">Pinned insight</p>
+        <p class="eyebrow">What it means</p>
         <h3>${sensor.label}</h3>
       </div>
-      <span class="focus-chip">${sensor.source}</span>
+      <span class="focus-chip">${sensor.status}</span>
     </div>
     <div class="focus-value">${formatValue(sensor, rawValue)}</div>
-    <p class="focus-copy">${sensor.description}</p>
+    <p class="focus-copy">${sensor.summary}</p>
     <div class="focus-grid">
       <div class="focus-detail">
-        <span>Semantic type</span>
-        <strong>${sensor.semantic}</strong>
+        <span>Category</span>
+        <strong>${sensor.category}</strong>
       </div>
       <div class="focus-detail">
-        <span>NGSI type</span>
-        <strong>${sensor.ngsiType}</strong>
+        <span>Why it matters</span>
+        <strong>${sensor.decisionHint}</strong>
       </div>
       <div class="focus-detail">
-        <span>Property</span>
-        <strong>${sensor.property}</strong>
+        <span>Recent signal</span>
+        <strong>${sensor.changeLabel}</strong>
       </div>
       <div class="focus-detail">
         <span>Updated</span>
@@ -733,19 +688,16 @@ function buildChartStats(sensor) {
   const peak = Math.max(...values);
   const low = Math.min(...values);
   const change = values[values.length - 1] - values[0];
-  const changeText =
-    sensor.type === "state"
-      ? "Event stream"
-      : `${change >= 0 ? "+" : ""}${change.toFixed(sensor.decimals)} ${sensor.unit}`;
+  const changeText = `${change >= 0 ? "+" : ""}${change.toFixed(sensor.decimals)} ${sensor.unit}`;
 
   return `
     <div class="chart-stat">
-      <span>Peak</span>
-      <strong>${sensor.type === "state" ? "Detected" : peak.toFixed(sensor.decimals) + " " + sensor.unit}</strong>
+      <span>Highest</span>
+      <strong>${peak.toFixed(sensor.decimals)} ${sensor.unit}</strong>
     </div>
     <div class="chart-stat">
-      <span>Low</span>
-      <strong>${sensor.type === "state" ? "Idle" : low.toFixed(sensor.decimals) + " " + sensor.unit}</strong>
+      <span>Lowest</span>
+      <strong>${low.toFixed(sensor.decimals)} ${sensor.unit}</strong>
     </div>
     <div class="chart-stat">
       <span>Change</span>
@@ -927,11 +879,19 @@ function drawChart(canvas, sensor, progress = 1) {
 }
 
 function renderDataSummary() {
+  const stableStatuses = new Set(["Stable", "Secure", "Good", "Normal"]);
+  const stableCount = sensors.filter((sensor) => stableStatuses.has(sensor.status)).length;
+  const doorValue = getCurrentValue(findSensor("door"));
+  const motionValue = getCurrentValue(findSensor("motion"));
+
   const summaryTiles = [
-    { label: "NGSI entities", value: "6 active" },
-    { label: "Ditto twins", value: "10 synced" },
-    { label: "Context freshness", value: `${formatTime(appState.lastSync)}` },
-    { label: "Pipeline view", value: "Presentation ready" }
+    { label: "Latest records", value: "6 key devices" },
+    { label: "Steady now", value: `${stableCount} readings in range` },
+    {
+      label: "Home activity",
+      value: doorValue === "Closed" ? (motionValue === "Motion Detected" ? "Secure, movement seen" : "Secure and quiet") : "Entry open now"
+    },
+    { label: "Last updated", value: formatTime(appState.lastSync) }
   ];
 
   refs.dataSummary.innerHTML = summaryTiles
@@ -946,36 +906,36 @@ function renderDataSummary() {
     .join("");
 }
 
-function renderNgsiCards() {
-  const ngsiKeys = ["temperature", "humidity", "meter", "door", "co2", "water"];
+function renderRecordCards() {
+  const recordKeys = ["temperature", "humidity", "meter", "door", "co2", "water"];
 
-  refs.ngsiList.innerHTML = ngsiKeys
+  refs.recordList.innerHTML = recordKeys
     .map((key, index) => {
       const sensor = findSensor(key);
       const rawValue = getCurrentValue(sensor);
 
       return `
-        <article class="ngsi-card" style="--tone:${sensor.tone}">
-          <div class="ngsi-top">
-            <h3 class="ngsi-heading">${sensor.ngsiType}</h3>
-            <span class="source-pill">${sensor.source}</span>
+        <article class="record-card" style="--tone:${sensor.tone}">
+          <div class="record-top">
+            <h3 class="record-heading">${sensor.label}</h3>
+            <span class="status-pill">${sensor.status}</span>
           </div>
-          <p class="ngsi-id">${sensor.ngsiId}</p>
-          <div class="ngsi-grid">
-            <div class="ngsi-cell">
-              <span>Property</span>
-              <strong>${sensor.property}</strong>
+          <p class="record-id">${sensor.recordType} | ${sensor.recordId}</p>
+          <div class="record-grid">
+            <div class="record-cell">
+              <span>Current reading</span>
+              <strong>${formatValue(sensor, rawValue)}</strong>
             </div>
-            <div class="ngsi-cell">
-              <span>Value</span>
-              <strong>${sensor.type === "state" ? rawValue : rawValue.toFixed(sensor.decimals)}</strong>
+            <div class="record-cell">
+              <span>Category</span>
+              <strong>${sensor.category}</strong>
             </div>
-            <div class="ngsi-cell">
-              <span>Unit</span>
-              <strong>${sensor.unit}</strong>
+            <div class="record-cell">
+              <span>Why it matters</span>
+              <strong>${sensor.decisionHint}</strong>
             </div>
-            <div class="ngsi-cell">
-              <span>Timestamp</span>
+            <div class="record-cell">
+              <span>Updated</span>
               <strong>${formatTimestamp(index + 1)}</strong>
             </div>
           </div>
@@ -983,47 +943,6 @@ function renderNgsiCards() {
       `;
     })
     .join("");
-}
-
-function renderRawJson() {
-  const dittoPayload = sensors.slice(0, 4).map((sensor) => ({
-    thingId: sensor.entityId,
-    attributes: {
-      deviceType: sensor.label.toLowerCase().replace(/\s+/g, "_"),
-      source: sensor.source
-    },
-    features: {
-      [sensor.property]: {
-        properties: {
-          value: getStatePayload(sensor, getCurrentValue(sensor)),
-          displayValue: formatValue(sensor, getCurrentValue(sensor)),
-          unit: sensor.unit,
-          "@type": sensor.semantic
-        }
-      }
-    }
-  }));
-
-  const ngsiPayload = sensors.slice(0, 4).map((sensor, index) => ({
-    id: sensor.ngsiId,
-    type: sensor.ngsiType,
-    [sensor.property]: {
-      type: "Property",
-      value: getStatePayload(sensor, getCurrentValue(sensor))
-    },
-    unit: {
-      type: "Property",
-      value: sensor.unit
-    },
-    semanticType: {
-      type: "Property",
-      value: sensor.semantic
-    },
-    observedAt: new Date(appState.lastSync.getTime() - (index + 1) * 60000).toISOString()
-  }));
-
-  refs.dittoJson.textContent = JSON.stringify(dittoPayload, null, 2);
-  refs.ngsiJson.textContent = JSON.stringify(ngsiPayload, null, 2);
 }
 
 function renderQrArt() {
@@ -1044,16 +963,11 @@ function renderQrArt() {
   }).join("");
 }
 
-function findSensor(key) {
-  return sensors.find((sensor) => sensor.key === key);
-}
-
 function refreshDynamicSections(initial = false) {
   renderHeroMetrics();
   renderLatestInsights();
   renderDataSummary();
-  renderNgsiCards();
-  renderRawJson();
+  renderRecordCards();
   updateLiveCards(initial);
   renderLiveFocus();
   updateChartHeaderValues();
@@ -1133,12 +1047,6 @@ function setupRevealObserver() {
   });
 }
 
-function setupRefreshButton() {
-  refs.refreshButton.addEventListener("click", () => {
-    advanceFeed();
-  });
-}
-
 function setupSplashScreen() {
   setTimeout(() => {
     document.body.classList.add("app-ready");
@@ -1158,14 +1066,13 @@ function setupResizeHandler() {
 }
 
 function initializeApp() {
-  renderPipeline();
+  renderStoryHighlights();
   renderLiveCarousel();
   renderChartStack();
   renderQrArt();
   refreshDynamicSections(true);
   setupNavigation();
   setupRevealObserver();
-  setupRefreshButton();
   setupSplashScreen();
   setupResizeHandler();
   setInterval(advanceFeed, 5000);

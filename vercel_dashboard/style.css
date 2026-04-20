@@ -110,7 +110,6 @@ summary {
 .splash-chip,
 .eyebrow,
 .tag,
-.service-kicker,
 .hero-label {
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -133,7 +132,7 @@ summary {
 .hero-card h2,
 .focus-card h3,
 .more-card h3,
-.service-card h3,
+.benefit-card h3,
 .chart-title {
   font-family: "Sora", Arial, sans-serif;
 }
@@ -227,8 +226,7 @@ summary {
 .focus-top,
 .chart-toggle,
 .chart-stat-row,
-.ngsi-top,
-.service-grid,
+.record-top,
 .qr-card,
 .bottom-nav {
   display: flex;
@@ -265,7 +263,7 @@ summary {
 }
 
 .live-badge,
-.source-pill,
+.status-pill,
 .focus-chip,
 .tag {
   display: inline-flex;
@@ -298,9 +296,8 @@ summary {
 .focus-card,
 .chart-card,
 .data-summary-card,
-.ngsi-card,
-.more-card,
-.details-card {
+.record-card,
+.more-card {
   border-radius: var(--radius-lg);
   border: 1px solid var(--line);
   background:
@@ -313,7 +310,7 @@ summary {
 .section-card,
 .focus-card,
 .data-summary-card,
-.ngsi-card,
+.record-card,
 .more-card {
   padding: 18px;
 }
@@ -337,29 +334,11 @@ summary {
   line-height: 1.25;
 }
 
-.ghost-action {
-  border: 1px solid rgba(127, 213, 255, 0.18);
-  background: rgba(127, 213, 255, 0.08);
-  color: var(--accent);
-  border-radius: 999px;
-  padding: 11px 14px;
-  font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform var(--transition), border-color var(--transition),
-    background var(--transition);
-}
-
-.ghost-action:active {
-  transform: scale(0.98);
-}
-
 .hero-text,
 .section-copy,
 .focus-copy,
 .more-card p,
-.service-card p,
+.benefit-card p,
 .qr-copy p {
   color: var(--muted);
   line-height: 1.6;
@@ -373,7 +352,7 @@ summary {
 .hero-metrics,
 .summary-grid,
 .focus-grid,
-.ngsi-grid {
+.record-grid {
   display: grid;
   gap: 12px;
 }
@@ -397,7 +376,7 @@ summary {
 .summary-tile span,
 .focus-detail span,
 .chart-stat span,
-.ngsi-cell span {
+.record-cell span {
   display: block;
   color: var(--muted);
   font-size: 0.72rem;
@@ -408,7 +387,7 @@ summary {
 .summary-tile strong,
 .focus-detail strong,
 .chart-stat strong,
-.ngsi-cell strong {
+.record-cell strong {
   font-size: 0.96rem;
   line-height: 1.35;
 }
@@ -433,10 +412,10 @@ summary {
   text-align: right;
 }
 
-.pipeline-flow,
+.story-flow,
 .insight-list,
 .chart-stack,
-.ngsi-list,
+.record-list,
 .more-stack {
   display: flex;
   flex-direction: column;
@@ -524,7 +503,7 @@ summary {
 }
 
 .insight-top,
-.ngsi-top {
+.record-top {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
@@ -555,19 +534,19 @@ summary {
 
 .insight-title h3,
 .chart-title,
-.ngsi-heading {
+.record-heading {
   margin: 0;
   font-size: 0.98rem;
 }
 
 .insight-title p,
-.ngsi-id {
+.record-id {
   margin: 4px 0 0;
   color: var(--muted);
   font-size: 0.8rem;
 }
 
-.source-pill,
+.status-pill,
 .focus-chip {
   padding: 8px 10px;
   color: var(--tone, var(--accent));
@@ -759,7 +738,7 @@ summary {
 }
 
 .focus-grid,
-.ngsi-grid {
+.record-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -886,19 +865,19 @@ summary {
   min-height: 86px;
 }
 
-.ngsi-card {
+.record-card {
   overflow: hidden;
 }
 
-.ngsi-id {
+.record-id {
   overflow-wrap: anywhere;
 }
 
-.ngsi-grid {
+.record-grid {
   margin-top: 16px;
 }
 
-.ngsi-cell {
+.record-cell {
   padding: 12px;
   border-radius: 16px;
   border: 1px solid rgba(145, 177, 204, 0.1);
@@ -914,24 +893,22 @@ summary {
   font-size: 1.02rem;
 }
 
-.service-grid {
-  flex-direction: column;
+.benefit-grid {
+  display: grid;
   gap: 12px;
+  margin-top: 12px;
 }
 
-.service-card {
+.benefit-card {
   padding: 14px;
   border-radius: 20px;
   border: 1px solid rgba(145, 177, 204, 0.1);
   background: rgba(255, 255, 255, 0.03);
 }
 
-.service-kicker {
-  display: inline-flex;
-  margin-bottom: 8px;
-  color: var(--accent);
-  font-size: 0.68rem;
-  font-weight: 800;
+.benefit-card h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
 }
 
 .qr-card {
@@ -963,33 +940,6 @@ summary {
 
 .qr-copy {
   min-width: 0;
-}
-
-.details-card {
-  overflow: hidden;
-}
-
-.details-card summary {
-  list-style: none;
-  padding: 18px;
-  font-size: 0.94rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.details-card summary::-webkit-details-marker {
-  display: none;
-}
-
-.details-card pre {
-  margin: 0;
-  padding: 0 18px 18px;
-  color: #bfeeff;
-  font-size: 0.78rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-x: auto;
 }
 
 .bottom-spacer {
