@@ -221,7 +221,7 @@ streamlit run dashboard.py
 
 ## 👨‍💻 Author
 
-Mani Sharma  
+Mani Sharma  and Bhuvana Chandra
 Master’s in Business Analytics – Maynooth University  
 
 ---
