@@ -1,1008 +1,188 @@
-# 🏠 Smart Home IoT Data Pipeline  
-### (FIWARE + Eclipse Ditto + MySQL + Streamlit)
+# AD-FLEX IoT Energy Flexibility Pipeline
 
-# Phase 1 Production Foundation: Energy Flexibility Pipeline
+AD-FLEX is a local demo pipeline for smart-home energy flexibility. It shows how household telemetry can move from raw ingestion to semantic energy meaning, grid signal translation, safe dispatch proposal governance, mock-only dispatch simulation, and minimized dataspace-style export.
 
-This repository still contains the original Smart Home IoT pipeline with MySQL, Eclipse Ditto, Orion-LD, Streamlit, and the Vercel dashboard. That legacy pipeline has not been removed.
+This repository is presentation-ready for the final Phase 9 demo. It is a local development foundation, not a production control system.
 
-Phase 1 adds a new production-style foundation beside the old pipeline:
+## Business Problem
 
-```text
-HTTP telemetry / MQTT telemetry
-        |
-        v
-Kafka topic: raw.telemetry
-        |
-        v
-Engine service
-        |
-        v
-TimescaleDB hypertables:
-  - raw_telemetry
-  - normalized_telemetry
-  - processing_errors
-```
+Distribution system operators and energy communities need a safer way to understand household flexibility. Raw IoT readings are hard to compare, grid signals must be translated into clear actions, and any dispatch workflow needs approval, auditability, and privacy controls before external sharing.
 
-## Phase 2 SAREF4ENER Semantic Connector Foundation
+This project demonstrates that path without controlling real household devices.
 
-Phase 2 keeps the Phase 1 foundation intact and adds a deterministic semantic enrichment step:
+## Final Architecture Flow
 
 ```text
-Kafka topic: normalized.telemetry
-        |
-        v
-SAREF4ENER semantic connector
-        |
-        +--> TimescaleDB hypertable: semantic_events
-        |
-        v
-Kafka topic: semantic.enriched
+HTTP / MQTT telemetry
+-> raw.telemetry
+-> engine
+-> normalized.telemetry
+-> semantic-connector
+-> semantic.enriched
+-> ieee20305-translator
+-> grid.signals
+-> aggregator
+-> dispatch.command.proposed
+-> approval-workflow
+-> dispatch.command.ready
+-> mock-dispatch-adapter
+-> dispatch.command.mock.sent
+-> dispatch.command.mock.result
+-> dataspace-export
+-> minimized dataspace summaries
 ```
 
-The engine still writes `raw_telemetry` and `normalized_telemetry`. It now also publishes each normalized reading to `normalized.telemetry`. The new `services/semantic-connector` service consumes those normalized events, applies a deterministic SAREF4ENER-style mapping, writes `semantic_events`, and publishes the enriched event to `semantic.enriched`.
-
-Phase 2 intentionally does not include SLM/Ollama mapping, IEEE 2030.5, aggregator dispatch, or ENERSHARE export.
-
-## Phase 3 Optional SLM-Assisted Mapping
-
-Phase 3 keeps the deterministic Phase 2 mapping as the safe default and adds an optional SLM-assisted fallback for unknown readings only:
-
-```text
-Kafka topic: normalized.telemetry
-        |
-        v
-SAREF4ENER semantic connector
-        |
-        +--> known reading: deterministic mapping
-        |
-        +--> unknown reading and SLM_ENABLED=true:
-              Phi-3 Mini through Ollama suggests a mapping
-        |
-        +--> invalid/unavailable SLM: existing unmapped fallback
-        |
-        +--> TimescaleDB hypertable: semantic_events
-        |
-        v
-Kafka topic: semantic.enriched
-```
-
-The SLM path is optional. The pipeline still works when `SLM_ENABLED=false`, when Ollama is not running, or when the SLM returns invalid output. Known readings such as `active_power_kw` never call the SLM.
-
-Phase 3 intentionally does not include IEEE 2030.5, aggregator dispatch, or ENERSHARE export.
-
-## Phase 4 IEEE 2030.5 Translator Foundation
-
-Phase 4 adds a translator foundation after the semantic enrichment topic:
-
-```text
-Kafka topic: semantic.enriched
-        |
-        v
-IEEE 2030.5 translator foundation
-        |
-        +--> TimescaleDB hypertable: ieee20305_events
-        |
-        v
-Kafka topic: ieee20305.translated
-```
-
-The translator converts semantic events into simple, explainable IEEE 2030.5-style payloads such as `MirrorMeterReading`, `DERStatus`, and `DERControlCandidate`. This is a foundation only and does not claim full IEEE 2030.5 certification.
-
-Phase 4 also adds a mock DSO grid signal endpoint:
-
-```text
-POST /dso/grid-signal
-        |
-        v
-Validate DSO signal
-        |
-        v
-GridSignal style payload
-        |
-        +--> TimescaleDB hypertable: ieee20305_events
-        |
-        v
-Kafka topic: grid.signals
-```
-
-The mock DSO endpoint stores and publishes grid signals for later aggregator work. It does not dispatch commands to households.
-
-## Phase 5 Aggregator and Dispatch Command Proposal Path
-
-Phase 5 adds a proposal-only Aggregator after the Phase 4 grid signal topic:
-
-```text
-Kafka topic: grid.signals
-        |
-        v
-Aggregator
-        |
-        +--> TimescaleDB hypertable: dispatch_commands
-        |
-        +--> Kafka topic: dispatch.command.proposed
-        |
-        v
-Kafka topic: dispatch.command.audit
-```
-
-The Aggregator validates incoming GridSignal events and creates safe dispatch command proposals such as `reduce_ev_charging`, `delay_flexible_load`, `increase_pv_export_if_available`, and `reduce_export_limit`. It is intentionally proposal-only. It does not approve, execute, or send commands to households or devices.
-
-The Aggregator also exposes read-only HTTP endpoints:
-
-- `GET /health`
-- `GET /dispatch/proposals`
-- `GET /dispatch/proposals/:id`
-
-## Phase 6 Approval Workflow and Safe Dispatch Preparation
-
-Phase 6 adds an approval workflow after the proposal topic:
-
-```text
-Kafka topic: dispatch.command.proposed
-        |
-        v
-Approval workflow
-        |
-        +--> dispatch_commands status update
-        |
-        +--> TimescaleDB hypertable: dispatch_approval_audit
-        |
-        +--> Kafka topic: dispatch.approval.audit
-        |
-        v
-Kafka topic: dispatch.command.ready
-```
-
-The approval workflow lets a reviewer move a proposal through safe review statuses. It still does not execute commands or send anything to households.
-
-Allowed status transitions:
-
-- `proposed -> reviewed`
-- `proposed -> rejected`
-- `reviewed -> approved`
-- `reviewed -> rejected`
-- `approved -> ready_to_dispatch`
-
-All other transitions are rejected with `invalid_status_transition`.
-
-The approval workflow exposes:
-
-- `GET /health`
-- `GET /approvals/proposals`
-- `GET /approvals/proposals/:id`
-- `POST /approvals/proposals/:id/review`
-- `POST /approvals/proposals/:id/approve`
-- `POST /approvals/proposals/:id/reject`
-- `POST /approvals/proposals/:id/mark-ready`
-
-Ready events include `no_execution: true` and `execution_blocked: true`.
-
-## Phase 7 Safe Mock Dispatch Adapter
-
-Phase 7 adds a mock dispatch adapter after the ready topic:
-
-```text
-Kafka topic: dispatch.command.ready
-        |
-        v
-Mock dispatch adapter
-        |
-        +--> Kafka topic: dispatch.command.mock.sent
-        |
-        +--> Kafka topic: dispatch.command.mock.result
-        |
-        +--> TimescaleDB hypertable: dispatch_execution_audit
-        |
-        v
-Kafka topic: dispatch.mock.audit
-```
-
-The mock adapter validates that a ready event still has `no_execution: true` and `execution_blocked: true`. It then creates simulated command preparation payloads only. It never sends a command to a real household device.
-
-Mock events always include:
-
-- `simulated: true`
-- `no_real_execution: true`
-- `execution_mode: mock`
-- `safety_note: "Mock adapter only. No real household device was controlled."`
-
-The mock adapter exposes read-only endpoints:
-
-- `GET /health`
-- `GET /mock-dispatch/audit`
-- `GET /mock-dispatch/audit/:id`
-
-## Phase 8 ENERSHARE / Dataspace Export Foundation
-
-Phase 8 adds a dataspace-style export service that reads from the existing TimescaleDB pipeline tables and exposes filtered, minimized, pseudonymized summary assets:
-
-```text
-semantic_events / ieee20305_events / dispatch_commands /
-dispatch_approval_audit / dispatch_execution_audit
-        |
-        v
-Dataspace export foundation
-        |
-        +--> safe HTTP export assets
-        +--> Kafka topic: dataspace.catalog
-        +--> TimescaleDB hypertable: dataspace_exports
-        |
-        v
-Kafka topic: dataspace.export.audit
-```
-
-This is a foundation for ENERSHARE-style sharing. It is not a certified ENERSHARE connector, does not use real connector credentials, and does not expose raw household telemetry or raw household/device identifiers.
-
-The export API uses local development API key protection on export endpoints:
-
-```text
-x-api-key: local-dev-dataspace-key
-```
-
-Available export assets:
-
-- `semantic-summary`
-- `grid-signal-summary`
-- `dispatch-proposal-summary`
-- `approval-audit-summary`
-- `mock-dispatch-summary`
-- `full-pipeline-demo-summary`
-
-Data minimization rules:
-
-- raw telemetry payloads are not returned
-- raw household IDs are replaced with stable `household_xxxxx` pseudonyms
-- raw device IDs are replaced with stable `device_xxxxx` pseudonyms
-- community ID remains visible as the community-level grouping
-- exports are limited by `DATASPACE_MAX_RECORDS`
-
-## New Phase 1 Components
-
-- `services/ingestion-api` - Express API with `POST /telemetry`
-- `services/mqtt-subscriber` - MQTT `telemetry/#` subscriber that publishes valid messages to Kafka
-- `services/mqtt-broker` - Mosquitto broker config
-- `services/engine` - Kafka consumer that validates, normalizes, and writes TimescaleDB rows
-- `schemas/telemetry.schema.json` - shared household telemetry payload contract
-- `database/timescale/001_init.sql` - TimescaleDB schema and hypertable migration
-- `examples/household_telemetry.json` - sample household energy telemetry
-- `docs/phase-1-implementation-report.md` - beginner-friendly implementation report
-
-## New Phase 2 Components
-
-- `services/semantic-connector` - Kafka consumer and producer for deterministic SAREF4ENER-style enrichment
-- `services/semantic-connector/src/saref4ener-mapping.js` - known reading mappings and safe unmapped fallback
-- `services/semantic-connector/src/semantic-builder.js` - semantic payload and event builder
-- `database/timescale/002_semantic_events.sql` - `semantic_events` hypertable migration
-- `docs/phase-2-implementation-report.md` - beginner-friendly Phase 2 implementation report
-
-## New Phase 3 Components
-
-- `services/semantic-connector/src/slm-mapper.js` - optional Ollama `/api/generate` client for unknown readings
-- `services/semantic-connector/src/slm-validation.js` - strict validation for SLM JSON output
-- `examples/household_unknown_telemetry.json` - unknown readings that can trigger SLM-assisted mapping
-- `docs/phase-3-implementation-report.md` - beginner-friendly Phase 3 implementation report
-
-## New Phase 4 Components
-
-- `services/ieee20305-translator` - Kafka consumer, HTTP API, and translator service
-- `services/ieee20305-translator/src/translator.js` - semantic and DSO signal translation logic
-- `services/ieee20305-translator/src/db.js` - TimescaleDB helper for `ieee20305_events`
-- `services/ieee20305-translator/src/kafka.js` - Kafka consume/publish helper
-- `database/timescale/003_ieee20305_events.sql` - `ieee20305_events` hypertable migration
-- `schemas/grid-signal.schema.json` - mock DSO grid signal payload contract
-- `examples/dso_grid_signal.json` - sample DSO curtailment request
-- `docs/phase-4-implementation-report.md` - beginner-friendly Phase 4 implementation report
-
-## New Phase 5 Components
-
-- `services/aggregator` - proposal-only Kafka consumer, publisher, and read API
-- `services/aggregator/src/aggregator.js` - rule-based dispatch proposal logic
-- `services/aggregator/src/validation.js` - GridSignal and translated event shape validation
-- `services/aggregator/src/db.js` - TimescaleDB helper for `dispatch_commands`
-- `services/aggregator/src/kafka.js` - Kafka consume/publish helper for proposal and audit topics
-- `database/timescale/004_dispatch_commands.sql` - `dispatch_commands` hypertable migration
-- `examples/dispatch_proposal_example.json` - sample proposal-only dispatch command record
-- `docs/phase-5-implementation-report.md` - beginner-friendly Phase 5 implementation report
-
-## New Phase 6 Components
-
-- `services/approval-workflow` - approval workflow and safe dispatch preparation API
-- `services/approval-workflow/src/status-machine.js` - allowed status transition rules
-- `services/approval-workflow/src/validation.js` - approval request validation
-- `services/approval-workflow/src/workflow.js` - status update, audit, and ready event logic
-- `services/approval-workflow/src/db.js` - TimescaleDB helper for dispatch proposals and approval audit
-- `services/approval-workflow/src/kafka.js` - Kafka helper for approval audit and ready events
-- `database/timescale/005_dispatch_approval_audit.sql` - `dispatch_approval_audit` hypertable migration
-- `examples/approval_review_request.json` - sample review request
-- `examples/approval_approve_request.json` - sample approve request
-- `examples/approval_reject_request.json` - sample reject request
-- `examples/approval_mark_ready_request.json` - sample mark-ready request
-- `docs/phase-6-implementation-report.md` - beginner-friendly Phase 6 implementation report
-
-## New Phase 7 Components
-
-- `services/mock-dispatch-adapter` - safe mock dispatch adapter service
-- `services/mock-dispatch-adapter/src/mock-adapter.js` - simulated device command mapping
-- `services/mock-dispatch-adapter/src/validation.js` - ready event validation
-- `services/mock-dispatch-adapter/src/db.js` - TimescaleDB helper for `dispatch_execution_audit`
-- `services/mock-dispatch-adapter/src/kafka.js` - Kafka helper for ready, mock sent, mock result, and mock audit topics
-- `database/timescale/006_dispatch_execution_audit.sql` - `dispatch_execution_audit` hypertable migration
-- `examples/mock_ready_dispatch_event.json` - sample ready event for mock testing
-- `examples/mock_dispatch_result_example.json` - sample simulated mock result
-- `docs/phase-7-implementation-report.md` - beginner-friendly Phase 7 implementation report
-
-## New Phase 8 Components
-
-- `services/dataspace-export` - dataspace-style export API with minimized and pseudonymized summaries
-- `services/dataspace-export/src/policy.js` - allowed assets, access policy, limitations, and minimization rules
-- `services/dataspace-export/src/pseudonymize.js` - stable household/device pseudonym helper
-- `services/dataspace-export/src/export-builder.js` - safe export payload and audit payload builder
-- `services/dataspace-export/src/db.js` - TimescaleDB queries for safe summary exports and `dataspace_exports`
-- `services/dataspace-export/src/kafka.js` - Kafka publisher for catalog and export audit events
-- `database/timescale/007_dataspace_exports.sql` - `dataspace_exports` hypertable migration
-- `examples/dataspace_catalog_example.json` - sample catalog metadata
-- `examples/dataspace_export_request_headers.txt` - local API key header example
-- `examples/dataspace_full_pipeline_export_example.json` - sample minimized full pipeline export
-- `docs/phase-8-implementation-report.md` - beginner-friendly Phase 8 implementation report
-
-## Run Only the New Production Foundation
-
-From the repository root:
+Safety boundary: the pipeline stops at mock dispatch. No real household command is sent.
+
+## Phase Summary
+
+| Phase | Release | What It Added |
+| --- | --- | --- |
+| 1 | `phase-1-foundation-v1` | HTTP/MQTT ingestion, Kafka backbone, engine normalization, TimescaleDB storage. |
+| 2 | `phase-2-saref4ener-v1` | Deterministic SAREF4ENER/NGSI semantic mapping and `semantic_events`. |
+| 3 | `phase-3-slm-assisted-v1` | Optional Ollama/Phi-3 Mini mapping for unknown readings only. |
+| 4 | `phase-4-ieee20305-v1` | IEEE 2030.5-style translator foundation and mock DSO grid signal endpoint. |
+| 5 | `phase-5-aggregator-v1` | Proposal-only aggregator and dispatch command audit path. |
+| 6 | `phase-6-approval-workflow-v1` | Review, approve, reject, and mark-ready workflow with audit. |
+| 7 | `phase-7-mock-dispatch-v1` | Safe mock dispatch adapter with simulated sent/result events. |
+| 8 | `phase-8-dataspace-export-v1` | Minimized, pseudonymized dataspace-style export foundation. |
+| 9 | current | Final documentation, runbooks, scripts, troubleshooting, and demo polish. |
+
+## Services And Ports
+
+| Service | Port | Role |
+| --- | ---: | --- |
+| `ingestion-api` | 3001 | Receives HTTP telemetry and publishes `raw.telemetry`. |
+| `mqtt-subscriber` | none | Subscribes to MQTT telemetry and publishes `raw.telemetry`. |
+| `engine` | none | Normalizes raw telemetry and publishes `normalized.telemetry`. |
+| `semantic-connector` | none | Adds deterministic SAREF4ENER or optional SLM-assisted semantic mapping. |
+| `ieee20305-translator` | 3002 | Translates semantic events and accepts mock DSO grid signals. |
+| `aggregator` | 3003 | Creates proposal-only dispatch commands. |
+| `approval-workflow` | 3004 | Manages safe proposal status transitions. |
+| `mock-dispatch-adapter` | 3005 | Simulates dispatch preparation only. |
+| `dataspace-export` | 3006 | Exposes minimized, pseudonymized dataspace-style summaries. |
+| `kafka` | 9092 / 29092 | Local event streaming backbone. |
+| `timescaledb` | 5432 | Local event and audit database. |
+| `mqtt-broker` | 1883 | Local MQTT broker for telemetry input. |
+
+## Kafka Topics
+
+| Topic | Purpose |
+| --- | --- |
+| `raw.telemetry` | Raw HTTP/MQTT telemetry. |
+| `normalized.telemetry` | Validated normalized telemetry from the engine. |
+| `semantic.enriched` | SAREF4ENER/NGSI enriched readings. |
+| `ieee20305.translated` | Simplified IEEE 2030.5-style telemetry translations. |
+| `grid.signals` | Mock DSO grid signal payloads. |
+| `dispatch.command.proposed` | Aggregator-created proposal-only dispatch commands. |
+| `dispatch.command.audit` | Aggregator proposal audit events. |
+| `dispatch.approval.audit` | Approval workflow status transition audit events. |
+| `dispatch.command.ready` | Approved proposals marked ready for dispatch preparation only. |
+| `dispatch.command.mock.sent` | Simulated mock command preparation events. |
+| `dispatch.command.mock.result` | Simulated mock result events. |
+| `dispatch.mock.audit` | Mock dispatch audit events. |
+| `dataspace.catalog` | Dataspace-style catalog metadata. |
+| `dataspace.export.audit` | Dataspace export audit events. |
+
+## TimescaleDB Tables
+
+| Table | Purpose |
+| --- | --- |
+| `raw_telemetry` | Raw telemetry received by the pipeline. |
+| `normalized_telemetry` | Engine-normalized telemetry records. |
+| `processing_errors` | Engine validation/processing failures. |
+| `semantic_events` | Phase 2/3 semantic mapping events. |
+| `ieee20305_events` | Phase 4 translated telemetry and DSO grid signal events. |
+| `dispatch_commands` | Phase 5/6 dispatch proposals and status updates. |
+| `dispatch_approval_audit` | Phase 6 approval transition audit history. |
+| `dispatch_execution_audit` | Phase 7 mock-only dispatch audit history. |
+| `dataspace_exports` | Phase 8 export/catalog audit history. |
+
+## Run The Full Demo
+
+Prerequisites:
+
+- Docker Desktop running.
+- PowerShell.
+- Optional: Ollama with `phi3:mini` if you want SLM-assisted mapping for unknown readings. Known readings do not require Ollama.
 
 ```powershell
-Copy-Item .env.example .env
-docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector ieee20305-translator aggregator approval-workflow mock-dispatch-adapter dataspace-export
+cd C:\Users\Mani\Desktop\Github\IOT-PIPELINE
+copy .env.example .env
+powershell -ExecutionPolicy Bypass -File .\scripts\start-demo.ps1 -Build
+powershell -ExecutionPolicy Bypass -File .\scripts\check-health.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\run-full-demo.ps1
 ```
 
-For Phase 3 SLM-assisted mapping, install and run Ollama on the host machine, then pull Phi-3 Mini:
+Stop the demo without deleting local data:
 
 ```powershell
-ollama pull phi3:mini
-ollama serve
+powershell -ExecutionPolicy Bypass -File .\scripts\stop-demo.ps1
 ```
 
-The default `.env.example` settings are:
+## Validate The Demo Manually
 
-```text
-IEEE20305_TRANSLATED_TOPIC=ieee20305.translated
-GRID_SIGNALS_TOPIC=grid.signals
-DISPATCH_PROPOSED_TOPIC=dispatch.command.proposed
-DISPATCH_AUDIT_TOPIC=dispatch.command.audit
-DISPATCH_READY_TOPIC=dispatch.command.ready
-DISPATCH_APPROVAL_AUDIT_TOPIC=dispatch.approval.audit
-DISPATCH_MOCK_SENT_TOPIC=dispatch.command.mock.sent
-DISPATCH_MOCK_RESULT_TOPIC=dispatch.command.mock.result
-DISPATCH_MOCK_AUDIT_TOPIC=dispatch.mock.audit
-DATASPACE_CATALOG_TOPIC=dataspace.catalog
-DATASPACE_EXPORT_AUDIT_TOPIC=dataspace.export.audit
-IEEE20305_TRANSLATOR_PORT=3002
-AGGREGATOR_PORT=3003
-APPROVAL_WORKFLOW_PORT=3004
-MOCK_DISPATCH_ADAPTER_PORT=3005
-DATASPACE_EXPORT_PORT=3006
-DATASPACE_API_KEY=local-dev-dataspace-key
-DATASPACE_DEFAULT_COMMUNITY=community-dublin-north
-DATASPACE_PSEUDONYMIZATION_SALT=local-dev-salt
-DATASPACE_MAX_RECORDS=100
-SLM_ENABLED=true
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-OLLAMA_MODEL=phi3:mini
-SLM_TIMEOUT_MS=8000
-```
-
-Set `SLM_ENABLED=false` to use only deterministic mappings and the existing unmapped fallback.
-
-Check containers:
+Send normal telemetry:
 
 ```powershell
-docker compose ps
+Invoke-RestMethod -Method Post `
+  -Uri http://localhost:3001/telemetry `
+  -ContentType application/json `
+  -Body (Get-Content .\examples\household_telemetry.json -Raw)
 ```
 
-Send sample HTTP telemetry:
+Send a DSO grid signal:
 
 ```powershell
-Invoke-RestMethod `
-  -Uri "http://localhost:3001/telemetry" `
-  -Method Post `
-  -ContentType "application/json" `
-  -InFile "examples/household_telemetry.json"
-```
-
-Expected API result:
-
-```json
-{
-  "status": "accepted",
-  "topic": "raw.telemetry"
-}
-```
-
-Verify Kafka received a message:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic raw.telemetry `
-  --from-beginning `
-  --max-messages 1
-```
-
-Verify normalized Kafka flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic normalized.telemetry `
-  --from-beginning `
-  --max-messages 1
-```
-
-Verify semantic enriched Kafka flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic semantic.enriched `
-  --from-beginning `
-  --max-messages 1
-```
-
-Verify IEEE 2030.5-style translated Kafka flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic ieee20305.translated `
-  --from-beginning `
-  --max-messages 1
-```
-
-Send unknown telemetry to test Phase 3 SLM-assisted mapping:
-
-```powershell
-Invoke-RestMethod `
-  -Uri "http://localhost:3001/telemetry" `
-  -Method Post `
-  -ContentType "application/json" `
-  -InFile "examples/household_unknown_telemetry.json"
-```
-
-When Ollama is running and `SLM_ENABLED=true`, unknown readings can be stored with `mapping_source = 'slm_assisted'`. If Ollama is unavailable or returns invalid JSON, the same readings are stored with `mapping_source = 'unmapped'` and the connector keeps running.
-
-Send a mock DSO grid signal to test Phase 4:
-
-```powershell
-Invoke-RestMethod `
-  -Uri "http://localhost:3002/dso/grid-signal" `
-  -Method Post `
-  -ContentType "application/json" `
-  -InFile "examples/dso_grid_signal.json"
-```
-
-Verify grid signal Kafka flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic grid.signals `
-  --from-beginning `
-  --max-messages 1
-```
-
-Verify Phase 5 dispatch proposal flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic dispatch.command.proposed `
-  --from-beginning `
-  --max-messages 1
-```
-
-Verify Phase 5 audit flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic dispatch.command.audit `
-  --from-beginning `
-  --max-messages 1
-```
-
-Read proposals through the Aggregator API:
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:3003/dispatch/proposals" -Method Get
-```
-
-Read proposals through the approval workflow API:
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:3004/approvals/proposals" -Method Get
+Invoke-RestMethod -Method Post `
+  -Uri http://localhost:3002/dso/grid-signal `
+  -ContentType application/json `
+  -Body (Get-Content .\examples\dso_grid_signal.json -Raw)
 ```
 
 Review, approve, and mark a proposal ready:
 
 ```powershell
-$proposalId = 1
-
-Invoke-RestMethod `
-  -Uri "http://localhost:3004/approvals/proposals/$proposalId/review" `
-  -Method Post `
-  -ContentType "application/json" `
-  -InFile "examples/approval_review_request.json"
-
-Invoke-RestMethod `
-  -Uri "http://localhost:3004/approvals/proposals/$proposalId/approve" `
-  -Method Post `
-  -ContentType "application/json" `
-  -InFile "examples/approval_approve_request.json"
-
-Invoke-RestMethod `
-  -Uri "http://localhost:3004/approvals/proposals/$proposalId/mark-ready" `
-  -Method Post `
-  -ContentType "application/json" `
-  -InFile "examples/approval_mark_ready_request.json"
+$proposal = (Invoke-RestMethod http://localhost:3003/dispatch/proposals?limit=1).proposals[0]
+Invoke-RestMethod -Method Post -Uri "http://localhost:3004/approvals/proposals/$($proposal.id)/review" -ContentType application/json -Body (Get-Content .\examples\approval_review_request.json -Raw)
+Invoke-RestMethod -Method Post -Uri "http://localhost:3004/approvals/proposals/$($proposal.id)/approve" -ContentType application/json -Body (Get-Content .\examples\approval_approve_request.json -Raw)
+Invoke-RestMethod -Method Post -Uri "http://localhost:3004/approvals/proposals/$($proposal.id)/mark-ready" -ContentType application/json -Body (Get-Content .\examples\approval_mark_ready_request.json -Raw)
 ```
 
-Verify Phase 6 approval audit flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic dispatch.approval.audit `
-  --from-beginning `
-  --max-messages 1
-```
-
-Verify Phase 6 ready event flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic dispatch.command.ready `
-  --from-beginning `
-  --max-messages 1
-```
-
-Verify Phase 7 mock sent event flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic dispatch.command.mock.sent `
-  --from-beginning `
-  --max-messages 1
-```
-
-Verify Phase 7 mock result event flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic dispatch.command.mock.result `
-  --from-beginning `
-  --max-messages 1
-```
-
-Read mock dispatch audit rows:
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:3005/mock-dispatch/audit" -Method Get
-```
-
-Read the Phase 8 dataspace catalog:
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:3006/dataspace/catalog" -Method Get
-```
-
-Publish catalog metadata to Kafka:
+Call the safe dataspace export:
 
 ```powershell
 Invoke-RestMethod `
-  -Uri "http://localhost:3006/dataspace/catalog/publish" `
-  -Method Post `
+  -Uri http://localhost:3006/dataspace/export/full-pipeline-demo-summary `
   -Headers @{ "x-api-key" = "local-dev-dataspace-key" }
 ```
 
-Request a minimized full-pipeline dataspace export:
-
-```powershell
-Invoke-RestMethod `
-  -Uri "http://localhost:3006/dataspace/export/full-pipeline-demo-summary" `
-  -Method Get `
-  -Headers @{ "x-api-key" = "local-dev-dataspace-key" }
-```
-
-Verify Phase 8 audit Kafka flow:
-
-```powershell
-docker compose exec kafka kafka-console-consumer `
-  --bootstrap-server kafka:29092 `
-  --topic dataspace.export.audit `
-  --from-beginning `
-  --max-messages 1
-```
-
-Verify TimescaleDB rows:
-
-```powershell
-docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, household_id, device_id, protocol FROM raw_telemetry ORDER BY received_at DESC LIMIT 5;"
-```
-
-```powershell
-docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, device_id, reading_name, reading_value, reading_unit FROM normalized_telemetry ORDER BY processed_at DESC LIMIT 10;"
-```
-
-```powershell
-docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, device_id, reading_name, saref4ener_concept, mapping_source, mapping_confidence FROM semantic_events ORDER BY processed_at DESC LIMIT 10;"
-```
-
-```powershell
-docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, resource_type, reading_name, translation_status, translation_confidence FROM ieee20305_events ORDER BY processed_at DESC LIMIT 10;"
-```
-
-```powershell
-docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT id, community_id, requested_action, proposed_action, target_kw, status, created_at FROM dispatch_commands ORDER BY created_at DESC LIMIT 10;"
-```
-
-```powershell
-docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT dispatch_command_id, previous_status, new_status, action, reviewer_id, created_at FROM dispatch_approval_audit ORDER BY created_at DESC LIMIT 10;"
-```
-
-```powershell
-docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT dispatch_command_id, proposed_action, mock_device_type, simulation_status, no_real_execution, execution_mode FROM dispatch_execution_audit ORDER BY created_at DESC LIMIT 10;"
-```
-
-```powershell
-docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT export_type, asset_id, record_count, minimization_applied, pseudonymization_applied, export_status FROM dataspace_exports ORDER BY created_at DESC LIMIT 10;"
-```
-
-Check processing errors:
-
-```powershell
-docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT occurred_at, error_type, error_message FROM processing_errors ORDER BY occurred_at DESC LIMIT 10;"
-```
-
-Run the lightweight local unit tests with a working Node.js runtime:
-
-```powershell
-node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js services/ieee20305-translator/test/*.test.js services/aggregator/test/*.test.js services/approval-workflow/test/*.test.js services/mock-dispatch-adapter/test/*.test.js services/dataspace-export/test/*.test.js
-```
-
-For Phase 8 tests, include:
-
-```powershell
-node --test services/dataspace-export/test/*.test.js
-```
-
-## Phase 1 Scope Limits
-
-This phase does not implement:
-
-- SLM Semantic Connector
-- SAREF4ENER enrichment
-- IEEE 2030.5 translator
-- Aggregator dispatch commands
-- ENERSHARE export
-- full production security for incoming telemetry
-
-Phase 2 now adds the SAREF4ENER semantic connector that consumes `normalized.telemetry` and produces `semantic.enriched` events.
-
-## Phase 2 Scope Limits
-
-This phase does not implement:
-
-- real SLM/Ollama semantic mapping
-- IEEE 2030.5 translator
-- aggregator dispatch commands
-- ENERSHARE export
-- full production security layer
-
-Phase 3 now adds optional SLM-assisted mapping with Phi-3 Mini through Ollama for unknown readings while keeping the deterministic mapping path as the safe default.
-
-## Phase 3 Scope Limits
-
-This phase does not implement:
-
-- IEEE 2030.5 translator
-- aggregator dispatch commands
-- ENERSHARE export
-- model-based mapping for known deterministic readings
-- mandatory Ollama dependency
-
-SLM-assisted mapping is only used for unknown readings, and it falls back safely to `unmapped`.
-
-## Phase 4 Scope Limits
-
-This phase does not implement:
-
-- full certified IEEE 2030.5 stack
-- production mTLS
-- aggregator dispatch commands
-- household command execution
-- ENERSHARE export
-
-The translator emits IEEE 2030.5-style foundation payloads for later phases.
-
-## Phase 5 Scope Limits
-
-This phase does not implement:
-
-- real household control
-- automatic command execution
-- approval workflow
-- production mTLS
-- ENERSHARE export
-- real device availability optimization
-
-The Aggregator creates proposed dispatch commands and audit records only. Phase 6 should add review and approval status transitions before any dispatch preparation.
-
-## Phase 6 Scope Limits
-
-This phase does not implement:
-
-- household command execution
-- real device dispatch
-- automatic approval
-- production identity provider
-- production mTLS
-- ENERSHARE export
-- optimization engine
-
-The approval workflow prepares proposals for a later safe dispatch adapter. Even `ready_to_dispatch` means preparation only, not execution.
-
-## Phase 7 Scope Limits
-
-This phase does not implement:
-
-- real household control
-- physical device adapters
-- production security hardening
-- mTLS
-- ENERSHARE export
-- automatic rollback
-- real customer consent workflow
-
-The mock dispatch adapter only simulates command preparation. Every mock sent, mock result, and mock audit event states that no real household device was controlled.
-
-## Phase 8 Scope Limits
-
-This phase does not implement:
-
-- certified ENERSHARE connector behavior
-- real EDC connector credentials
-- contract negotiation
-- OAuth/OIDC identity provider integration
-- production mTLS
-- real external dataspace publication
-- raw private household telemetry export
-- real household dispatch or device control
-
-The dataspace export foundation only exposes local, minimized, pseudonymized summaries and writes/publishes export audit records.
-
----
-
-## 📌 Project Overview
-
-This project implements a **Smart Home IoT Data Pipeline** that handles heterogeneous device data, applies semantic standardization, and enables both real-time and historical data visualization.
-
-The system simulates IoT devices (temperature sensors, smart meters, etc.), processes raw data using a **custom Semantic Connector**, and integrates with:
-
-- **MySQL** → Raw & Processed data storage  
-- **Eclipse Ditto** → Digital Twin (latest device state)  
-- **FIWARE Orion-LD** → Context Broker (NGSI-LD standard)  
-- **Streamlit Dashboard** → Visualization layer  
-
----
-
-## ⚙️ Architecture Flow
-
-```
-IoT Devices / Data Generator
-        ↓
-Raw Data (MySQL - raw_device_data_table)
-        ↓
-Semantic Connector (Python)
-        ↓
- ┌───────────────────────────────┐
- │                               │
- ↓                               ↓
-Processed Data (MySQL)     Eclipse Ditto (Digital Twin)
-                                ↓
-                         FIWARE Orion-LD
-                                ↓
-                       Streamlit Dashboard
-```
-
----
-
-## 🧠 Key Components
-
-### 1️⃣ Data Generator (Consumer)
-- Simulates IoT devices
-- Generates random sensor data
-- Stores raw JSON payloads in MySQL
-
----
-
-### 2️⃣ MySQL Database
-
-#### Raw Table
-Stores unprocessed device data:
-- `device_id`
-- `device_type`
-- `raw_payload (JSON)`
-- `created_at`
-- `processed (boolean)`
-
-#### Processed Table
-Stores standardized data after semantic transformation.
-
----
-
-### 3️⃣ Semantic Connector (Python)
-
-Custom-built component that:
-
-- Reads unprocessed raw data  
-- Parses JSON payload  
-- Converts data into:
-  - **Eclipse Ditto format**
-  - **NGSI-LD format (FIWARE)**  
-- Applies semantic meaning (SAREF-inspired mapping)  
-- Sends data to:
-  - Eclipse Ditto (Digital Twin)
-  - Orion-LD (Context Broker)
-- Stores processed data in MySQL  
-- Marks raw data as processed  
-
----
-
-### 4️⃣ Eclipse Ditto (Digital Twin)
-
-- Maintains latest state of devices
-- Provides real-time representation
-- Stores device twin models
-
----
-
-### 5️⃣ FIWARE Orion-LD
-
-- Context Broker using NGSI-LD
-- Enables:
-  - Data sharing
-  - Standardized APIs
-  - Dataspace interoperability
-
----
-
-### 6️⃣ Streamlit Dashboard
-
-- Displays:
-  - Real-time device data
-  - Historical trends
-- Auto-refresh enabled
-- Clean UI for monitoring smart home data
-
----
-
-## 🚀 How to Run the Project
-
-### 1️⃣ Clone Repository
-```
-git clone https://github.com/manisharma9/IOT-PIPELINE.git
-cd IOT-PIPELINE
-```
-
----
-
-### 2️⃣ Setup MySQL
-- Install MySQL
-- Create database:
-
-```
-CREATE DATABASE smart_home;
-```
-
----
-
-### 3️⃣ Run FIWARE Orion-LD (Docker)
-
-```
-docker run -d --name mongo -p 27017:27017 mongo
-
-docker run -d --name orion \
-  --link mongo \
-  -p 1026:1026 \
-  fiware/orion-ld
-```
-
----
-
-### 4️⃣ Run Eclipse Ditto
-
-```
-docker run -d -p 8080:8080 eclipse/ditto
-```
-
----
-
-### 5️⃣ Install Python Dependencies
-
-```
-pip install mysql-connector-python requests pandas streamlit
-```
-
----
-
-### 6️⃣ Run Components
-
-#### ▶ Data Generator
-```
-python consumer.py
-```
-
-#### ▶ Semantic Connector
-```
-python semantic_connector.py
-```
-
-#### ▶ Dashboard
-```
-streamlit run dashboard.py
-```
-
----
-
-## 📊 Example Device Payload
-
-```
-{
-  "temperature": 23.5,
-  "humidity": 60,
-  "device_id": "sensor_1"
-}
-```
-
----
-
-## 🎯 Key Features
-
-- End-to-end IoT data pipeline  
-- Real-time + historical data  
-- Digital Twin integration (Ditto)  
-- NGSI-LD standardization  
-- Semantic data transformation  
-- Interactive dashboard  
-
----
-
-## 🧩 Technologies Used
-
-- Python  
-- MySQL  
-- Docker  
-- Eclipse Ditto  
-- FIWARE Orion-LD  
-- Streamlit  
-
----
-
-## 📚 Concepts Used
-
-- IoT Data Pipelines  
-- Digital Twins  
-- Semantic Interoperability  
-- NGSI-LD Information Model  
-- Smart Home Systems  
-
----
-
-## 👨‍💻 Author
-
-Mani Sharma  
-Master’s in Business Analytics – Maynooth University  
-
----
+## Safety Limitations
+
+- No real household command execution.
+- Mock dispatch only.
+- No certified IEEE 2030.5 implementation.
+- No certified ENERSHARE connector.
+- No production mTLS, OAuth/OIDC, contract negotiation, or real connector credentials.
+- API key protection is local development only.
+- Dataspace export is minimized and pseudonymized, but not production privacy compliance by itself.
+- Optional SLM mapping is used only for unknown readings and is never required for known deterministic mappings.
+
+## Final Demo Talking Points
+
+- The pipeline turns raw IoT telemetry into structured energy-flexibility knowledge.
+- SAREF4ENER gives deterministic semantic meaning for known readings.
+- SLM-assisted mapping helps only when a reading is unknown, while deterministic mapping remains first.
+- IEEE 2030.5-style translation gives a bridge toward grid/DER concepts without claiming certification.
+- Aggregator and approval workflow keep dispatch proposal creation separate from execution.
+- Mock dispatch proves the workflow end to end without controlling a real device.
+- Dataspace export shares only minimized, pseudonymized summaries for external stakeholders.
+
+## Key Documentation
+
+- [Final architecture](docs/final-architecture.md)
+- [Final demo runbook](docs/final-demo-runbook.md)
+- [Final presentation script](docs/final-presentation-script.md)
+- [Troubleshooting guide](docs/troubleshooting.md)
+- [Security and limitations](docs/security-and-limitations.md)
+- [Phase 9 final demo polish report](docs/phase-9-final-demo-polish-report.md)

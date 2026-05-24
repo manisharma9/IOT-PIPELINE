@@ -1,6 +1,8 @@
 version: "3.9"
 
 services:
+  # Optional legacy digital twin/context broker services kept for dashboard
+  # compatibility and earlier phase demonstrations.
   mongo:
     image: mongo:7.0
     container_name: ditto-mongo
@@ -79,6 +81,7 @@ services:
       - JAVA_TOOL_OPTIONS=-Dpekko.remote.artery.canonical.hostname=ditto-gateway -Dpekko.cluster.seed-nodes.0=pekko://ditto-cluster@ditto-things:2551
     restart: unless-stopped
 
+  # Core event backbone.
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
     container_name: adflex-zookeeper
@@ -120,6 +123,7 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  # Telemetry input and persistent event storage.
   mqtt-broker:
     image: eclipse-mosquitto:2.0
     container_name: adflex-mqtt-broker
@@ -149,6 +153,7 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  # Phase 1 telemetry ingestion and normalization path.
   ingestion-api:
     build:
       context: .
@@ -208,6 +213,7 @@ services:
       TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
     restart: unless-stopped
 
+  # Phase 2 and Phase 3 semantic enrichment path.
   semantic-connector:
     build:
       context: .
@@ -235,6 +241,7 @@ services:
       TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
     restart: unless-stopped
 
+  # Phase 4 IEEE 2030.5-style translator foundation.
   ieee20305-translator:
     build:
       context: .
@@ -263,6 +270,7 @@ services:
       - "${IEEE20305_TRANSLATOR_PORT:-3002}:3002"
     restart: unless-stopped
 
+  # Phase 5 proposal-only aggregator.
   aggregator:
     build:
       context: .
@@ -292,6 +300,7 @@ services:
       - "${AGGREGATOR_PORT:-3003}:3003"
     restart: unless-stopped
 
+  # Phase 6 approval workflow and safe ready-to-dispatch preparation.
   approval-workflow:
     build:
       context: .
@@ -320,6 +329,7 @@ services:
       - "${APPROVAL_WORKFLOW_PORT:-3004}:3004"
     restart: unless-stopped
 
+  # Phase 7 mock-only dispatch adapter. No real device control.
   mock-dispatch-adapter:
     build:
       context: .
@@ -349,6 +359,7 @@ services:
       - "${MOCK_DISPATCH_ADAPTER_PORT:-3005}:3005"
     restart: unless-stopped
 
+  # Phase 8 dataspace-style export foundation with minimized summaries.
   dataspace-export:
     build:
       context: .
