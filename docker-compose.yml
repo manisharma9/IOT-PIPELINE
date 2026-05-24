@@ -292,6 +292,34 @@ services:
       - "${AGGREGATOR_PORT:-3003}:3003"
     restart: unless-stopped
 
+  approval-workflow:
+    build:
+      context: .
+      dockerfile: services/approval-workflow/Dockerfile
+    container_name: adflex-approval-workflow
+    depends_on:
+      kafka:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    environment:
+      APPROVAL_WORKFLOW_PORT: ${APPROVAL_WORKFLOW_PORT:-3004}
+      KAFKA_BROKER: kafka:29092
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-approval-workflow
+      APPROVAL_WORKFLOW_GROUP_ID: ${APPROVAL_WORKFLOW_GROUP_ID:-adflex-approval-workflow}
+      DISPATCH_PROPOSED_TOPIC: ${DISPATCH_PROPOSED_TOPIC:-dispatch.command.proposed}
+      DISPATCH_READY_TOPIC: ${DISPATCH_READY_TOPIC:-dispatch.command.ready}
+      DISPATCH_APPROVAL_AUDIT_TOPIC: ${DISPATCH_APPROVAL_AUDIT_TOPIC:-dispatch.approval.audit}
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
+      TIMESCALE_USER: ${TIMESCALE_USER:-energy_user}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
+    ports:
+      - "${APPROVAL_WORKFLOW_PORT:-3004}:3004"
+    restart: unless-stopped
+
 volumes:
   zookeeper-data:
   kafka-data:
