@@ -43,6 +43,33 @@ The engine still writes `raw_telemetry` and `normalized_telemetry`. It now also 
 
 Phase 2 intentionally does not include SLM/Ollama mapping, IEEE 2030.5, aggregator dispatch, or ENERSHARE export.
 
+## Phase 3 Optional SLM-Assisted Mapping
+
+Phase 3 keeps the deterministic Phase 2 mapping as the safe default and adds an optional SLM-assisted fallback for unknown readings only:
+
+```text
+Kafka topic: normalized.telemetry
+        |
+        v
+SAREF4ENER semantic connector
+        |
+        +--> known reading: deterministic mapping
+        |
+        +--> unknown reading and SLM_ENABLED=true:
+              Phi-3 Mini through Ollama suggests a mapping
+        |
+        +--> invalid/unavailable SLM: existing unmapped fallback
+        |
+        +--> TimescaleDB hypertable: semantic_events
+        |
+        v
+Kafka topic: semantic.enriched
+```
+
+The SLM path is optional. The pipeline still works when `SLM_ENABLED=false`, when Ollama is not running, or when the SLM returns invalid output. Known readings such as `active_power_kw` never call the SLM.
+
+Phase 3 intentionally does not include IEEE 2030.5, aggregator dispatch, or ENERSHARE export.
+
 ## New Phase 1 Components
 
 - `services/ingestion-api` - Express API with `POST /telemetry`
@@ -62,6 +89,13 @@ Phase 2 intentionally does not include SLM/Ollama mapping, IEEE 2030.5, aggregat
 - `database/timescale/002_semantic_events.sql` - `semantic_events` hypertable migration
 - `docs/phase-2-implementation-report.md` - beginner-friendly Phase 2 implementation report
 
+## New Phase 3 Components
+
+- `services/semantic-connector/src/slm-mapper.js` - optional Ollama `/api/generate` client for unknown readings
+- `services/semantic-connector/src/slm-validation.js` - strict validation for SLM JSON output
+- `examples/household_unknown_telemetry.json` - unknown readings that can trigger SLM-assisted mapping
+- `docs/phase-3-implementation-report.md` - beginner-friendly Phase 3 implementation report
+
 ## Run Only the New Production Foundation
 
 From the repository root:
@@ -70,6 +104,24 @@ From the repository root:
 Copy-Item .env.example .env
 docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector
 ```
+
+For Phase 3 SLM-assisted mapping, install and run Ollama on the host machine, then pull Phi-3 Mini:
+
+```powershell
+ollama pull phi3:mini
+ollama serve
+```
+
+The default `.env.example` settings are:
+
+```text
+SLM_ENABLED=true
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+OLLAMA_MODEL=phi3:mini
+SLM_TIMEOUT_MS=8000
+```
+
+Set `SLM_ENABLED=false` to use only deterministic mappings and the existing unmapped fallback.
 
 Check containers:
 
@@ -126,6 +178,18 @@ docker compose exec kafka kafka-console-consumer `
   --max-messages 1
 ```
 
+Send unknown telemetry to test Phase 3 SLM-assisted mapping:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "http://localhost:3001/telemetry" `
+  -Method Post `
+  -ContentType "application/json" `
+  -InFile "examples/household_unknown_telemetry.json"
+```
+
+When Ollama is running and `SLM_ENABLED=true`, unknown readings can be stored with `mapping_source = 'slm_assisted'`. If Ollama is unavailable or returns invalid JSON, the same readings are stored with `mapping_source = 'unmapped'` and the connector keeps running.
+
 Verify TimescaleDB rows:
 
 ```powershell
@@ -175,7 +239,19 @@ This phase does not implement:
 - ENERSHARE export
 - full production security layer
 
-Recommended Phase 3: add SLM-assisted mapping with Phi-3 Mini through Ollama for unknown readings while keeping the deterministic mapping path as the safe default.
+Phase 3 now adds optional SLM-assisted mapping with Phi-3 Mini through Ollama for unknown readings while keeping the deterministic mapping path as the safe default.
+
+## Phase 3 Scope Limits
+
+This phase does not implement:
+
+- IEEE 2030.5 translator
+- aggregator dispatch commands
+- ENERSHARE export
+- model-based mapping for known deterministic readings
+- mandatory Ollama dependency
+
+SLM-assisted mapping is only used for unknown readings, and it falls back safely to `unmapped`.
 
 ---
 

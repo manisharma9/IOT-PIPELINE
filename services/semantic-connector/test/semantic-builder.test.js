@@ -35,9 +35,12 @@ test("semantic payload builder creates readable semantic sections", () => {
   assert.equal(payload.entity_id, buildEntityId(event));
   assert.equal(payload.entity_type, "EnergyFlexMeasurement");
   assert.equal(payload.measurement.value, 1.42);
+  assert.equal(payload.original_reading.reading_name, "active_power_kw");
   assert.equal(payload.saref.property, "saref:Power");
   assert.equal(payload.saref4ener.concept, "saref4ener:PowerMeasurement");
   assert.equal(payload.ngsi.property, "activePower");
+  assert.equal(payload.mapping_source, "deterministic");
+  assert.equal(payload.mapping_confidence, "high");
 });
 
 test("semantic event shape contains database and Kafka fields", () => {

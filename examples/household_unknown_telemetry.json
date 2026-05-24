@@ -1,0 +1,19 @@
+{
+  "household_id": "household-unknown",
+  "community_id": "community-dublin-north",
+  "device_id": "meter-unknown",
+  "device_type": "smart_meter",
+  "timestamp": "2026-05-24T18:00:00Z",
+  "readings": {
+    "grid_stress_index": {
+      "value": 0.82,
+      "unit": "score"
+    },
+    "roomHeat": {
+      "value": 24.7,
+      "unit": "C"
+    }
+  },
+  "protocol": "http",
+  "source": "manual-phase-3-test"
+}
