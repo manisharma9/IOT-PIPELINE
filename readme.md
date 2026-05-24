@@ -177,6 +177,41 @@ The approval workflow exposes:
 
 Ready events include `no_execution: true` and `execution_blocked: true`.
 
+## Phase 7 Safe Mock Dispatch Adapter
+
+Phase 7 adds a mock dispatch adapter after the ready topic:
+
+```text
+Kafka topic: dispatch.command.ready
+        |
+        v
+Mock dispatch adapter
+        |
+        +--> Kafka topic: dispatch.command.mock.sent
+        |
+        +--> Kafka topic: dispatch.command.mock.result
+        |
+        +--> TimescaleDB hypertable: dispatch_execution_audit
+        |
+        v
+Kafka topic: dispatch.mock.audit
+```
+
+The mock adapter validates that a ready event still has `no_execution: true` and `execution_blocked: true`. It then creates simulated command preparation payloads only. It never sends a command to a real household device.
+
+Mock events always include:
+
+- `simulated: true`
+- `no_real_execution: true`
+- `execution_mode: mock`
+- `safety_note: "Mock adapter only. No real household device was controlled."`
+
+The mock adapter exposes read-only endpoints:
+
+- `GET /health`
+- `GET /mock-dispatch/audit`
+- `GET /mock-dispatch/audit/:id`
+
 ## New Phase 1 Components
 
 - `services/ingestion-api` - Express API with `POST /telemetry`
@@ -240,13 +275,25 @@ Ready events include `no_execution: true` and `execution_blocked: true`.
 - `examples/approval_mark_ready_request.json` - sample mark-ready request
 - `docs/phase-6-implementation-report.md` - beginner-friendly Phase 6 implementation report
 
+## New Phase 7 Components
+
+- `services/mock-dispatch-adapter` - safe mock dispatch adapter service
+- `services/mock-dispatch-adapter/src/mock-adapter.js` - simulated device command mapping
+- `services/mock-dispatch-adapter/src/validation.js` - ready event validation
+- `services/mock-dispatch-adapter/src/db.js` - TimescaleDB helper for `dispatch_execution_audit`
+- `services/mock-dispatch-adapter/src/kafka.js` - Kafka helper for ready, mock sent, mock result, and mock audit topics
+- `database/timescale/006_dispatch_execution_audit.sql` - `dispatch_execution_audit` hypertable migration
+- `examples/mock_ready_dispatch_event.json` - sample ready event for mock testing
+- `examples/mock_dispatch_result_example.json` - sample simulated mock result
+- `docs/phase-7-implementation-report.md` - beginner-friendly Phase 7 implementation report
+
 ## Run Only the New Production Foundation
 
 From the repository root:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector ieee20305-translator aggregator approval-workflow
+docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector ieee20305-translator aggregator approval-workflow mock-dispatch-adapter
 ```
 
 For Phase 3 SLM-assisted mapping, install and run Ollama on the host machine, then pull Phi-3 Mini:
@@ -265,9 +312,13 @@ DISPATCH_PROPOSED_TOPIC=dispatch.command.proposed
 DISPATCH_AUDIT_TOPIC=dispatch.command.audit
 DISPATCH_READY_TOPIC=dispatch.command.ready
 DISPATCH_APPROVAL_AUDIT_TOPIC=dispatch.approval.audit
+DISPATCH_MOCK_SENT_TOPIC=dispatch.command.mock.sent
+DISPATCH_MOCK_RESULT_TOPIC=dispatch.command.mock.result
+DISPATCH_MOCK_AUDIT_TOPIC=dispatch.mock.audit
 IEEE20305_TRANSLATOR_PORT=3002
 AGGREGATOR_PORT=3003
 APPROVAL_WORKFLOW_PORT=3004
+MOCK_DISPATCH_ADAPTER_PORT=3005
 SLM_ENABLED=true
 OLLAMA_BASE_URL=http://host.docker.internal:11434
 OLLAMA_MODEL=phi3:mini
@@ -449,6 +500,32 @@ docker compose exec kafka kafka-console-consumer `
   --max-messages 1
 ```
 
+Verify Phase 7 mock sent event flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic dispatch.command.mock.sent `
+  --from-beginning `
+  --max-messages 1
+```
+
+Verify Phase 7 mock result event flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic dispatch.command.mock.result `
+  --from-beginning `
+  --max-messages 1
+```
+
+Read mock dispatch audit rows:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3005/mock-dispatch/audit" -Method Get
+```
+
 Verify TimescaleDB rows:
 
 ```powershell
@@ -475,6 +552,10 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT id
 docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT dispatch_command_id, previous_status, new_status, action, reviewer_id, created_at FROM dispatch_approval_audit ORDER BY created_at DESC LIMIT 10;"
 ```
 
+```powershell
+docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT dispatch_command_id, proposed_action, mock_device_type, simulation_status, no_real_execution, execution_mode FROM dispatch_execution_audit ORDER BY created_at DESC LIMIT 10;"
+```
+
 Check processing errors:
 
 ```powershell
@@ -484,7 +565,7 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT oc
 Run the lightweight local unit tests with a working Node.js runtime:
 
 ```powershell
-node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js services/ieee20305-translator/test/*.test.js services/aggregator/test/*.test.js services/approval-workflow/test/*.test.js
+node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js services/ieee20305-translator/test/*.test.js services/aggregator/test/*.test.js services/approval-workflow/test/*.test.js services/mock-dispatch-adapter/test/*.test.js
 ```
 
 ## Phase 1 Scope Limits
@@ -562,6 +643,20 @@ This phase does not implement:
 - optimization engine
 
 The approval workflow prepares proposals for a later safe dispatch adapter. Even `ready_to_dispatch` means preparation only, not execution.
+
+## Phase 7 Scope Limits
+
+This phase does not implement:
+
+- real household control
+- physical device adapters
+- production security hardening
+- mTLS
+- ENERSHARE export
+- automatic rollback
+- real customer consent workflow
+
+The mock dispatch adapter only simulates command preparation. Every mock sent, mock result, and mock audit event states that no real household device was controlled.
 
 ---
 

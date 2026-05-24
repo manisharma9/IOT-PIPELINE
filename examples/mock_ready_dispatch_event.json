@@ -1,0 +1,16 @@
+{
+  "dispatch_command_id": 1,
+  "proposal_id": "proposal-signal-001-1779655778291",
+  "community_id": "community-dublin-north",
+  "household_id": null,
+  "device_id": null,
+  "requested_action": "reduce_load",
+  "proposed_action": "reduce_ev_charging",
+  "target_kw": 2.5,
+  "start_time": "2026-05-24T18:00:00Z",
+  "end_time": "2026-05-24T19:00:00Z",
+  "status": "ready_to_dispatch",
+  "no_execution": true,
+  "execution_blocked": true,
+  "correlation_id": "signal-001"
+}

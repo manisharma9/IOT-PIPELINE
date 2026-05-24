@@ -1,0 +1,14 @@
+{
+  "dispatch_command_id": 1,
+  "proposal_id": "proposal-signal-001-1779655778291",
+  "community_id": "community-dublin-north",
+  "proposed_action": "reduce_ev_charging",
+  "mock_device_type": "ev_charger",
+  "command": "set_charging_limit",
+  "simulated": true,
+  "execution_mode": "mock",
+  "no_real_execution": true,
+  "simulation_status": "simulated_success",
+  "message": "Mock dispatch simulation completed. No real household device was controlled.",
+  "safety_note": "Mock adapter only. No real household device was controlled."
+}
