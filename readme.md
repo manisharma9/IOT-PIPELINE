@@ -133,6 +133,50 @@ The Aggregator also exposes read-only HTTP endpoints:
 - `GET /dispatch/proposals`
 - `GET /dispatch/proposals/:id`
 
+## Phase 6 Approval Workflow and Safe Dispatch Preparation
+
+Phase 6 adds an approval workflow after the proposal topic:
+
+```text
+Kafka topic: dispatch.command.proposed
+        |
+        v
+Approval workflow
+        |
+        +--> dispatch_commands status update
+        |
+        +--> TimescaleDB hypertable: dispatch_approval_audit
+        |
+        +--> Kafka topic: dispatch.approval.audit
+        |
+        v
+Kafka topic: dispatch.command.ready
+```
+
+The approval workflow lets a reviewer move a proposal through safe review statuses. It still does not execute commands or send anything to households.
+
+Allowed status transitions:
+
+- `proposed -> reviewed`
+- `proposed -> rejected`
+- `reviewed -> approved`
+- `reviewed -> rejected`
+- `approved -> ready_to_dispatch`
+
+All other transitions are rejected with `invalid_status_transition`.
+
+The approval workflow exposes:
+
+- `GET /health`
+- `GET /approvals/proposals`
+- `GET /approvals/proposals/:id`
+- `POST /approvals/proposals/:id/review`
+- `POST /approvals/proposals/:id/approve`
+- `POST /approvals/proposals/:id/reject`
+- `POST /approvals/proposals/:id/mark-ready`
+
+Ready events include `no_execution: true` and `execution_blocked: true`.
+
 ## New Phase 1 Components
 
 - `services/ingestion-api` - Express API with `POST /telemetry`
@@ -181,13 +225,28 @@ The Aggregator also exposes read-only HTTP endpoints:
 - `examples/dispatch_proposal_example.json` - sample proposal-only dispatch command record
 - `docs/phase-5-implementation-report.md` - beginner-friendly Phase 5 implementation report
 
+## New Phase 6 Components
+
+- `services/approval-workflow` - approval workflow and safe dispatch preparation API
+- `services/approval-workflow/src/status-machine.js` - allowed status transition rules
+- `services/approval-workflow/src/validation.js` - approval request validation
+- `services/approval-workflow/src/workflow.js` - status update, audit, and ready event logic
+- `services/approval-workflow/src/db.js` - TimescaleDB helper for dispatch proposals and approval audit
+- `services/approval-workflow/src/kafka.js` - Kafka helper for approval audit and ready events
+- `database/timescale/005_dispatch_approval_audit.sql` - `dispatch_approval_audit` hypertable migration
+- `examples/approval_review_request.json` - sample review request
+- `examples/approval_approve_request.json` - sample approve request
+- `examples/approval_reject_request.json` - sample reject request
+- `examples/approval_mark_ready_request.json` - sample mark-ready request
+- `docs/phase-6-implementation-report.md` - beginner-friendly Phase 6 implementation report
+
 ## Run Only the New Production Foundation
 
 From the repository root:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector ieee20305-translator aggregator
+docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector ieee20305-translator aggregator approval-workflow
 ```
 
 For Phase 3 SLM-assisted mapping, install and run Ollama on the host machine, then pull Phi-3 Mini:
@@ -204,8 +263,11 @@ IEEE20305_TRANSLATED_TOPIC=ieee20305.translated
 GRID_SIGNALS_TOPIC=grid.signals
 DISPATCH_PROPOSED_TOPIC=dispatch.command.proposed
 DISPATCH_AUDIT_TOPIC=dispatch.command.audit
+DISPATCH_READY_TOPIC=dispatch.command.ready
+DISPATCH_APPROVAL_AUDIT_TOPIC=dispatch.approval.audit
 IEEE20305_TRANSLATOR_PORT=3002
 AGGREGATOR_PORT=3003
+APPROVAL_WORKFLOW_PORT=3004
 SLM_ENABLED=true
 OLLAMA_BASE_URL=http://host.docker.internal:11434
 OLLAMA_MODEL=phi3:mini
@@ -337,6 +399,56 @@ Read proposals through the Aggregator API:
 Invoke-RestMethod -Uri "http://localhost:3003/dispatch/proposals" -Method Get
 ```
 
+Read proposals through the approval workflow API:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3004/approvals/proposals" -Method Get
+```
+
+Review, approve, and mark a proposal ready:
+
+```powershell
+$proposalId = 1
+
+Invoke-RestMethod `
+  -Uri "http://localhost:3004/approvals/proposals/$proposalId/review" `
+  -Method Post `
+  -ContentType "application/json" `
+  -InFile "examples/approval_review_request.json"
+
+Invoke-RestMethod `
+  -Uri "http://localhost:3004/approvals/proposals/$proposalId/approve" `
+  -Method Post `
+  -ContentType "application/json" `
+  -InFile "examples/approval_approve_request.json"
+
+Invoke-RestMethod `
+  -Uri "http://localhost:3004/approvals/proposals/$proposalId/mark-ready" `
+  -Method Post `
+  -ContentType "application/json" `
+  -InFile "examples/approval_mark_ready_request.json"
+```
+
+Verify Phase 6 approval audit flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic dispatch.approval.audit `
+  --from-beginning `
+  --max-messages 1
+```
+
+Verify Phase 6 ready event flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic dispatch.command.ready `
+  --from-beginning `
+  --max-messages 1
+```
+
 Verify TimescaleDB rows:
 
 ```powershell
@@ -359,6 +471,10 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT ev
 docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT id, community_id, requested_action, proposed_action, target_kw, status, created_at FROM dispatch_commands ORDER BY created_at DESC LIMIT 10;"
 ```
 
+```powershell
+docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT dispatch_command_id, previous_status, new_status, action, reviewer_id, created_at FROM dispatch_approval_audit ORDER BY created_at DESC LIMIT 10;"
+```
+
 Check processing errors:
 
 ```powershell
@@ -368,7 +484,7 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT oc
 Run the lightweight local unit tests with a working Node.js runtime:
 
 ```powershell
-node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js services/ieee20305-translator/test/*.test.js services/aggregator/test/*.test.js
+node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js services/ieee20305-translator/test/*.test.js services/aggregator/test/*.test.js services/approval-workflow/test/*.test.js
 ```
 
 ## Phase 1 Scope Limits
@@ -432,6 +548,20 @@ This phase does not implement:
 - real device availability optimization
 
 The Aggregator creates proposed dispatch commands and audit records only. Phase 6 should add review and approval status transitions before any dispatch preparation.
+
+## Phase 6 Scope Limits
+
+This phase does not implement:
+
+- household command execution
+- real device dispatch
+- automatic approval
+- production identity provider
+- production mTLS
+- ENERSHARE export
+- optimization engine
+
+The approval workflow prepares proposals for a later safe dispatch adapter. Even `ready_to_dispatch` means preparation only, not execution.
 
 ---
 
