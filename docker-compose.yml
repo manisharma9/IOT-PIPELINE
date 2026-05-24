@@ -235,6 +235,34 @@ services:
       TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
     restart: unless-stopped
 
+  ieee20305-translator:
+    build:
+      context: .
+      dockerfile: services/ieee20305-translator/Dockerfile
+    container_name: adflex-ieee20305-translator
+    depends_on:
+      kafka:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    environment:
+      IEEE20305_TRANSLATOR_PORT: ${IEEE20305_TRANSLATOR_PORT:-3002}
+      KAFKA_BROKER: kafka:29092
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-ieee20305-translator
+      IEEE20305_TRANSLATOR_GROUP_ID: ${IEEE20305_TRANSLATOR_GROUP_ID:-ieee20305-translator}
+      SEMANTIC_ENRICHED_TOPIC: ${SEMANTIC_ENRICHED_TOPIC:-semantic.enriched}
+      IEEE20305_TRANSLATED_TOPIC: ${IEEE20305_TRANSLATED_TOPIC:-ieee20305.translated}
+      GRID_SIGNALS_TOPIC: ${GRID_SIGNALS_TOPIC:-grid.signals}
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
+      TIMESCALE_USER: ${TIMESCALE_USER:-energy_user}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
+    ports:
+      - "${IEEE20305_TRANSLATOR_PORT:-3002}:3002"
+    restart: unless-stopped
+
 volumes:
   zookeeper-data:
   kafka-data:

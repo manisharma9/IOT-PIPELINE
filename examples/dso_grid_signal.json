@@ -1,0 +1,11 @@
+{
+  "signal_id": "signal-001",
+  "dso_id": "dso-dublin",
+  "community_id": "community-dublin-north",
+  "signal_type": "curtailment_request",
+  "severity": "medium",
+  "requested_action": "reduce_load",
+  "start_time": "2026-05-24T18:00:00Z",
+  "end_time": "2026-05-24T19:00:00Z",
+  "reason": "Local transformer load is approaching threshold"
+}

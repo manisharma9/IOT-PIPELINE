@@ -70,6 +70,43 @@ The SLM path is optional. The pipeline still works when `SLM_ENABLED=false`, whe
 
 Phase 3 intentionally does not include IEEE 2030.5, aggregator dispatch, or ENERSHARE export.
 
+## Phase 4 IEEE 2030.5 Translator Foundation
+
+Phase 4 adds a translator foundation after the semantic enrichment topic:
+
+```text
+Kafka topic: semantic.enriched
+        |
+        v
+IEEE 2030.5 translator foundation
+        |
+        +--> TimescaleDB hypertable: ieee20305_events
+        |
+        v
+Kafka topic: ieee20305.translated
+```
+
+The translator converts semantic events into simple, explainable IEEE 2030.5-style payloads such as `MirrorMeterReading`, `DERStatus`, and `DERControlCandidate`. This is a foundation only and does not claim full IEEE 2030.5 certification.
+
+Phase 4 also adds a mock DSO grid signal endpoint:
+
+```text
+POST /dso/grid-signal
+        |
+        v
+Validate DSO signal
+        |
+        v
+GridSignal style payload
+        |
+        +--> TimescaleDB hypertable: ieee20305_events
+        |
+        v
+Kafka topic: grid.signals
+```
+
+The mock DSO endpoint stores and publishes grid signals for later aggregator work. It does not dispatch commands to households.
+
 ## New Phase 1 Components
 
 - `services/ingestion-api` - Express API with `POST /telemetry`
@@ -96,13 +133,24 @@ Phase 3 intentionally does not include IEEE 2030.5, aggregator dispatch, or ENER
 - `examples/household_unknown_telemetry.json` - unknown readings that can trigger SLM-assisted mapping
 - `docs/phase-3-implementation-report.md` - beginner-friendly Phase 3 implementation report
 
+## New Phase 4 Components
+
+- `services/ieee20305-translator` - Kafka consumer, HTTP API, and translator service
+- `services/ieee20305-translator/src/translator.js` - semantic and DSO signal translation logic
+- `services/ieee20305-translator/src/db.js` - TimescaleDB helper for `ieee20305_events`
+- `services/ieee20305-translator/src/kafka.js` - Kafka consume/publish helper
+- `database/timescale/003_ieee20305_events.sql` - `ieee20305_events` hypertable migration
+- `schemas/grid-signal.schema.json` - mock DSO grid signal payload contract
+- `examples/dso_grid_signal.json` - sample DSO curtailment request
+- `docs/phase-4-implementation-report.md` - beginner-friendly Phase 4 implementation report
+
 ## Run Only the New Production Foundation
 
 From the repository root:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector
+docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector ieee20305-translator
 ```
 
 For Phase 3 SLM-assisted mapping, install and run Ollama on the host machine, then pull Phi-3 Mini:
@@ -115,6 +163,9 @@ ollama serve
 The default `.env.example` settings are:
 
 ```text
+IEEE20305_TRANSLATED_TOPIC=ieee20305.translated
+GRID_SIGNALS_TOPIC=grid.signals
+IEEE20305_TRANSLATOR_PORT=3002
 SLM_ENABLED=true
 OLLAMA_BASE_URL=http://host.docker.internal:11434
 OLLAMA_MODEL=phi3:mini
@@ -178,6 +229,16 @@ docker compose exec kafka kafka-console-consumer `
   --max-messages 1
 ```
 
+Verify IEEE 2030.5-style translated Kafka flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic ieee20305.translated `
+  --from-beginning `
+  --max-messages 1
+```
+
 Send unknown telemetry to test Phase 3 SLM-assisted mapping:
 
 ```powershell
@@ -189,6 +250,26 @@ Invoke-RestMethod `
 ```
 
 When Ollama is running and `SLM_ENABLED=true`, unknown readings can be stored with `mapping_source = 'slm_assisted'`. If Ollama is unavailable or returns invalid JSON, the same readings are stored with `mapping_source = 'unmapped'` and the connector keeps running.
+
+Send a mock DSO grid signal to test Phase 4:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "http://localhost:3002/dso/grid-signal" `
+  -Method Post `
+  -ContentType "application/json" `
+  -InFile "examples/dso_grid_signal.json"
+```
+
+Verify grid signal Kafka flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic grid.signals `
+  --from-beginning `
+  --max-messages 1
+```
 
 Verify TimescaleDB rows:
 
@@ -204,6 +285,10 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT ev
 docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, device_id, reading_name, saref4ener_concept, mapping_source, mapping_confidence FROM semantic_events ORDER BY processed_at DESC LIMIT 10;"
 ```
 
+```powershell
+docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, resource_type, reading_name, translation_status, translation_confidence FROM ieee20305_events ORDER BY processed_at DESC LIMIT 10;"
+```
+
 Check processing errors:
 
 ```powershell
@@ -213,7 +298,7 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT oc
 Run the lightweight local unit tests with a working Node.js runtime:
 
 ```powershell
-node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js
+node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js services/ieee20305-translator/test/*.test.js
 ```
 
 ## Phase 1 Scope Limits
@@ -252,6 +337,18 @@ This phase does not implement:
 - mandatory Ollama dependency
 
 SLM-assisted mapping is only used for unknown readings, and it falls back safely to `unmapped`.
+
+## Phase 4 Scope Limits
+
+This phase does not implement:
+
+- full certified IEEE 2030.5 stack
+- production mTLS
+- aggregator dispatch commands
+- household command execution
+- ENERSHARE export
+
+The translator emits IEEE 2030.5-style foundation payloads for later phases.
 
 ---
 

@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Mock DSO Grid Signal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "signal_id",
+    "dso_id",
+    "community_id",
+    "signal_type",
+    "severity",
+    "requested_action",
+    "start_time",
+    "end_time",
+    "reason"
+  ],
+  "properties": {
+    "signal_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dso_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "community_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "signal_type": {
+      "type": "string",
+      "enum": [
+        "grid_stress",
+        "curtailment_request",
+        "flexibility_request"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "requested_action": {
+      "type": "string",
+      "enum": [
+        "reduce_load",
+        "shift_load",
+        "increase_export",
+        "reduce_export"
+      ]
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    }
+  }
+}
