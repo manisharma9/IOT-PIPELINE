@@ -320,6 +320,35 @@ services:
       - "${APPROVAL_WORKFLOW_PORT:-3004}:3004"
     restart: unless-stopped
 
+  mock-dispatch-adapter:
+    build:
+      context: .
+      dockerfile: services/mock-dispatch-adapter/Dockerfile
+    container_name: adflex-mock-dispatch-adapter
+    depends_on:
+      kafka:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    environment:
+      MOCK_DISPATCH_ADAPTER_PORT: ${MOCK_DISPATCH_ADAPTER_PORT:-3005}
+      KAFKA_BROKER: kafka:29092
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-mock-dispatch-adapter
+      MOCK_DISPATCH_GROUP_ID: ${MOCK_DISPATCH_GROUP_ID:-adflex-mock-dispatch-adapter}
+      DISPATCH_READY_TOPIC: ${DISPATCH_READY_TOPIC:-dispatch.command.ready}
+      DISPATCH_MOCK_SENT_TOPIC: ${DISPATCH_MOCK_SENT_TOPIC:-dispatch.command.mock.sent}
+      DISPATCH_MOCK_RESULT_TOPIC: ${DISPATCH_MOCK_RESULT_TOPIC:-dispatch.command.mock.result}
+      DISPATCH_MOCK_AUDIT_TOPIC: ${DISPATCH_MOCK_AUDIT_TOPIC:-dispatch.mock.audit}
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
+      TIMESCALE_USER: ${TIMESCALE_USER:-energy_user}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
+    ports:
+      - "${MOCK_DISPATCH_ADAPTER_PORT:-3005}:3005"
+    restart: unless-stopped
+
 volumes:
   zookeeper-data:
   kafka-data:
