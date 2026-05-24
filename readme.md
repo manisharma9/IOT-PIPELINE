@@ -1,6 +1,6 @@
-# AD-FLEX IoT Energy Flexibility Pipeline
+ Smart Grid Communication Pipeline Development
 
-AD-FLEX is a local demo pipeline for smart-home energy flexibility. It shows how household telemetry can move from raw ingestion to semantic energy meaning, grid signal translation, safe dispatch proposal governance, mock-only dispatch simulation, and minimized dataspace-style export.
+Smart Grid Communication Pipeline for smart-home energy flexibility. It shows how household telemetry can move from raw ingestion to semantic energy meaning, grid signal translation, safe dispatch proposal governance, mock-only dispatch simulation, and minimized dataspace-style export.
 
 This repository is presentation-ready for the final Phase 9 demo. It is a local development foundation, not a production control system.
 
