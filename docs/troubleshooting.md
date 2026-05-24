@@ -31,7 +31,7 @@ This is a Docker Compose v2 warning. The demo can still run. It is safe to ignor
 
 Symptom:
 
-- Compose warns about orphan containers, possibly from older services such as `protected-api`.
+- Compose warns about orphan containers from older local demo runs.
 
 Fix:
 
