@@ -23,6 +23,26 @@ TimescaleDB hypertables:
   - processing_errors
 ```
 
+## Phase 2 SAREF4ENER Semantic Connector Foundation
+
+Phase 2 keeps the Phase 1 foundation intact and adds a deterministic semantic enrichment step:
+
+```text
+Kafka topic: normalized.telemetry
+        |
+        v
+SAREF4ENER semantic connector
+        |
+        +--> TimescaleDB hypertable: semantic_events
+        |
+        v
+Kafka topic: semantic.enriched
+```
+
+The engine still writes `raw_telemetry` and `normalized_telemetry`. It now also publishes each normalized reading to `normalized.telemetry`. The new `services/semantic-connector` service consumes those normalized events, applies a deterministic SAREF4ENER-style mapping, writes `semantic_events`, and publishes the enriched event to `semantic.enriched`.
+
+Phase 2 intentionally does not include SLM/Ollama mapping, IEEE 2030.5, aggregator dispatch, or ENERSHARE export.
+
 ## New Phase 1 Components
 
 - `services/ingestion-api` - Express API with `POST /telemetry`
@@ -34,13 +54,21 @@ TimescaleDB hypertables:
 - `examples/household_telemetry.json` - sample household energy telemetry
 - `docs/phase-1-implementation-report.md` - beginner-friendly implementation report
 
+## New Phase 2 Components
+
+- `services/semantic-connector` - Kafka consumer and producer for deterministic SAREF4ENER-style enrichment
+- `services/semantic-connector/src/saref4ener-mapping.js` - known reading mappings and safe unmapped fallback
+- `services/semantic-connector/src/semantic-builder.js` - semantic payload and event builder
+- `database/timescale/002_semantic_events.sql` - `semantic_events` hypertable migration
+- `docs/phase-2-implementation-report.md` - beginner-friendly Phase 2 implementation report
+
 ## Run Only the New Production Foundation
 
 From the repository root:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine
+docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector
 ```
 
 Check containers:
@@ -78,6 +106,26 @@ docker compose exec kafka kafka-console-consumer `
   --max-messages 1
 ```
 
+Verify normalized Kafka flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic normalized.telemetry `
+  --from-beginning `
+  --max-messages 1
+```
+
+Verify semantic enriched Kafka flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic semantic.enriched `
+  --from-beginning `
+  --max-messages 1
+```
+
 Verify TimescaleDB rows:
 
 ```powershell
@@ -86,6 +134,10 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT ev
 
 ```powershell
 docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, device_id, reading_name, reading_value, reading_unit FROM normalized_telemetry ORDER BY processed_at DESC LIMIT 10;"
+```
+
+```powershell
+docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, device_id, reading_name, saref4ener_concept, mapping_source, mapping_confidence FROM semantic_events ORDER BY processed_at DESC LIMIT 10;"
 ```
 
 Check processing errors:
@@ -97,7 +149,7 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT oc
 Run the lightweight local unit tests with a working Node.js runtime:
 
 ```powershell
-node --test services/ingestion-api/test/validation.test.js services/engine/test/normalizer.test.js
+node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js
 ```
 
 ## Phase 1 Scope Limits
@@ -111,7 +163,19 @@ This phase does not implement:
 - ENERSHARE export
 - full production security for incoming telemetry
 
-Recommended Phase 2: build the SAREF4ENER semantic connector that consumes `normalized.telemetry` and produces `semantic.enriched` events.
+Phase 2 now adds the SAREF4ENER semantic connector that consumes `normalized.telemetry` and produces `semantic.enriched` events.
+
+## Phase 2 Scope Limits
+
+This phase does not implement:
+
+- real SLM/Ollama semantic mapping
+- IEEE 2030.5 translator
+- aggregator dispatch commands
+- ENERSHARE export
+- full production security layer
+
+Recommended Phase 3: add SLM-assisted mapping with Phi-3 Mini through Ollama for unknown readings while keeping the deterministic mapping path as the safe default.
 
 ---
 

@@ -200,6 +200,30 @@ services:
       KAFKA_CLIENT_ID: adflex-engine
       ENGINE_GROUP_ID: ${ENGINE_GROUP_ID:-energy-flex-engine}
       RAW_TELEMETRY_TOPIC: ${RAW_TELEMETRY_TOPIC:-raw.telemetry}
+      NORMALIZED_TELEMETRY_TOPIC: ${NORMALIZED_TELEMETRY_TOPIC:-normalized.telemetry}
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
+      TIMESCALE_USER: ${TIMESCALE_USER:-energy_user}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
+    restart: unless-stopped
+
+  semantic-connector:
+    build:
+      context: .
+      dockerfile: services/semantic-connector/Dockerfile
+    container_name: adflex-semantic-connector
+    depends_on:
+      kafka:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-semantic-connector
+      SEMANTIC_CONNECTOR_GROUP_ID: ${SEMANTIC_CONNECTOR_GROUP_ID:-saref4ener-semantic-connector}
+      NORMALIZED_TELEMETRY_TOPIC: ${NORMALIZED_TELEMETRY_TOPIC:-normalized.telemetry}
+      SEMANTIC_ENRICHED_TOPIC: ${SEMANTIC_ENRICHED_TOPIC:-semantic.enriched}
       TIMESCALE_HOST: timescaledb
       TIMESCALE_PORT: 5432
       TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
