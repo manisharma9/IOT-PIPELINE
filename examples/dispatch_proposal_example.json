@@ -1,0 +1,14 @@
+{
+  "proposal_id": "proposal-signal-001-1779645600000",
+  "community_id": "community-dublin-north",
+  "signal_id": "signal-001",
+  "requested_action": "reduce_load",
+  "proposed_action": "reduce_ev_charging",
+  "target_kw": 2.5,
+  "start_time": "2026-05-24T18:00:00Z",
+  "end_time": "2026-05-24T19:00:00Z",
+  "priority": "medium",
+  "status": "proposed",
+  "reason": "Reduce flexible EV charging demand during the grid signal window. Target is 2.5 kW because severity is medium. Source reason: Local transformer load is approaching threshold",
+  "no_execution": true
+}
