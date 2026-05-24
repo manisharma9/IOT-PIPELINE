@@ -99,7 +99,7 @@ Phase 9 validation completed successfully:
 
 ## Dashboard Note
 
-The existing `vercel_dashboard` is a static smart-home dashboard. Phase 9 did not modify it to avoid introducing visual risk during final hardening. A future polish phase could add a final architecture/status panel.
+Phase 9 did not modify the older static dashboard prototype during final hardening. A later cleanup removed that legacy prototype so the repository now focuses on the Phase 1 to Phase 9 production-style pipeline and documentation. A future polish phase could add a new final architecture/status panel if needed.
 
 ## Future Work
 
