@@ -1,0 +1,21 @@
+{
+  "catalog_id": "adflex-local-dataspace-catalog",
+  "service": "dataspace-export",
+  "foundation_only": true,
+  "enershare_certified_connector": false,
+  "access_policy": "local-development API key required; minimized community-level summaries only; not a certified ENERSHARE connector",
+  "assets": [
+    {
+      "id": "semantic-summary",
+      "export_type": "semantic_summary",
+      "name": "Semantic Summary",
+      "description": "Minimized SAREF4ENER/NGSI semantic mapping summary records."
+    },
+    {
+      "id": "full-pipeline-demo-summary",
+      "export_type": "full_pipeline_demo_summary",
+      "name": "Full Pipeline Demo Summary",
+      "description": "Safe demo export combining semantic, grid, proposal, approval, and mock sections."
+    }
+  ]
+}

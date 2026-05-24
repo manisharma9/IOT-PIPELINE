@@ -349,6 +349,36 @@ services:
       - "${MOCK_DISPATCH_ADAPTER_PORT:-3005}:3005"
     restart: unless-stopped
 
+  dataspace-export:
+    build:
+      context: .
+      dockerfile: services/dataspace-export/Dockerfile
+    container_name: adflex-dataspace-export
+    depends_on:
+      kafka:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    environment:
+      DATASPACE_EXPORT_PORT: ${DATASPACE_EXPORT_PORT:-3006}
+      DATASPACE_API_KEY: ${DATASPACE_API_KEY:-local-dev-dataspace-key}
+      DATASPACE_CATALOG_TOPIC: ${DATASPACE_CATALOG_TOPIC:-dataspace.catalog}
+      DATASPACE_EXPORT_AUDIT_TOPIC: ${DATASPACE_EXPORT_AUDIT_TOPIC:-dataspace.export.audit}
+      DATASPACE_DEFAULT_COMMUNITY: ${DATASPACE_DEFAULT_COMMUNITY:-community-dublin-north}
+      DATASPACE_PSEUDONYMIZATION_SALT: ${DATASPACE_PSEUDONYMIZATION_SALT:-local-dev-salt}
+      DATASPACE_MAX_RECORDS: ${DATASPACE_MAX_RECORDS:-100}
+      KAFKA_BROKER: kafka:29092
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-dataspace-export
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
+      TIMESCALE_USER: ${TIMESCALE_USER:-energy_user}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
+    ports:
+      - "${DATASPACE_EXPORT_PORT:-3006}:3006"
+    restart: unless-stopped
+
 volumes:
   zookeeper-data:
   kafka-data:
