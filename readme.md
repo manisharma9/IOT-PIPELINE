@@ -107,6 +107,32 @@ Kafka topic: grid.signals
 
 The mock DSO endpoint stores and publishes grid signals for later aggregator work. It does not dispatch commands to households.
 
+## Phase 5 Aggregator and Dispatch Command Proposal Path
+
+Phase 5 adds a proposal-only Aggregator after the Phase 4 grid signal topic:
+
+```text
+Kafka topic: grid.signals
+        |
+        v
+Aggregator
+        |
+        +--> TimescaleDB hypertable: dispatch_commands
+        |
+        +--> Kafka topic: dispatch.command.proposed
+        |
+        v
+Kafka topic: dispatch.command.audit
+```
+
+The Aggregator validates incoming GridSignal events and creates safe dispatch command proposals such as `reduce_ev_charging`, `delay_flexible_load`, `increase_pv_export_if_available`, and `reduce_export_limit`. It is intentionally proposal-only. It does not approve, execute, or send commands to households or devices.
+
+The Aggregator also exposes read-only HTTP endpoints:
+
+- `GET /health`
+- `GET /dispatch/proposals`
+- `GET /dispatch/proposals/:id`
+
 ## New Phase 1 Components
 
 - `services/ingestion-api` - Express API with `POST /telemetry`
@@ -144,13 +170,24 @@ The mock DSO endpoint stores and publishes grid signals for later aggregator wor
 - `examples/dso_grid_signal.json` - sample DSO curtailment request
 - `docs/phase-4-implementation-report.md` - beginner-friendly Phase 4 implementation report
 
+## New Phase 5 Components
+
+- `services/aggregator` - proposal-only Kafka consumer, publisher, and read API
+- `services/aggregator/src/aggregator.js` - rule-based dispatch proposal logic
+- `services/aggregator/src/validation.js` - GridSignal and translated event shape validation
+- `services/aggregator/src/db.js` - TimescaleDB helper for `dispatch_commands`
+- `services/aggregator/src/kafka.js` - Kafka consume/publish helper for proposal and audit topics
+- `database/timescale/004_dispatch_commands.sql` - `dispatch_commands` hypertable migration
+- `examples/dispatch_proposal_example.json` - sample proposal-only dispatch command record
+- `docs/phase-5-implementation-report.md` - beginner-friendly Phase 5 implementation report
+
 ## Run Only the New Production Foundation
 
 From the repository root:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector ieee20305-translator
+docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector ieee20305-translator aggregator
 ```
 
 For Phase 3 SLM-assisted mapping, install and run Ollama on the host machine, then pull Phi-3 Mini:
@@ -165,7 +202,10 @@ The default `.env.example` settings are:
 ```text
 IEEE20305_TRANSLATED_TOPIC=ieee20305.translated
 GRID_SIGNALS_TOPIC=grid.signals
+DISPATCH_PROPOSED_TOPIC=dispatch.command.proposed
+DISPATCH_AUDIT_TOPIC=dispatch.command.audit
 IEEE20305_TRANSLATOR_PORT=3002
+AGGREGATOR_PORT=3003
 SLM_ENABLED=true
 OLLAMA_BASE_URL=http://host.docker.internal:11434
 OLLAMA_MODEL=phi3:mini
@@ -271,6 +311,32 @@ docker compose exec kafka kafka-console-consumer `
   --max-messages 1
 ```
 
+Verify Phase 5 dispatch proposal flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic dispatch.command.proposed `
+  --from-beginning `
+  --max-messages 1
+```
+
+Verify Phase 5 audit flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic dispatch.command.audit `
+  --from-beginning `
+  --max-messages 1
+```
+
+Read proposals through the Aggregator API:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3003/dispatch/proposals" -Method Get
+```
+
 Verify TimescaleDB rows:
 
 ```powershell
@@ -289,6 +355,10 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT ev
 docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, resource_type, reading_name, translation_status, translation_confidence FROM ieee20305_events ORDER BY processed_at DESC LIMIT 10;"
 ```
 
+```powershell
+docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT id, community_id, requested_action, proposed_action, target_kw, status, created_at FROM dispatch_commands ORDER BY created_at DESC LIMIT 10;"
+```
+
 Check processing errors:
 
 ```powershell
@@ -298,7 +368,7 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT oc
 Run the lightweight local unit tests with a working Node.js runtime:
 
 ```powershell
-node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js services/ieee20305-translator/test/*.test.js
+node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js services/ieee20305-translator/test/*.test.js services/aggregator/test/*.test.js
 ```
 
 ## Phase 1 Scope Limits
@@ -349,6 +419,19 @@ This phase does not implement:
 - ENERSHARE export
 
 The translator emits IEEE 2030.5-style foundation payloads for later phases.
+
+## Phase 5 Scope Limits
+
+This phase does not implement:
+
+- real household control
+- automatic command execution
+- approval workflow
+- production mTLS
+- ENERSHARE export
+- real device availability optimization
+
+The Aggregator creates proposed dispatch commands and audit records only. Phase 6 should add review and approval status transitions before any dispatch preparation.
 
 ---
 

@@ -1,0 +1,16 @@
+{
+  "name": "adflex-aggregator",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Phase 5 proposal-only aggregator for safe dispatch command recommendations.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "kafkajs": "^2.2.4",
+    "pg": "^8.12.0"
+  }
+}

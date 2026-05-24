@@ -263,6 +263,35 @@ services:
       - "${IEEE20305_TRANSLATOR_PORT:-3002}:3002"
     restart: unless-stopped
 
+  aggregator:
+    build:
+      context: .
+      dockerfile: services/aggregator/Dockerfile
+    container_name: adflex-aggregator
+    depends_on:
+      kafka:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    environment:
+      AGGREGATOR_PORT: ${AGGREGATOR_PORT:-3003}
+      KAFKA_BROKER: kafka:29092
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-aggregator
+      AGGREGATOR_GROUP_ID: ${AGGREGATOR_GROUP_ID:-adflex-aggregator}
+      GRID_SIGNALS_TOPIC: ${GRID_SIGNALS_TOPIC:-grid.signals}
+      IEEE20305_TRANSLATED_TOPIC: ${IEEE20305_TRANSLATED_TOPIC:-ieee20305.translated}
+      DISPATCH_PROPOSED_TOPIC: ${DISPATCH_PROPOSED_TOPIC:-dispatch.command.proposed}
+      DISPATCH_AUDIT_TOPIC: ${DISPATCH_AUDIT_TOPIC:-dispatch.command.audit}
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
+      TIMESCALE_USER: ${TIMESCALE_USER:-energy_user}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
+    ports:
+      - "${AGGREGATOR_PORT:-3003}:3003"
+    restart: unless-stopped
+
 volumes:
   zookeeper-data:
   kafka-data:
