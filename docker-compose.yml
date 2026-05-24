@@ -279,6 +279,67 @@ services:
       - "${MOCK_DISPATCH_ADAPTER_PORT:-3005}:3005"
     restart: unless-stopped
 
+  # Scope alignment: simulated Shelly Plug API.
+  shelly-simulator:
+    build:
+      context: .
+      dockerfile: services/shelly-simulator/Dockerfile
+    container_name: adflex-shelly-simulator
+    environment:
+      SHELLY_SIMULATOR_PORT: ${SHELLY_SIMULATOR_PORT:-3007}
+      REQUEST_BODY_LIMIT: ${REQUEST_BODY_LIMIT:-256kb}
+    ports:
+      - "${SHELLY_SIMULATOR_PORT:-3007}:3007"
+    restart: unless-stopped
+
+  # Scope alignment: simulated Enode / Easee Core charger API.
+  enode-simulator:
+    build:
+      context: .
+      dockerfile: services/enode-simulator/Dockerfile
+    container_name: adflex-enode-simulator
+    environment:
+      ENODE_SIMULATOR_PORT: ${ENODE_SIMULATOR_PORT:-3008}
+      REQUEST_BODY_LIMIT: ${REQUEST_BODY_LIMIT:-256kb}
+    ports:
+      - "${ENODE_SIMULATOR_PORT:-3008}:3008"
+    restart: unless-stopped
+
+  # Scope alignment: approved command to device-specific API translation.
+  device-command-translator:
+    build:
+      context: .
+      dockerfile: services/device-command-translator/Dockerfile
+    container_name: adflex-device-command-translator
+    depends_on:
+      kafka:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+      shelly-simulator:
+        condition: service_started
+      enode-simulator:
+        condition: service_started
+    environment:
+      DEVICE_COMMAND_TRANSLATOR_PORT: ${DEVICE_COMMAND_TRANSLATOR_PORT:-3009}
+      KAFKA_BROKER: kafka:29092
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-device-command-translator
+      DEVICE_COMMAND_TRANSLATOR_GROUP_ID: ${DEVICE_COMMAND_TRANSLATOR_GROUP_ID:-adflex-device-command-translator}
+      DISPATCH_READY_TOPIC: ${DISPATCH_READY_TOPIC:-dispatch.command.ready}
+      DEVICE_COMMAND_RESULT_TOPIC: ${DEVICE_COMMAND_RESULT_TOPIC:-device.command.result}
+      DEVICE_COMMAND_AUDIT_TOPIC: ${DEVICE_COMMAND_AUDIT_TOPIC:-device.command.audit}
+      SHELLY_SIMULATOR_URL: ${SHELLY_SIMULATOR_URL:-http://shelly-simulator:3007}
+      ENODE_SIMULATOR_URL: ${ENODE_SIMULATOR_URL:-http://enode-simulator:3008}
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
+      TIMESCALE_USER: ${TIMESCALE_USER:-energy_user}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
+    ports:
+      - "${DEVICE_COMMAND_TRANSLATOR_PORT:-3009}:3009"
+    restart: unless-stopped
+
   # Phase 8 dataspace-style export foundation with minimized summaries.
   dataspace-export:
     build:

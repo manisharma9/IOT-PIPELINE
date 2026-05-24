@@ -1,0 +1,20 @@
+{
+  "audit_id": "device-command-audit-device-command-proposal-signal-001-shelly-plug-001-1779655210000",
+  "event_time": "2026-05-24T18:00:10Z",
+  "command_id": "device-command-proposal-signal-001-shelly-plug-001-1779655210000",
+  "proposal_id": "proposal-signal-001-1779655200000",
+  "device_id": "shelly-plug-001",
+  "device_type": "shelly_plug",
+  "provider": "shelly",
+  "community_id": "community-dublin-north",
+  "area_id": "dublin-north",
+  "requested_reduction_kw": 2.5,
+  "allocated_reduction_kw": 0.421,
+  "action": "reduce_load",
+  "status": "simulated_accepted",
+  "simulated": true,
+  "no_real_execution": true,
+  "execution_mode": "simulated_device_api",
+  "safety_note": "Simulated device API translation only. No real Shelly or Enode device was controlled.",
+  "correlation_id": "signal-001"
+}

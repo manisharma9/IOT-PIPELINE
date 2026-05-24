@@ -1,6 +1,6 @@
- Smart Grid Communication Pipeline Development
+# Smart Grid Communication Pipeline Development
 
-Smart Grid Communication Pipeline for smart-home energy flexibility. It shows how household telemetry can move from raw ingestion to semantic energy meaning, grid signal translation, safe dispatch proposal governance, mock-only dispatch simulation, and minimized dataspace-style export.
+Smart Grid Communication Pipeline for smart-home energy flexibility. It shows how household telemetry can move from raw ingestion to semantic energy meaning, grid signal translation, safe dispatch proposal governance, mock-only dispatch simulation, simulated device-specific API translation, and minimized dataspace-style export.
 
 This repository is presentation-ready for the final Phase 9 demo. It is a local development foundation, not a production control system.
 
@@ -25,14 +25,24 @@ HTTP / MQTT telemetry
 -> dispatch.command.proposed
 -> approval-workflow
 -> dispatch.command.ready
--> mock-dispatch-adapter
--> dispatch.command.mock.sent
--> dispatch.command.mock.result
+- mock-dispatch-adapter -> dispatch.command.mock.sent / dispatch.command.mock.result
+- device-command-translator -> Shelly Plug / Enode Easee Core simulators -> device.command.result
 -> dataspace-export
 -> minimized dataspace summaries
 ```
 
-Safety boundary: the pipeline stops at mock dispatch. No real household command is sent.
+Safety boundary: the pipeline stops at mock dispatch and simulated device API calls. No real household command is sent.
+
+## Scope Alignment: Device API Translation
+
+Paolo clarified that the final scope needs bidirectional logic. The DSO request moves forward through semantic and IEEE 2030.5-style translation. After approval, the command moves backward into the API language of end devices.
+
+This repository now includes simulated adapters for:
+
+- Shelly Plug through `shelly-simulator`
+- Enode / Easee Core EV charger through `enode-simulator`
+
+The `device-command-translator` consumes approved `dispatch.command.ready` events and translates fixed kW or percentage load reduction into simulated device commands. It never uses real credentials and never controls real devices.
 
 ## Phase Summary
 
@@ -61,6 +71,9 @@ Safety boundary: the pipeline stops at mock dispatch. No real household command 
 | `approval-workflow` | 3004 | Manages safe proposal status transitions. |
 | `mock-dispatch-adapter` | 3005 | Simulates dispatch preparation only. |
 | `dataspace-export` | 3006 | Exposes minimized, pseudonymized dataspace-style summaries. |
+| `shelly-simulator` | 3007 | Local simulated Shelly Plug API. |
+| `enode-simulator` | 3008 | Local simulated Enode / Easee Core charger API. |
+| `device-command-translator` | 3009 | Translates approved ready commands into simulated device API calls. |
 | `kafka` | 9092 / 29092 | Local event streaming backbone. |
 | `timescaledb` | 5432 | Local event and audit database. |
 | `mqtt-broker` | 1883 | Local MQTT broker for telemetry input. |
@@ -81,6 +94,8 @@ Safety boundary: the pipeline stops at mock dispatch. No real household command 
 | `dispatch.command.mock.sent` | Simulated mock command preparation events. |
 | `dispatch.command.mock.result` | Simulated mock result events. |
 | `dispatch.mock.audit` | Mock dispatch audit events. |
+| `device.command.result` | Simulated device-specific command result events. |
+| `device.command.audit` | Audit events for simulated device API translation. |
 | `dataspace.catalog` | Dataspace-style catalog metadata. |
 | `dataspace.export.audit` | Dataspace export audit events. |
 
@@ -96,6 +111,7 @@ Safety boundary: the pipeline stops at mock dispatch. No real household command 
 | `dispatch_commands` | Phase 5/6 dispatch proposals and status updates. |
 | `dispatch_approval_audit` | Phase 6 approval transition audit history. |
 | `dispatch_execution_audit` | Phase 7 mock-only dispatch audit history. |
+| `device_command_audit` | Scope alignment audit history for simulated Shelly and Enode command translation. |
 | `dataspace_exports` | Phase 8 export/catalog audit history. |
 
 ## Run The Full Demo
@@ -149,6 +165,12 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:3004/approvals/proposals/$
 Invoke-RestMethod -Method Post -Uri "http://localhost:3004/approvals/proposals/$($proposal.id)/mark-ready" -ContentType application/json -Body (Get-Content .\examples\approval_mark_ready_request.json -Raw)
 ```
 
+Check simulated device API translation:
+
+```powershell
+Invoke-RestMethod http://localhost:3009/device-command/audit?limit=5
+```
+
 Call the safe dataspace export:
 
 ```powershell
@@ -160,7 +182,8 @@ Invoke-RestMethod `
 ## Safety Limitations
 
 - No real household command execution.
-- Mock dispatch only.
+- Mock dispatch and simulated device API translation only.
+- No real Shelly credentials, Enode credentials, or Easee Core charger control.
 - No certified IEEE 2030.5 implementation.
 - No certified ENERSHARE connector.
 - No production mTLS, OAuth/OIDC, contract negotiation, or real connector credentials.
@@ -176,6 +199,7 @@ Invoke-RestMethod `
 - IEEE 2030.5-style translation gives a bridge toward grid/DER concepts without claiming certification.
 - Aggregator and approval workflow keep dispatch proposal creation separate from execution.
 - Mock dispatch proves the workflow end to end without controlling a real device.
+- Device API translation shows the approved command can be converted into Shelly Plug and Enode / Easee Core API language while remaining simulated.
 - Dataspace export shares only minimized, pseudonymized summaries for external stakeholders.
 
 ## Key Documentation
@@ -186,3 +210,4 @@ Invoke-RestMethod `
 - [Troubleshooting guide](docs/troubleshooting.md)
 - [Security and limitations](docs/security-and-limitations.md)
 - [Phase 9 final demo polish report](docs/phase-9-final-demo-polish-report.md)
+- [Scope alignment device API translation report](docs/scope-alignment-device-api-translation-report.md)

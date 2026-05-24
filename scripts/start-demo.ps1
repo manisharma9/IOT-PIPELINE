@@ -20,6 +20,9 @@ $Services = @(
   "aggregator",
   "approval-workflow",
   "mock-dispatch-adapter",
+  "shelly-simulator",
+  "enode-simulator",
+  "device-command-translator",
   "dataspace-export"
 )
 

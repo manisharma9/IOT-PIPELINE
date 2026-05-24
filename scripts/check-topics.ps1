@@ -16,6 +16,8 @@ $ImportantTopics = @(
   "dispatch.command.mock.sent",
   "dispatch.command.mock.result",
   "dispatch.mock.audit",
+  "device.command.result",
+  "device.command.audit",
   "dataspace.catalog",
   "dataspace.export.audit"
 )

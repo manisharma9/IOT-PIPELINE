@@ -86,6 +86,9 @@ Start-Sleep -Seconds $WaitSeconds
 Write-Host "Reading mock dispatch audit..."
 $MockAudit = Invoke-RestMethod -Uri "http://localhost:3005/mock-dispatch/audit?limit=5" -TimeoutSec 10
 
+Write-Host "Reading simulated device command audit..."
+$DeviceAudit = Invoke-RestMethod -Uri "http://localhost:3009/device-command/audit?limit=5" -TimeoutSec 10
+
 Write-Host "Calling dataspace full pipeline export..."
 $ExportHeaders = @{ "x-api-key" = $ApiKey }
 $DataspaceExport = Invoke-RestMethod `
@@ -100,6 +103,7 @@ $Summary = [pscustomobject]@{
   approve_status = $ApproveResponse.new_status
   ready_status = $ReadyResponse.new_status
   mock_audit_rows = $MockAudit.count
+  device_command_audit_rows = $DeviceAudit.count
   dataspace_export_type = $DataspaceExport.export_type
   dataspace_record_count = $DataspaceExport.record_count
   no_raw_private_payloads = $DataspaceExport.no_raw_private_payloads
@@ -110,4 +114,4 @@ Write-Host "Demo summary:"
 $Summary | ConvertTo-Json -Depth 8
 
 Write-Host ""
-Write-Host "Safety check: this demo only reaches mock dispatch. No real household command was executed."
+Write-Host "Safety check: this demo reaches mock dispatch and simulated device APIs only. No real household command was executed."

@@ -1,0 +1,10 @@
+{
+  "device_id": "shelly-plug-001",
+  "device_type": "shelly_plug",
+  "action": "reduce_load",
+  "requested_reduction_kw": 0.5,
+  "simulated": true,
+  "no_real_execution": true,
+  "execution_mode": "simulated_device_api",
+  "safety_note": "Mock Shelly Plug command only. No real household device was controlled."
+}

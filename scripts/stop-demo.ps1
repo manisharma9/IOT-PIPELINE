@@ -9,6 +9,9 @@ Set-Location $RepoRoot
 
 $Services = @(
   "dataspace-export",
+  "device-command-translator",
+  "enode-simulator",
+  "shelly-simulator",
   "mock-dispatch-adapter",
   "approval-workflow",
   "aggregator",

@@ -6,7 +6,10 @@ $Endpoints = @(
   @{ Name = "aggregator"; Url = "http://localhost:3003/health" },
   @{ Name = "approval-workflow"; Url = "http://localhost:3004/health" },
   @{ Name = "mock-dispatch-adapter"; Url = "http://localhost:3005/health" },
-  @{ Name = "dataspace-export"; Url = "http://localhost:3006/health" }
+  @{ Name = "dataspace-export"; Url = "http://localhost:3006/health" },
+  @{ Name = "shelly-simulator"; Url = "http://localhost:3007/health" },
+  @{ Name = "enode-simulator"; Url = "http://localhost:3008/health" },
+  @{ Name = "device-command-translator"; Url = "http://localhost:3009/health" }
 )
 
 $Results = foreach ($Endpoint in $Endpoints) {
