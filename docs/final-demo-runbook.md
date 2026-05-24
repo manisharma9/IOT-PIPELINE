@@ -48,6 +48,9 @@ The script starts:
 - aggregator
 - approval workflow
 - mock dispatch adapter
+- Shelly Plug simulator
+- Enode / Easee Core simulator
+- device command translator
 - dataspace export
 
 ## 5. Check Health Endpoints
@@ -64,6 +67,9 @@ Expected services:
 - `approval-workflow`
 - `mock-dispatch-adapter`
 - `dataspace-export`
+- `shelly-simulator`
+- `enode-simulator`
+- `device-command-translator`
 
 ## 6. Send Normal Telemetry
 
@@ -139,7 +145,27 @@ The result should show:
 - `no_real_execution: true`
 - simulated status and message
 
-## 13. Call Dataspace Export
+## 13. Verify Simulated Device API Translation
+
+```powershell
+Invoke-RestMethod http://localhost:3009/device-command/audit?limit=5
+```
+
+The result should show simulated commands for the local device APIs:
+
+- Shelly Plug actions such as `reduce_load` or `turn_off`
+- Enode / Easee Core actions such as `reduce_charging_power` or `pause_charging`
+- `execution_mode: simulated_device_api`
+- `no_real_execution: true`
+
+You can also call the simulators directly:
+
+```powershell
+Invoke-RestMethod http://localhost:3007/shelly/status
+Invoke-RestMethod http://localhost:3008/enode/chargers
+```
+
+## 14. Call Dataspace Export
 
 ```powershell
 Invoke-RestMethod `
@@ -153,7 +179,7 @@ Check that:
 - raw telemetry payloads are not returned
 - export metadata says minimization is applied
 
-## 14. Run The Full Demo Script
+## 15. Run The Full Demo Script
 
 After the services are healthy, you can run the automated demo path:
 
@@ -161,13 +187,15 @@ After the services are healthy, you can run the automated demo path:
 powershell -ExecutionPolicy Bypass -File .\scripts\run-full-demo.ps1
 ```
 
-## 15. Check Kafka Topics
+The script also reports `device_command_audit_rows` so you can confirm that approved ready commands were translated into simulated device API commands.
+
+## 16. Check Kafka Topics
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\check-topics.ps1
 ```
 
-## 16. Stop Services
+## 17. Stop Services
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\stop-demo.ps1
@@ -182,3 +210,4 @@ This stops containers but keeps volumes.
 - Dataspace export returns `401`: add the `x-api-key` header.
 - Ollama unavailable: known readings still work; unknown readings fall back safely.
 - Proposal not found yet: wait a few seconds and call `/dispatch/proposals` again.
+- Device command audit is empty: confirm `device-command-translator`, `shelly-simulator`, and `enode-simulator` are healthy before marking a proposal ready.

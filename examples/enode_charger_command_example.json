@@ -1,0 +1,11 @@
+{
+  "charger_id": "easee-core-001",
+  "provider": "enode",
+  "charger_type": "easee_core",
+  "action": "reduce_charging_power",
+  "requested_reduction_kw": 2.0,
+  "simulated": true,
+  "no_real_execution": true,
+  "execution_mode": "simulated_device_api",
+  "safety_note": "Mock Enode / Easee Core command only. No real charger was controlled."
+}

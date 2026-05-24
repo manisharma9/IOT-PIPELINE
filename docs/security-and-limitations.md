@@ -33,6 +33,8 @@ Production export would need stronger authentication, authorization, scoped acce
 
 The pipeline does not control real household devices. It does not send commands to EV chargers, batteries, inverters, appliances, or smart meters.
 
+The scope alignment device translation path is also simulated. It does not use real Shelly credentials, real Enode credentials, or real Easee Core charger credentials.
+
 ## Mock Dispatch Only
 
 Phase 7 is mock dispatch only. It creates simulated command and result events. Every mock event must state:
@@ -40,6 +42,16 @@ Phase 7 is mock dispatch only. It creates simulated command and result events. E
 - `simulated: true`
 - `no_real_execution: true`
 - `execution_mode: mock`
+
+## Simulated Device API Translation Only
+
+The Shelly Plug and Enode / Easee Core services are local simulators. The device command translator can convert an approved ready dispatch command into simulated device-specific API calls, but it never reaches a real customer device.
+
+Every simulated device API command must state:
+
+- `simulated: true`
+- `no_real_execution: true`
+- `execution_mode: simulated_device_api`
 
 ## Not Certified IEEE 2030.5
 
