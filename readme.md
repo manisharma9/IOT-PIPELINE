@@ -1,6 +1,118 @@
 # 🏠 Smart Home IoT Data Pipeline  
 ### (FIWARE + Eclipse Ditto + MySQL + Streamlit)
 
+# Phase 1 Production Foundation: Energy Flexibility Pipeline
+
+This repository still contains the original Smart Home IoT pipeline with MySQL, Eclipse Ditto, Orion-LD, Streamlit, and the Vercel dashboard. That legacy pipeline has not been removed.
+
+Phase 1 adds a new production-style foundation beside the old pipeline:
+
+```text
+HTTP telemetry / MQTT telemetry
+        |
+        v
+Kafka topic: raw.telemetry
+        |
+        v
+Engine service
+        |
+        v
+TimescaleDB hypertables:
+  - raw_telemetry
+  - normalized_telemetry
+  - processing_errors
+```
+
+## New Phase 1 Components
+
+- `services/ingestion-api` - Express API with `POST /telemetry`
+- `services/mqtt-subscriber` - MQTT `telemetry/#` subscriber that publishes valid messages to Kafka
+- `services/mqtt-broker` - Mosquitto broker config
+- `services/engine` - Kafka consumer that validates, normalizes, and writes TimescaleDB rows
+- `schemas/telemetry.schema.json` - shared household telemetry payload contract
+- `database/timescale/001_init.sql` - TimescaleDB schema and hypertable migration
+- `examples/household_telemetry.json` - sample household energy telemetry
+- `docs/phase-1-implementation-report.md` - beginner-friendly implementation report
+
+## Run Only the New Production Foundation
+
+From the repository root:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine
+```
+
+Check containers:
+
+```powershell
+docker compose ps
+```
+
+Send sample HTTP telemetry:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "http://localhost:3001/telemetry" `
+  -Method Post `
+  -ContentType "application/json" `
+  -InFile "examples/household_telemetry.json"
+```
+
+Expected API result:
+
+```json
+{
+  "status": "accepted",
+  "topic": "raw.telemetry"
+}
+```
+
+Verify Kafka received a message:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic raw.telemetry `
+  --from-beginning `
+  --max-messages 1
+```
+
+Verify TimescaleDB rows:
+
+```powershell
+docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, household_id, device_id, protocol FROM raw_telemetry ORDER BY received_at DESC LIMIT 5;"
+```
+
+```powershell
+docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT event_time, device_id, reading_name, reading_value, reading_unit FROM normalized_telemetry ORDER BY processed_at DESC LIMIT 10;"
+```
+
+Check processing errors:
+
+```powershell
+docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT occurred_at, error_type, error_message FROM processing_errors ORDER BY occurred_at DESC LIMIT 10;"
+```
+
+Run the lightweight local unit tests with a working Node.js runtime:
+
+```powershell
+node --test services/ingestion-api/test/validation.test.js services/engine/test/normalizer.test.js
+```
+
+## Phase 1 Scope Limits
+
+This phase does not implement:
+
+- SLM Semantic Connector
+- SAREF4ENER enrichment
+- IEEE 2030.5 translator
+- Aggregator dispatch commands
+- ENERSHARE export
+- full production security for incoming telemetry
+
+Recommended Phase 2: build the SAREF4ENER semantic connector that consumes `normalized.telemetry` and produces `semantic.enriched` events.
+
 ---
 
 ## 📌 Project Overview

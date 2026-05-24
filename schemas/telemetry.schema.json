@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/adflex/schemas/telemetry.schema.json",
+  "title": "Household Energy Telemetry",
+  "description": "A basic household or community energy telemetry payload for the Phase 1 production foundation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "household_id",
+    "community_id",
+    "device_id",
+    "device_type",
+    "timestamp",
+    "readings",
+    "protocol",
+    "source"
+  ],
+  "properties": {
+    "household_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique household identifier."
+    },
+    "community_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique community or flexibility group identifier."
+    },
+    "device_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique device identifier inside the household or community."
+    },
+    "device_type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Device category, for example smart_meter, battery, ev_charger, heat_pump, or solar_inverter."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp for when the measurement was produced."
+    },
+    "readings": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "Named telemetry readings. A reading can be a number or an object with value and optional unit.",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value"],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    "protocol": {
+      "type": "string",
+      "enum": ["http", "mqtt"],
+      "description": "Transport used to receive the telemetry."
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Source system, gateway, simulator, or connector that sent the telemetry."
+    }
+  }
+}

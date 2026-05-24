@@ -78,3 +78,136 @@ services:
       - ENABLE_PRE_AUTHENTICATION=true
       - JAVA_TOOL_OPTIONS=-Dpekko.remote.artery.canonical.hostname=ditto-gateway -Dpekko.cluster.seed-nodes.0=pekko://ditto-cluster@ditto-things:2551
     restart: unless-stopped
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: adflex-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: adflex-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: adflex-mqtt-broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./services/mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  timescaledb:
+    image: timescale/timescaledb:2.15.3-pg16
+    container_name: adflex-timescaledb
+    environment:
+      POSTGRES_DB: ${TIMESCALE_DB:-energy_flex}
+      POSTGRES_USER: ${TIMESCALE_USER:-energy_user}
+      POSTGRES_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
+    ports:
+      - "${TIMESCALE_PORT:-5432}:5432"
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+      - ./database/timescale:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  ingestion-api:
+    build:
+      context: .
+      dockerfile: services/ingestion-api/Dockerfile
+    container_name: adflex-ingestion-api
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-ingestion-api
+      RAW_TELEMETRY_TOPIC: ${RAW_TELEMETRY_TOPIC:-raw.telemetry}
+      REQUEST_BODY_LIMIT: ${REQUEST_BODY_LIMIT:-256kb}
+    ports:
+      - "${INGESTION_API_PORT:-3001}:3001"
+    restart: unless-stopped
+
+  mqtt-subscriber:
+    build:
+      context: .
+      dockerfile: services/mqtt-subscriber/Dockerfile
+    container_name: adflex-mqtt-subscriber
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_started
+    environment:
+      MQTT_BROKER_URL: mqtt://mqtt-broker:1883
+      MQTT_TOPIC_FILTER: ${MQTT_TOPIC_FILTER:-telemetry/#}
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-mqtt-subscriber
+      RAW_TELEMETRY_TOPIC: ${RAW_TELEMETRY_TOPIC:-raw.telemetry}
+    restart: unless-stopped
+
+  engine:
+    build:
+      context: .
+      dockerfile: services/engine/Dockerfile
+    container_name: adflex-engine
+    depends_on:
+      kafka:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-engine
+      ENGINE_GROUP_ID: ${ENGINE_GROUP_ID:-energy-flex-engine}
+      RAW_TELEMETRY_TOPIC: ${RAW_TELEMETRY_TOPIC:-raw.telemetry}
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
+      TIMESCALE_USER: ${TIMESCALE_USER:-energy_user}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
+    restart: unless-stopped
+
+volumes:
+  zookeeper-data:
+  kafka-data:
+  timescale-data:

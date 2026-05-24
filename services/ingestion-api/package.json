@@ -1,0 +1,15 @@
+{
+  "name": "adflex-ingestion-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal Express HTTP ingestion API for Phase 1 energy flexibility telemetry.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "kafkajs": "^2.2.4"
+  }
+}
