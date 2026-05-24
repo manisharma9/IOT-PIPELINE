@@ -1,5 +1,0 @@
-streamlit
-streamlit-autorefresh
-mysql-connector-python
-pandas
-requests
