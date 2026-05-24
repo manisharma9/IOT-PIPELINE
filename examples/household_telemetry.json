@@ -1,0 +1,27 @@
+{
+  "household_id": "household-001",
+  "community_id": "community-dublin-north",
+  "device_id": "meter-001",
+  "device_type": "smart_meter",
+  "timestamp": "2026-05-24T17:00:00Z",
+  "readings": {
+    "active_power_kw": {
+      "value": 1.42,
+      "unit": "kW"
+    },
+    "voltage_v": {
+      "value": 230.4,
+      "unit": "V"
+    },
+    "current_a": {
+      "value": 6.2,
+      "unit": "A"
+    },
+    "energy_import_kwh": {
+      "value": 2451.7,
+      "unit": "kWh"
+    }
+  },
+  "protocol": "http",
+  "source": "household-gateway"
+}

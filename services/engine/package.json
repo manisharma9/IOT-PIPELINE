@@ -1,0 +1,15 @@
+{
+  "name": "adflex-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Phase 1 Kafka consumer that normalizes raw telemetry and writes TimescaleDB rows.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "pg": "^8.12.0"
+  }
+}
