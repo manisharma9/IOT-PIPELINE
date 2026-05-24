@@ -4,6 +4,12 @@ const { Kafka } = require("kafkajs");
 const { validateTelemetry } = require("../../common/telemetry-validator");
 const { createPool, insertProcessingError, insertTelemetryBatch } = require("./db");
 const { normalizeTelemetry } = require("./normalizer");
+const {
+  buildCorrelationId,
+  buildNormalizedTelemetryEvent,
+  buildNormalizedTelemetryMessages,
+  publishNormalizedTelemetry
+} = require("./normalized-publisher");
 
 const KAFKA_BROKERS = (process.env.KAFKA_BROKERS || "localhost:9092")
   .split(",")
@@ -12,6 +18,8 @@ const KAFKA_BROKERS = (process.env.KAFKA_BROKERS || "localhost:9092")
 const KAFKA_CLIENT_ID = process.env.KAFKA_CLIENT_ID || "adflex-engine";
 const ENGINE_GROUP_ID = process.env.ENGINE_GROUP_ID || "energy-flex-engine";
 const RAW_TELEMETRY_TOPIC = process.env.RAW_TELEMETRY_TOPIC || "raw.telemetry";
+const NORMALIZED_TELEMETRY_TOPIC =
+  process.env.NORMALIZED_TELEMETRY_TOPIC || "normalized.telemetry";
 
 function buildKafkaMetadata(topic, partition, message) {
   return {
@@ -38,8 +46,16 @@ async function logProcessingError(pool, metadata, rawMessage, payload, error) {
   }
 }
 
-async function processRawTelemetryMessage({ topic, partition, message, pool }) {
+async function processRawTelemetryMessage({
+  topic,
+  partition,
+  message,
+  pool,
+  producer,
+  normalizedTopic = NORMALIZED_TELEMETRY_TOPIC
+}) {
   const metadata = buildKafkaMetadata(topic, partition, message);
+  const correlationId = buildCorrelationId(metadata);
   const rawMessage = message.value ? message.value.toString("utf8") : "";
   let payload = null;
 
@@ -55,9 +71,15 @@ async function processRawTelemetryMessage({ topic, partition, message, pool }) {
 
     const normalizedTelemetry = normalizeTelemetry(payload);
     await insertTelemetryBatch(pool, normalizedTelemetry, metadata);
+    await publishNormalizedTelemetry(
+      producer,
+      normalizedTopic,
+      normalizedTelemetry.normalizedRows,
+      correlationId
+    );
 
     console.log(
-      `Processed telemetry ${payload.community_id}/${payload.household_id}/${payload.device_id} at offset ${metadata.offset}`
+      `Processed telemetry ${payload.community_id}/${payload.household_id}/${payload.device_id} at offset ${metadata.offset} and published ${normalizedTelemetry.normalizedRows.length} normalized event(s) to ${normalizedTopic}`
     );
 
     return {
@@ -81,8 +103,10 @@ async function start() {
     brokers: KAFKA_BROKERS
   });
   const consumer = kafka.consumer({ groupId: ENGINE_GROUP_ID });
+  const producer = kafka.producer();
   const pool = createPool();
 
+  await producer.connect();
   await consumer.connect();
   await consumer.subscribe({
     topic: RAW_TELEMETRY_TOPIC,
@@ -91,13 +115,21 @@ async function start() {
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
-      await processRawTelemetryMessage({ topic, partition, message, pool });
+      await processRawTelemetryMessage({
+        topic,
+        partition,
+        message,
+        pool,
+        producer,
+        normalizedTopic: NORMALIZED_TELEMETRY_TOPIC
+      });
     }
   });
 
   const shutdown = async () => {
     console.log("Shutting down engine...");
     await consumer.disconnect();
+    await producer.disconnect();
     await pool.end();
     process.exit(0);
   };
@@ -114,5 +146,8 @@ if (require.main === module) {
 }
 
 module.exports = {
+  buildCorrelationId,
+  buildNormalizedTelemetryEvent,
+  buildNormalizedTelemetryMessages,
   processRawTelemetryMessage
 };
