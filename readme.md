@@ -212,6 +212,50 @@ The mock adapter exposes read-only endpoints:
 - `GET /mock-dispatch/audit`
 - `GET /mock-dispatch/audit/:id`
 
+## Phase 8 ENERSHARE / Dataspace Export Foundation
+
+Phase 8 adds a dataspace-style export service that reads from the existing TimescaleDB pipeline tables and exposes filtered, minimized, pseudonymized summary assets:
+
+```text
+semantic_events / ieee20305_events / dispatch_commands /
+dispatch_approval_audit / dispatch_execution_audit
+        |
+        v
+Dataspace export foundation
+        |
+        +--> safe HTTP export assets
+        +--> Kafka topic: dataspace.catalog
+        +--> TimescaleDB hypertable: dataspace_exports
+        |
+        v
+Kafka topic: dataspace.export.audit
+```
+
+This is a foundation for ENERSHARE-style sharing. It is not a certified ENERSHARE connector, does not use real connector credentials, and does not expose raw household telemetry or raw household/device identifiers.
+
+The export API uses local development API key protection on export endpoints:
+
+```text
+x-api-key: local-dev-dataspace-key
+```
+
+Available export assets:
+
+- `semantic-summary`
+- `grid-signal-summary`
+- `dispatch-proposal-summary`
+- `approval-audit-summary`
+- `mock-dispatch-summary`
+- `full-pipeline-demo-summary`
+
+Data minimization rules:
+
+- raw telemetry payloads are not returned
+- raw household IDs are replaced with stable `household_xxxxx` pseudonyms
+- raw device IDs are replaced with stable `device_xxxxx` pseudonyms
+- community ID remains visible as the community-level grouping
+- exports are limited by `DATASPACE_MAX_RECORDS`
+
 ## New Phase 1 Components
 
 - `services/ingestion-api` - Express API with `POST /telemetry`
@@ -287,13 +331,27 @@ The mock adapter exposes read-only endpoints:
 - `examples/mock_dispatch_result_example.json` - sample simulated mock result
 - `docs/phase-7-implementation-report.md` - beginner-friendly Phase 7 implementation report
 
+## New Phase 8 Components
+
+- `services/dataspace-export` - dataspace-style export API with minimized and pseudonymized summaries
+- `services/dataspace-export/src/policy.js` - allowed assets, access policy, limitations, and minimization rules
+- `services/dataspace-export/src/pseudonymize.js` - stable household/device pseudonym helper
+- `services/dataspace-export/src/export-builder.js` - safe export payload and audit payload builder
+- `services/dataspace-export/src/db.js` - TimescaleDB queries for safe summary exports and `dataspace_exports`
+- `services/dataspace-export/src/kafka.js` - Kafka publisher for catalog and export audit events
+- `database/timescale/007_dataspace_exports.sql` - `dataspace_exports` hypertable migration
+- `examples/dataspace_catalog_example.json` - sample catalog metadata
+- `examples/dataspace_export_request_headers.txt` - local API key header example
+- `examples/dataspace_full_pipeline_export_example.json` - sample minimized full pipeline export
+- `docs/phase-8-implementation-report.md` - beginner-friendly Phase 8 implementation report
+
 ## Run Only the New Production Foundation
 
 From the repository root:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector ieee20305-translator aggregator approval-workflow mock-dispatch-adapter
+docker compose up -d --build zookeeper kafka mqtt-broker timescaledb ingestion-api mqtt-subscriber engine semantic-connector ieee20305-translator aggregator approval-workflow mock-dispatch-adapter dataspace-export
 ```
 
 For Phase 3 SLM-assisted mapping, install and run Ollama on the host machine, then pull Phi-3 Mini:
@@ -315,10 +373,17 @@ DISPATCH_APPROVAL_AUDIT_TOPIC=dispatch.approval.audit
 DISPATCH_MOCK_SENT_TOPIC=dispatch.command.mock.sent
 DISPATCH_MOCK_RESULT_TOPIC=dispatch.command.mock.result
 DISPATCH_MOCK_AUDIT_TOPIC=dispatch.mock.audit
+DATASPACE_CATALOG_TOPIC=dataspace.catalog
+DATASPACE_EXPORT_AUDIT_TOPIC=dataspace.export.audit
 IEEE20305_TRANSLATOR_PORT=3002
 AGGREGATOR_PORT=3003
 APPROVAL_WORKFLOW_PORT=3004
 MOCK_DISPATCH_ADAPTER_PORT=3005
+DATASPACE_EXPORT_PORT=3006
+DATASPACE_API_KEY=local-dev-dataspace-key
+DATASPACE_DEFAULT_COMMUNITY=community-dublin-north
+DATASPACE_PSEUDONYMIZATION_SALT=local-dev-salt
+DATASPACE_MAX_RECORDS=100
 SLM_ENABLED=true
 OLLAMA_BASE_URL=http://host.docker.internal:11434
 OLLAMA_MODEL=phi3:mini
@@ -526,6 +591,40 @@ Read mock dispatch audit rows:
 Invoke-RestMethod -Uri "http://localhost:3005/mock-dispatch/audit" -Method Get
 ```
 
+Read the Phase 8 dataspace catalog:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3006/dataspace/catalog" -Method Get
+```
+
+Publish catalog metadata to Kafka:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "http://localhost:3006/dataspace/catalog/publish" `
+  -Method Post `
+  -Headers @{ "x-api-key" = "local-dev-dataspace-key" }
+```
+
+Request a minimized full-pipeline dataspace export:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "http://localhost:3006/dataspace/export/full-pipeline-demo-summary" `
+  -Method Get `
+  -Headers @{ "x-api-key" = "local-dev-dataspace-key" }
+```
+
+Verify Phase 8 audit Kafka flow:
+
+```powershell
+docker compose exec kafka kafka-console-consumer `
+  --bootstrap-server kafka:29092 `
+  --topic dataspace.export.audit `
+  --from-beginning `
+  --max-messages 1
+```
+
 Verify TimescaleDB rows:
 
 ```powershell
@@ -556,6 +655,10 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT di
 docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT dispatch_command_id, proposed_action, mock_device_type, simulation_status, no_real_execution, execution_mode FROM dispatch_execution_audit ORDER BY created_at DESC LIMIT 10;"
 ```
 
+```powershell
+docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT export_type, asset_id, record_count, minimization_applied, pseudonymization_applied, export_status FROM dataspace_exports ORDER BY created_at DESC LIMIT 10;"
+```
+
 Check processing errors:
 
 ```powershell
@@ -565,7 +668,13 @@ docker compose exec timescaledb psql -U energy_user -d energy_flex -c "SELECT oc
 Run the lightweight local unit tests with a working Node.js runtime:
 
 ```powershell
-node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js services/ieee20305-translator/test/*.test.js services/aggregator/test/*.test.js services/approval-workflow/test/*.test.js services/mock-dispatch-adapter/test/*.test.js
+node --test services/ingestion-api/test/validation.test.js services/engine/test/*.test.js services/semantic-connector/test/*.test.js services/ieee20305-translator/test/*.test.js services/aggregator/test/*.test.js services/approval-workflow/test/*.test.js services/mock-dispatch-adapter/test/*.test.js services/dataspace-export/test/*.test.js
+```
+
+For Phase 8 tests, include:
+
+```powershell
+node --test services/dataspace-export/test/*.test.js
 ```
 
 ## Phase 1 Scope Limits
@@ -657,6 +766,21 @@ This phase does not implement:
 - real customer consent workflow
 
 The mock dispatch adapter only simulates command preparation. Every mock sent, mock result, and mock audit event states that no real household device was controlled.
+
+## Phase 8 Scope Limits
+
+This phase does not implement:
+
+- certified ENERSHARE connector behavior
+- real EDC connector credentials
+- contract negotiation
+- OAuth/OIDC identity provider integration
+- production mTLS
+- real external dataspace publication
+- raw private household telemetry export
+- real household dispatch or device control
+
+The dataspace export foundation only exposes local, minimized, pseudonymized summaries and writes/publishes export audit records.
 
 ---
 

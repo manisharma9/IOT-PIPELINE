@@ -1,0 +1,62 @@
+{
+  "export_type": "full_pipeline_demo_summary",
+  "generated_at": "2026-05-24T20:00:00.000Z",
+  "access_policy": "local-development API key required; minimized community-level summaries only; not a certified ENERSHARE connector",
+  "minimization_applied": true,
+  "pseudonymization_applied": true,
+  "community_id": "community-dublin-north",
+  "record_count": 5,
+  "no_raw_private_payloads": true,
+  "data": {
+    "semantic": [
+      {
+        "event_time": "2026-05-24T17:55:00.000Z",
+        "community_id": "community-dublin-north",
+        "household_ref": "household_3f0a1c2b4d5e",
+        "device_ref": "device_9a8b7c6d5e4f",
+        "reading_name": "active_power_kw",
+        "saref4ener_concept": "ActivePower",
+        "mapping_source": "deterministic",
+        "mapping_confidence": "high"
+      }
+    ],
+    "grid": [
+      {
+        "signal_id": "signal-001",
+        "signal_type": "curtailment_request",
+        "severity": "medium",
+        "requested_action": "reduce_load"
+      }
+    ],
+    "proposal": [
+      {
+        "requested_action": "reduce_load",
+        "proposed_action": "reduce_ev_charging",
+        "target_kw": 2.5,
+        "status": "ready_to_dispatch"
+      }
+    ],
+    "approval": [
+      {
+        "previous_status": "approved",
+        "new_status": "ready_to_dispatch",
+        "action": "mark-ready",
+        "reviewer_role": "mentor",
+        "comment_present": true
+      }
+    ],
+    "mock": [
+      {
+        "proposed_action": "reduce_ev_charging",
+        "mock_device_type": "ev_charger",
+        "simulation_status": "simulated_success",
+        "no_real_execution": true,
+        "execution_mode": "mock"
+      }
+    ]
+  },
+  "limitations": [
+    "Foundation only, not a certified ENERSHARE connector.",
+    "Raw telemetry payloads and raw household/device identifiers are not exported."
+  ]
+}
