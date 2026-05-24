@@ -224,6 +224,10 @@ services:
       SEMANTIC_CONNECTOR_GROUP_ID: ${SEMANTIC_CONNECTOR_GROUP_ID:-saref4ener-semantic-connector}
       NORMALIZED_TELEMETRY_TOPIC: ${NORMALIZED_TELEMETRY_TOPIC:-normalized.telemetry}
       SEMANTIC_ENRICHED_TOPIC: ${SEMANTIC_ENRICHED_TOPIC:-semantic.enriched}
+      SLM_ENABLED: ${SLM_ENABLED:-false}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-phi3:mini}
+      SLM_TIMEOUT_MS: ${SLM_TIMEOUT_MS:-8000}
       TIMESCALE_HOST: timescaledb
       TIMESCALE_PORT: 5432
       TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}

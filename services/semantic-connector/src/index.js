@@ -3,6 +3,8 @@
 const { Kafka } = require("kafkajs");
 const { createPool, ensureSemanticEventsTable, insertSemanticEvent } = require("./db");
 const { getSaref4enerMapping } = require("./saref4ener-mapping");
+const { isSlmEnabled, suggestSlmMapping } = require("./slm-mapper");
+const { validateSlmMappingObject } = require("./slm-validation");
 const {
   buildSemanticEvent,
   buildSemanticPayload,
@@ -51,13 +53,53 @@ async function publishSemanticEvent(producer, topic, semanticEvent) {
   });
 }
 
+async function resolveSemanticMapping(
+  event,
+  {
+    slmEnabled = isSlmEnabled(),
+    slmMapper = suggestSlmMapping
+  } = {}
+) {
+  const deterministicMapping = getSaref4enerMapping(event.reading_name);
+
+  if (deterministicMapping.mapping_source !== "unmapped") {
+    return deterministicMapping;
+  }
+
+  if (!slmEnabled) {
+    return deterministicMapping;
+  }
+
+  let slmOutput;
+  try {
+    slmOutput = await slmMapper(event);
+  } catch (error) {
+    console.warn(
+      `SLM mapping failed for ${event.reading_name}; using unmapped fallback: ${error.message}`
+    );
+    return deterministicMapping;
+  }
+
+  const validation = validateSlmMappingObject(slmOutput);
+  if (!validation.valid) {
+    console.warn(
+      `SLM mapping rejected for ${event.reading_name}; using unmapped fallback: ${validation.errors.join("; ")}`
+    );
+    return deterministicMapping;
+  }
+
+  return validation.mapping;
+}
+
 async function processNormalizedTelemetryMessage({
   topic,
   partition,
   message,
   pool,
   producer,
-  semanticTopic = SEMANTIC_ENRICHED_TOPIC
+  semanticTopic = SEMANTIC_ENRICHED_TOPIC,
+  slmEnabled = isSlmEnabled(),
+  slmMapper = suggestSlmMapping
 }) {
   const metadata = buildKafkaMetadata(topic, partition, message);
   const rawMessage = message.value ? message.value.toString("utf8") : "";
@@ -87,7 +129,10 @@ async function processNormalizedTelemetryMessage({
     };
   }
 
-  const mapping = getSaref4enerMapping(event.reading_name);
+  const mapping = await resolveSemanticMapping(event, {
+    slmEnabled,
+    slmMapper
+  });
   const semanticPayload = buildSemanticPayload(event, mapping);
   const semanticEvent = buildSemanticEvent(event, mapping, semanticPayload);
 
@@ -161,5 +206,6 @@ if (require.main === module) {
 module.exports = {
   buildKafkaMetadata,
   buildSemanticMessageKey,
+  resolveSemanticMapping,
   processNormalizedTelemetryMessage
 };

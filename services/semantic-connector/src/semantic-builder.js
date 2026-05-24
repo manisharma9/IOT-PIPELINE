@@ -106,6 +106,19 @@ function buildSemanticPayload(event, mapping) {
       source: event.source,
       correlation_id: event.correlation_id || null
     },
+    original_reading: {
+      event_time: event.event_time,
+      household_id: event.household_id,
+      community_id: event.community_id,
+      device_id: event.device_id,
+      device_type: event.device_type,
+      reading_name: event.reading_name,
+      reading_value: event.reading_value,
+      reading_unit: event.reading_unit,
+      protocol: event.protocol,
+      source: event.source,
+      correlation_id: event.correlation_id || null
+    },
     saref: {
       type: mapping.saref_type,
       property: mapping.saref_property,
@@ -119,9 +132,14 @@ function buildSemanticPayload(event, mapping) {
       property: mapping.ngsi_property
     },
     explanation: mapping.explanation,
+    mapping_source: mapping.mapping_source,
+    mapping_confidence: mapping.mapping_confidence,
     mapping: {
       source: mapping.mapping_source,
-      confidence: mapping.mapping_confidence
+      confidence: mapping.mapping_confidence,
+      explanation: mapping.explanation,
+      mapping_source: mapping.mapping_source,
+      mapping_confidence: mapping.mapping_confidence
     }
   };
 }
