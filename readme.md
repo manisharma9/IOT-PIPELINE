@@ -51,7 +51,6 @@ Safety boundary: the pipeline stops at mock dispatch and simulated device API ca
 ## Device API Translation Layer
 
 The pipeline supports bidirectional load management. DSO requests move forward through semantic and IEEE 2030.5-style translation, while approved dispatch commands are translated back into simulated end-device API language.
-The DSO request moves forward through semantic and IEEE 2030.5-style translation. After approval, the command moves backward into the API language of end devices.
 
 This repository now includes simulated adapters for:
 
@@ -59,6 +58,34 @@ This repository now includes simulated adapters for:
 - Enode / Easee Core EV charger through `enode-simulator`
 
 The `device-command-translator` consumes approved `dispatch.command.ready` events and translates fixed kW or percentage load reduction into simulated device commands. It never uses real credentials and never controls real devices.
+
+## Customer Operator Console
+
+The customer-facing web application lives in `apps/customer-console`. It is a Next.js and TypeScript dashboard designed for local operation now and later deployment to Vercel.
+
+The console follows the production-style access boundary:
+
+```text
+Browser
+-> Next.js API routes
+-> security-gateway at GATEWAY_BASE_URL
+-> internal AD-FLEX services
+```
+
+The browser does not call internal service ports directly. The gateway API key stays server-side in Next.js API routes and is not exposed to client components.
+
+Local setup:
+
+```powershell
+cd C:\Users\Mani\Desktop\Github\IOT-PIPELINE\apps\customer-console
+copy .env.example .env.local
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000` and sign in with the configured local demo operator credentials. The console includes local demo authentication, gateway health, telemetry simulation, DSO load request submission, proposal review actions, safe mock dispatch audit, simulated Shelly Plug and Enode / Easee Core device translation audit, dataspace export views, AWS readiness, and runbook guidance.
+
+Production authentication can later be connected to Cognito, Auth0, or another JWT issuer. Real device control must not be enabled without real credentials, consent, operator approval, and safety controls.
 
 ## System Capabilities
 

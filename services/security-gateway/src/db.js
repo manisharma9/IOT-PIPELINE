@@ -111,9 +111,87 @@ async function safeInsertSecurityGatewayAudit(pool, event) {
   }
 }
 
+function normalizeLimit(limit) {
+  const parsed = Number(limit);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return 25;
+  }
+  return Math.min(parsed, 100);
+}
+
+function safeAuditRow(row) {
+  return {
+    id: row.id,
+    event_time: row.event_time,
+    created_at: row.created_at,
+    correlation_id: row.correlation_id,
+    method: row.method,
+    route: row.route,
+    decision: row.decision,
+    reason: row.reason,
+    status_code: row.status_code,
+    target_service: row.target_service,
+    request_hash: row.request_hash,
+    auth_mode: row.auth_mode,
+    audit_payload: row.audit_payload
+      ? {
+          no_raw_body_stored: row.audit_payload.no_raw_body_stored === true,
+          target_url: row.audit_payload.target_url || null,
+          downstream: row.audit_payload.downstream || null
+        }
+      : null
+  };
+}
+
+async function listSecurityGatewayAudit(pool, filters = {}) {
+  const conditions = [];
+  const params = [];
+
+  if (filters.correlationId) {
+    params.push(filters.correlationId);
+    conditions.push(`correlation_id = $${params.length}`);
+  }
+
+  if (filters.decision) {
+    params.push(filters.decision);
+    conditions.push(`decision = $${params.length}`);
+  }
+
+  const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  params.push(normalizeLimit(filters.limit));
+
+  const result = await pool.query(
+    `
+      SELECT
+        id,
+        event_time,
+        created_at,
+        correlation_id,
+        method,
+        route,
+        decision,
+        reason,
+        status_code,
+        target_service,
+        request_hash,
+        auth_mode,
+        audit_payload
+      FROM security_gateway_audit
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT $${params.length}
+    `,
+    params
+  );
+
+  return result.rows.map(safeAuditRow);
+}
+
 module.exports = {
   createPool,
   ensureSecurityGatewayAuditTable,
   insertSecurityGatewayAudit,
+  listSecurityGatewayAudit,
+  safeAuditRow,
   safeInsertSecurityGatewayAudit
 };
