@@ -1,4 +1,5 @@
 # Device API Translation Layer Report
+#  Device API Translation Report
 
 This report explains the simulated device API translation layer for the AD-FLEX local development foundation. It does not add real device control.
 
@@ -13,6 +14,7 @@ The production-style DSO communication pipeline needs more than a one-way data p
 The added layer keeps the existing pipeline intact and adds only a safe, simulated device API translation capability.
 
 ## How It Fits The Technical Architecture
+
 
 The architecture has four relevant parts:
 
