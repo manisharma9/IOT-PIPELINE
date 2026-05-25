@@ -371,6 +371,57 @@ services:
       - "${DATASPACE_EXPORT_PORT:-3006}:3006"
     restart: unless-stopped
 
+  # Production alignment: local security edge for all external HTTP traffic.
+  security-gateway:
+    build:
+      context: .
+      dockerfile: services/security-gateway/Dockerfile
+    container_name: adflex-security-gateway
+    depends_on:
+      kafka:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+      ingestion-api:
+        condition: service_started
+      ieee20305-translator:
+        condition: service_started
+      aggregator:
+        condition: service_started
+      approval-workflow:
+        condition: service_started
+      mock-dispatch-adapter:
+        condition: service_started
+      dataspace-export:
+        condition: service_started
+      device-command-translator:
+        condition: service_started
+    environment:
+      SECURITY_GATEWAY_PORT: ${SECURITY_GATEWAY_PORT:-3010}
+      EDGE_API_KEY: ${EDGE_API_KEY:-local-dev-edge-key}
+      EDGE_RATE_LIMIT_WINDOW_MS: ${EDGE_RATE_LIMIT_WINDOW_MS:-60000}
+      EDGE_RATE_LIMIT_MAX_REQUESTS: ${EDGE_RATE_LIMIT_MAX_REQUESTS:-120}
+      EDGE_IP_ALLOWLIST: ${EDGE_IP_ALLOWLIST:-}
+      EDGE_IP_BLOCKLIST: ${EDGE_IP_BLOCKLIST:-}
+      EDGE_REQUEST_BODY_LIMIT: ${EDGE_REQUEST_BODY_LIMIT:-256kb}
+      SECURITY_GATEWAY_AUDIT_TOPIC: ${SECURITY_GATEWAY_AUDIT_TOPIC:-security.gateway.audit}
+      JWT_AUTH_ENABLED: ${JWT_AUTH_ENABLED:-false}
+      JWT_ISSUER: ${JWT_ISSUER:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
+      DATASPACE_API_KEY: ${DATASPACE_API_KEY:-local-dev-dataspace-key}
+      KAFKA_BROKER: kafka:29092
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: adflex-security-gateway
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
+      TIMESCALE_USER: ${TIMESCALE_USER:-energy_user}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-energy_password}
+    ports:
+      - "${SECURITY_GATEWAY_PORT:-3010}:3010"
+    restart: unless-stopped
+
 volumes:
   zookeeper-data:
   kafka-data:

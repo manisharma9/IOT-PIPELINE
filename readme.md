@@ -1,7 +1,8 @@
 # Smart Grid Communication Pipeline Development
 
-Smart Grid Communication Pipeline for smart-home energy flexibility. It shows how household telemetry can move from raw ingestion to semantic energy meaning, grid signal translation, safe dispatch proposal governance, mock-only dispatch simulation, simulated device-specific API translation, and minimized dataspace-style export.
+Smart Grid Communication Pipeline for smart-home energy flexibility. It shows how household telemetry can move from a local production-style security edge to semantic energy meaning, grid signal translation, safe dispatch proposal governance, mock-only dispatch simulation, simulated device-specific API translation, and minimized dataspace-style export.
 
+This repository is a local development foundation for a production-style DSO communication pipeline. It is not a production control system.
 
 ## Business Problem
 
@@ -12,8 +13,21 @@ This project demonstrates that path without controlling real household devices.
 ## Final Architecture Flow
 
 ```text
-HTTP / MQTT telemetry
+External HTTP clients / frontend / DSO
+-> security-gateway
+-> authentication / rate limiting / IP filtering / DPI-style inspection
+-> ingestion-api / DSO grid signal / approval / dataspace / audit routes
+
+HTTP telemetry
+-> ingestion-api
 -> raw.telemetry
+
+MQTT telemetry
+-> mqtt-broker
+-> mqtt-subscriber
+-> raw.telemetry
+
+raw.telemetry
 -> engine
 -> normalized.telemetry
 -> semantic-connector
@@ -30,10 +44,13 @@ HTTP / MQTT telemetry
 -> minimized dataspace summaries
 ```
 
+Production-style local entry point: external HTTP traffic should use `http://localhost:3010` through `security-gateway`. Direct service ports remain exposed for local development and debugging only.
+
 Safety boundary: the pipeline stops at mock dispatch and simulated device API calls. No real household command is sent.
 
-## Scope Alignment: Device API Translation
+## Device API Translation Layer
 
+The pipeline supports bidirectional load management. DSO requests move forward through semantic and IEEE 2030.5-style translation, while approved dispatch commands are translated back into simulated end-device API language.
 The DSO request moves forward through semantic and IEEE 2030.5-style translation. After approval, the command moves backward into the API language of end devices.
 
 This repository now includes simulated adapters for:
@@ -43,24 +60,25 @@ This repository now includes simulated adapters for:
 
 The `device-command-translator` consumes approved `dispatch.command.ready` events and translates fixed kW or percentage load reduction into simulated device commands. It never uses real credentials and never controls real devices.
 
-## Phase Summary
+## System Capabilities
 
-| Phase | Release | What It Added |
+| Module | Reference Release | Capability |
 | --- | --- | --- |
-| 1 | `phase-1-foundation-v1` | HTTP/MQTT ingestion, Kafka backbone, engine normalization, TimescaleDB storage. |
-| 2 | `phase-2-saref4ener-v1` | Deterministic SAREF4ENER/NGSI semantic mapping and `semantic_events`. |
-| 3 | `phase-3-slm-assisted-v1` | Optional Ollama/Phi-3 Mini mapping for unknown readings only. |
-| 4 | `phase-4-ieee20305-v1` | IEEE 2030.5-style translator foundation and mock DSO grid signal endpoint. |
-| 5 | `phase-5-aggregator-v1` | Proposal-only aggregator and dispatch command audit path. |
-| 6 | `phase-6-approval-workflow-v1` | Review, approve, reject, and mark-ready workflow with audit. |
-| 7 | `phase-7-mock-dispatch-v1` | Safe mock dispatch adapter with simulated sent/result events. |
-| 8 | `phase-8-dataspace-export-v1` | Minimized, pseudonymized dataspace-style export foundation. |
-| 9 | current | Final documentation, runbooks, scripts, troubleshooting, and demo polish. |
+| Foundation | `phase-1-foundation-v1` | HTTP/MQTT ingestion, Kafka backbone, engine normalization, TimescaleDB storage. |
+| Semantic mapping | `phase-2-saref4ener-v1` | Deterministic SAREF4ENER/NGSI semantic mapping and `semantic_events`. |
+| SLM-assisted mapping | `phase-3-slm-assisted-v1` | Optional Ollama/Phi-3 Mini mapping for unknown readings only. |
+| IEEE translator | `phase-4-ieee20305-v1` | IEEE 2030.5-style translator foundation and mock DSO grid signal endpoint. |
+| Aggregator | `phase-5-aggregator-v1` | Proposal-only aggregator and dispatch command audit path. |
+| Approval workflow | `phase-6-approval-workflow-v1` | Review, approve, reject, and mark-ready workflow with audit. |
+| Mock dispatch | `phase-7-mock-dispatch-v1` | Safe mock dispatch adapter with simulated sent/result events. |
+| Dataspace export | `phase-8-dataspace-export-v1` | Minimized, pseudonymized dataspace-style export foundation. |
+| Production hardening | current | Final technical documentation, runbooks, scripts, troubleshooting, and demo environment polish. |
 
 ## Services And Ports
 
 | Service | Port | Role |
 | --- | ---: | --- |
+| `security-gateway` | 3010 | Local production-style external entry point with API key, rate limiting, IP filtering, DPI-style inspection, and audit. |
 | `ingestion-api` | 3001 | Receives HTTP telemetry and publishes `raw.telemetry`. |
 | `mqtt-subscriber` | none | Subscribes to MQTT telemetry and publishes `raw.telemetry`. |
 | `engine` | none | Normalizes raw telemetry and publishes `normalized.telemetry`. |
@@ -95,6 +113,7 @@ The `device-command-translator` consumes approved `dispatch.command.ready` event
 | `dispatch.mock.audit` | Mock dispatch audit events. |
 | `device.command.result` | Simulated device-specific command result events. |
 | `device.command.audit` | Audit events for simulated device API translation. |
+| `security.gateway.audit` | Accepted, blocked, rate-limited, unauthorized, and downstream-error gateway audit events. |
 | `dataspace.catalog` | Dataspace-style catalog metadata. |
 | `dataspace.export.audit` | Dataspace export audit events. |
 
@@ -110,7 +129,8 @@ The `device-command-translator` consumes approved `dispatch.command.ready` event
 | `dispatch_commands` | Phase 5/6 dispatch proposals and status updates. |
 | `dispatch_approval_audit` | Phase 6 approval transition audit history. |
 | `dispatch_execution_audit` | Phase 7 mock-only dispatch audit history. |
-| `device_command_audit` | Scope alignment audit history for simulated Shelly and Enode command translation. |
+| `device_command_audit` | Device API translation audit history for simulated Shelly and Enode command translation. |
+| `security_gateway_audit` | Local edge security decision audit history. |
 | `dataspace_exports` | Phase 8 export/catalog audit history. |
 
 ## Run The Full Demo
@@ -126,7 +146,7 @@ cd C:\Users\Mani\Desktop\Github\IOT-PIPELINE
 copy .env.example .env
 powershell -ExecutionPolicy Bypass -File .\scripts\start-demo.ps1 -Build
 powershell -ExecutionPolicy Bypass -File .\scripts\check-health.ps1
-powershell -ExecutionPolicy Bypass -File .\scripts\run-full-demo.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\run-full-demo-through-gateway.ps1
 ```
 
 Stop the demo without deleting local data:
@@ -137,11 +157,14 @@ powershell -ExecutionPolicy Bypass -File .\scripts\stop-demo.ps1
 
 ## Validate The Demo Manually
 
+Production-style local calls should go through the gateway:
+
 Send normal telemetry:
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri http://localhost:3001/telemetry `
+  -Uri http://localhost:3010/telemetry `
+  -Headers @{ "x-edge-api-key" = "local-dev-edge-key" } `
   -ContentType application/json `
   -Body (Get-Content .\examples\household_telemetry.json -Raw)
 ```
@@ -150,7 +173,8 @@ Send a DSO grid signal:
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri http://localhost:3002/dso/grid-signal `
+  -Uri http://localhost:3010/dso/grid-signal `
+  -Headers @{ "x-edge-api-key" = "local-dev-edge-key" } `
   -ContentType application/json `
   -Body (Get-Content .\examples\dso_grid_signal.json -Raw)
 ```
@@ -158,24 +182,25 @@ Invoke-RestMethod -Method Post `
 Review, approve, and mark a proposal ready:
 
 ```powershell
-$proposal = (Invoke-RestMethod http://localhost:3003/dispatch/proposals?limit=1).proposals[0]
-Invoke-RestMethod -Method Post -Uri "http://localhost:3004/approvals/proposals/$($proposal.id)/review" -ContentType application/json -Body (Get-Content .\examples\approval_review_request.json -Raw)
-Invoke-RestMethod -Method Post -Uri "http://localhost:3004/approvals/proposals/$($proposal.id)/approve" -ContentType application/json -Body (Get-Content .\examples\approval_approve_request.json -Raw)
-Invoke-RestMethod -Method Post -Uri "http://localhost:3004/approvals/proposals/$($proposal.id)/mark-ready" -ContentType application/json -Body (Get-Content .\examples\approval_mark_ready_request.json -Raw)
+$edge = @{ "x-edge-api-key" = "local-dev-edge-key" }
+$proposal = (Invoke-RestMethod -Headers $edge http://localhost:3010/dispatch/proposals?limit=1).proposals[0]
+Invoke-RestMethod -Method Post -Uri "http://localhost:3010/approvals/proposals/$($proposal.id)/review" -Headers $edge -ContentType application/json -Body (Get-Content .\examples\approval_review_request.json -Raw)
+Invoke-RestMethod -Method Post -Uri "http://localhost:3010/approvals/proposals/$($proposal.id)/approve" -Headers $edge -ContentType application/json -Body (Get-Content .\examples\approval_approve_request.json -Raw)
+Invoke-RestMethod -Method Post -Uri "http://localhost:3010/approvals/proposals/$($proposal.id)/mark-ready" -Headers $edge -ContentType application/json -Body (Get-Content .\examples\approval_mark_ready_request.json -Raw)
 ```
 
 Check simulated device API translation:
 
 ```powershell
-Invoke-RestMethod http://localhost:3009/device-command/audit?limit=5
+Invoke-RestMethod -Headers $edge http://localhost:3010/device-command/audit?limit=5
 ```
 
 Call the safe dataspace export:
 
 ```powershell
 Invoke-RestMethod `
-  -Uri http://localhost:3006/dataspace/export/full-pipeline-demo-summary `
-  -Headers @{ "x-api-key" = "local-dev-dataspace-key" }
+  -Uri http://localhost:3010/dataspace/export/full-pipeline-demo-summary `
+  -Headers $edge
 ```
 
 ## Safety Limitations
@@ -187,12 +212,14 @@ Invoke-RestMethod `
 - No certified ENERSHARE connector.
 - No production mTLS, OAuth/OIDC, contract negotiation, or real connector credentials.
 - API key protection is local development only.
+- The local security gateway is a development foundation for API Gateway/WAF readiness, not production security by itself.
 - Dataspace export is minimized and pseudonymized, but not production privacy compliance by itself.
 - Optional SLM mapping is used only for unknown readings and is never required for known deterministic mappings.
 
-## Final Demo Talking Points
+## Client-Facing Technical Talking Points
 
 - The pipeline turns raw IoT telemetry into structured energy-flexibility knowledge.
+- Security gateway aligns local external traffic with the production API Gateway/WAF pattern.
 - SAREF4ENER gives deterministic semantic meaning for known readings.
 - SLM-assisted mapping helps only when a reading is unknown, while deterministic mapping remains first.
 - IEEE 2030.5-style translation gives a bridge toward grid/DER concepts without claiming certification.
@@ -204,9 +231,13 @@ Invoke-RestMethod `
 ## Key Documentation
 
 - [Final architecture](docs/final-architecture.md)
-- [Final demo runbook](docs/final-demo-runbook.md)
-- [Final presentation script](docs/final-presentation-script.md)
+- [Demo environment runbook](docs/final-demo-runbook.md)
+- [Client-facing presentation script](docs/final-presentation-script.md)
 - [Troubleshooting guide](docs/troubleshooting.md)
 - [Security and limitations](docs/security-and-limitations.md)
-- [Phase 9 final demo polish report](docs/phase-9-final-demo-polish-report.md)
-- [Scope alignment device API translation report](docs/scope-alignment-device-api-translation-report.md)
+- [Production hardening and demo environment report](docs/phase-9-final-demo-polish-report.md)
+- [Device API translation layer report](docs/scope-alignment-device-api-translation-report.md)
+- [Architecture component mapping](docs/diagram-alignment-matrix.md)
+- [Security edge implementation report](docs/production-alignment-security-edge-report.md)
+- [AWS deployment skeleton](infra/aws/README.md)
+- [Connector placeholders](connectors/README.md)

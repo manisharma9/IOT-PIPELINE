@@ -1,12 +1,28 @@
 # Security And Limitations
 
-This project is a local development and final demo foundation. It is not a production smart-grid control system.
+This repository is a local development foundation for a production-style DSO communication pipeline. It is not a production smart-grid control system.
 
 ## Local Development Only
 
-The Docker Compose setup, local API key, Kafka settings, and database credentials are designed for local demonstration.
+The Docker Compose setup, local API key, Kafka settings, and database credentials are designed for the local demo environment.
 
 Production deployment would require hardened infrastructure, managed secrets, network controls, identity, and operational monitoring.
+
+## Local Security Gateway Is Not Production Security
+
+The `security-gateway` service is a local production-style edge. It gives the environment the same sequence expected in production:
+
+```text
+external client -> security-gateway -> authentication -> rate limiting -> IP filtering -> DPI-style inspection -> internal services
+```
+
+It implements local API key validation, JWT-ready middleware, rate limiting, IP allow/block lists, content-type checks, request-size limits, correlation IDs, and audit logging. This is still local development security only.
+
+In production, this layer should be replaced or fronted by AWS API Gateway, AWS WAF, managed TLS/mTLS, a real identity provider, and managed secrets.
+
+Direct internal service ports are kept for local development and debugging. A frontend or external client should use the gateway locally and AWS API Gateway later.
+
+Gateway decisions are audited to `security_gateway_audit` and `security.gateway.audit`. The gateway stores safe metadata and a request hash, not raw request bodies.
 
 ## No Production mTLS Yet
 
@@ -27,13 +43,15 @@ Production approval would need:
 
 The dataspace export service uses `x-api-key` as a simple local protection mechanism. This is not enough for production.
 
+The security gateway uses `x-edge-api-key` as a local edge protection mechanism. This is also not enough for production.
+
 Production export would need stronger authentication, authorization, scoped access, rate limiting, and key/secret rotation.
 
 ## No Real Household Device Control
 
 The pipeline does not control real household devices. It does not send commands to EV chargers, batteries, inverters, appliances, or smart meters.
 
-The scope alignment device translation path is also simulated. It does not use real Shelly credentials, real Enode credentials, or real Easee Core charger credentials.
+The device API translation layer is also simulated. It does not use real Shelly credentials, real Enode credentials, or real Easee Core charger credentials.
 
 ## Mock Dispatch Only
 
@@ -73,7 +91,7 @@ Phase 8 exports summary data only. It applies minimization and pseudonymization:
 - device IDs are pseudonymized
 - community ID remains visible as a community-level grouping
 
-This is a demo privacy boundary, not a full privacy compliance program.
+This is a local privacy boundary, not a full privacy compliance program.
 
 ## What Would Be Needed For Production
 
@@ -94,4 +112,4 @@ Production readiness would require:
 
 ## Final Safety Statement
 
-AD-FLEX demonstrates a controlled pipeline for energy flexibility decision support. It is safe for local demo because it stops at audited mock dispatch and does not execute real household commands.
+AD-FLEX demonstrates a controlled pipeline for energy flexibility decision support. It is safe for the local demo environment because it stops at audited mock dispatch and does not execute real household commands.

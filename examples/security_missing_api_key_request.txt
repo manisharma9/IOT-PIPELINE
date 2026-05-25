@@ -1,0 +1,8 @@
+POST http://localhost:3010/telemetry
+content-type: application/json
+
+Expected result:
+HTTP 401
+{
+  "error": "unauthorized_edge_request"
+}

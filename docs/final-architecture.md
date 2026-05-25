@@ -1,12 +1,22 @@
-# Final Architecture
+# Technical Architecture
 
-This document explains the final AD-FLEX demo architecture after Phases 1 to 9, plus the scope alignment addition for simulated device-specific API translation.
+This document explains the AD-FLEX technical architecture, including the production-style local security edge and simulated device-specific API translation layer.
 
 ## Full Diagram
 
 ```mermaid
 flowchart LR
-  A["HTTP telemetry"] --> B["ingestion-api"]
+  EXT["External clients / frontend / DSO"] --> SG["security-gateway"]
+  SG --> AUTH["API key, JWT-ready auth, rate limiting, IP filtering, DPI-style inspection"]
+  AUTH --> B["ingestion-api"]
+  AUTH --> J
+  AUTH --> N
+  AUTH --> R
+  AUTH --> V
+  AUTH --> AB
+  AUTH --> AH
+  SG --> SEC_AUDIT["security_gateway_audit / security.gateway.audit"]
+  A["HTTP telemetry"] --> SG
   C["MQTT telemetry"] --> D["mqtt-subscriber"]
   B --> E["raw.telemetry"]
   D --> E
@@ -51,23 +61,26 @@ flowchart LR
 
 ## Plain-English Explanation
 
-The system starts with household telemetry. It accepts readings through HTTP or MQTT, puts them on Kafka, normalizes them, and stores them in TimescaleDB.
+The system starts at the local production-style edge. External HTTP clients, a future frontend, and DSO requests should call `security-gateway` on port `3010`. The gateway performs local API key validation, JWT-ready middleware, rate limiting, IP filtering, DPI-style request inspection, correlation ID forwarding, and audit logging before routing to internal services.
+
+Household telemetry can still arrive over MQTT for local development. HTTP telemetry now enters the production-style local path through the gateway, which forwards it to the ingestion API. MQTT telemetry continues through the MQTT subscriber.
 
 Next, the semantic connector turns readings into energy-aware meaning. Known readings use deterministic SAREF4ENER mapping. Unknown readings can optionally use a local Phi-3 Mini model through Ollama, but only if SLM support is enabled.
 
 The IEEE 2030.5 translator foundation turns semantic readings and DSO grid signals into simple IEEE 2030.5-style payloads. This helps explain grid and DER concepts, but it is not a certified IEEE 2030.5 stack.
 
-The aggregator creates dispatch proposals from grid signals. The approval workflow lets a reviewer review, approve, reject, and mark proposals ready. The mock dispatch adapter simulates the original Phase 7 dispatch result. The scope alignment device command translator also consumes the approved ready event and converts it into simulated Shelly Plug and Enode / Easee Core API commands. No real household device is controlled.
+The aggregator creates dispatch proposals from grid signals. The approval workflow lets a reviewer review, approve, reject, and mark proposals ready. The mock dispatch adapter creates safe simulated dispatch results. The device command translator also consumes the approved ready event and converts it into simulated Shelly Plug and Enode / Easee Core API commands. No real household device is controlled.
 
 Finally, the dataspace export service creates safe summaries for outside stakeholders. It minimizes fields, pseudonymizes household and device identifiers, and records export audit rows.
 
 ## Technical Explanation
 
-The architecture is event-driven. Kafka topics connect each service boundary, while TimescaleDB stores durable records and audit history. Services are small Node.js processes with Docker Compose orchestration.
+The architecture is event-driven after the gateway. Kafka topics connect each service boundary, while TimescaleDB stores durable records and audit history. Services are small Node.js processes with Docker Compose orchestration.
 
 The system intentionally separates:
 
 - data ingestion from normalization
+- external edge security from internal service behavior
 - semantic mapping from IEEE 2030.5-style translation
 - proposal creation from approval
 - approval from mock dispatch
@@ -80,6 +93,7 @@ This separation is the main safety feature. Each phase leaves an auditable hando
 
 | Service | Role |
 | --- | --- |
+| `security-gateway` | Local production-style external entry point and audit layer. |
 | `ingestion-api` | Receives HTTP telemetry and publishes `raw.telemetry`. |
 | `mqtt-subscriber` | Receives MQTT telemetry and publishes `raw.telemetry`. |
 | `engine` | Validates and normalizes telemetry into `normalized.telemetry`. |
@@ -95,23 +109,27 @@ This separation is the main safety feature. Each phase leaves an auditable hando
 
 ## Data Flow From Telemetry To Dataspace Export
 
-1. Telemetry enters through `POST /telemetry` or MQTT.
-2. The raw event is published to `raw.telemetry`.
-3. The engine writes raw and normalized records, then publishes `normalized.telemetry`.
-4. The semantic connector writes `semantic_events` and publishes `semantic.enriched`.
-5. The IEEE translator writes `ieee20305_events` and publishes `ieee20305.translated`.
-6. A DSO grid signal can be posted to `/dso/grid-signal`, creating a `GridSignal` event on `grid.signals`.
-7. The aggregator writes a proposal to `dispatch_commands` and publishes `dispatch.command.proposed`.
-8. The approval workflow updates proposal status and publishes `dispatch.command.ready` only after approval.
-9. The mock adapter consumes the ready event, simulates dispatch, writes `dispatch_execution_audit`, and publishes mock sent/result events.
-10. In parallel, the device command translator consumes the same approved ready event, selects simulated Shelly Plug and Enode / Easee Core devices, translates the load request into their API language, writes `device_command_audit`, and publishes `device.command.result` and `device.command.audit`.
-11. Dataspace export reads the Phase 1 to Phase 8 audit/event tables and returns minimized summaries.
+1. External HTTP traffic enters through `security-gateway` on port `3010`.
+2. The gateway authenticates, rate limits, filters, inspects, adds a correlation ID, audits the decision, and forwards valid requests.
+3. Telemetry reaches `ingestion-api` through `POST /telemetry`, or MQTT telemetry reaches `mqtt-subscriber`.
+4. The raw event is published to `raw.telemetry`.
+5. The engine writes raw and normalized records, then publishes `normalized.telemetry`.
+6. The semantic connector writes `semantic_events` and publishes `semantic.enriched`.
+7. The IEEE translator writes `ieee20305_events` and publishes `ieee20305.translated`.
+8. A DSO grid signal can be posted through the gateway to `/dso/grid-signal`, creating a `GridSignal` event on `grid.signals`.
+9. The aggregator writes a proposal to `dispatch_commands` and publishes `dispatch.command.proposed`.
+10. The approval workflow updates proposal status and publishes `dispatch.command.ready` only after approval.
+11. The mock adapter consumes the ready event, simulates dispatch, writes `dispatch_execution_audit`, and publishes mock sent/result events.
+12. In parallel, the device command translator consumes the same approved ready event, selects simulated Shelly Plug and Enode / Easee Core devices, translates the load request into their API language, writes `device_command_audit`, and publishes `device.command.result` and `device.command.audit`.
+13. Dataspace export reads the Phase 1 to Phase 8 audit/event tables and returns minimized summaries through the gateway.
 
 ## Safety Boundary
 
 The system does not control real household devices.
 
-The safety boundary is at `mock-dispatch-adapter` and `device-command-translator`. Both only accept ready events that include:
+The external safety boundary starts at `security-gateway`. Direct internal ports remain open locally for development, but the production-style path is through port `3010`.
+
+The execution safety boundary is at `mock-dispatch-adapter` and `device-command-translator`. Both only accept ready events that include:
 
 - `no_execution: true`
 - `execution_blocked: true`
@@ -131,6 +149,29 @@ Every simulated device API command includes:
 
 The Shelly and Enode services are local simulators. They do not use real credentials and do not reach real devices.
 
+## Where The Security Edge Is Used
+
+The local security edge is `security-gateway` on port `3010`. It maps to a future AWS API Gateway plus WAF architecture.
+
+Local controls:
+
+- API key header: `x-edge-api-key`
+- JWT-ready middleware, disabled locally by default
+- per-client IP rate limiting
+- IP allowlist and blocklist
+- JSON content-type and request-size checks
+- DPI-style request inspection for obvious SQL injection, XSS, path traversal, and command injection patterns
+- correlation ID generation and forwarding
+- audit rows in `security_gateway_audit`
+- Kafka audit events on `security.gateway.audit`
+
+Future AWS mapping:
+
+- API Gateway for the public API
+- WAF for rate limiting, IP filtering, and inspection rules
+- Cognito or API Gateway JWT authorizer for identity
+- ACM and API Gateway custom domain for TLS/mTLS
+
 ## Where SLM Is Used
 
 The SLM is used only inside `semantic-connector`, only for unknown or unmapped readings, and only when `SLM_ENABLED=true`.
@@ -146,7 +187,7 @@ The IEEE 2030.5-style translator is `ieee20305-translator`. It creates simplifie
 - `DERControlCandidate`
 - `GridSignal`
 
-This is a foundation and demo translation layer, not a certified IEEE 2030.5 implementation.
+This is a foundation translation layer for the local demo environment, not a certified IEEE 2030.5 implementation.
 
 ## Where Dataspace Export Happens
 
@@ -161,4 +202,4 @@ The device command translator runs on port `3009`. It consumes `dispatch.command
 - Shelly Plug simulator on port `3007`: `turn_off`, `turn_on`, `reduce_load`, `restore_load`
 - Enode / Easee Core simulator on port `3008`: `pause_charging`, `resume_charging`, `reduce_charging_power`, `restore_charging_power`
 
-This adds the bidirectional logic Paolo clarified: the DSO signal moves forward through semantic and grid translation, then the approved command moves backward into device-specific API language. It remains simulated and safe for a university demo.
+This implements the bidirectional load management workflow: the DSO signal moves forward through semantic and grid translation, then the approved command moves backward into simulated device-specific API language. It remains simulated and suitable for a local demo environment.

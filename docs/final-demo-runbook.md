@@ -1,6 +1,6 @@
-# Final Demo Runbook
+# Demo Environment Runbook
 
-This runbook gives a repeatable path for running the full AD-FLEX demo.
+This runbook gives a repeatable path for running the AD-FLEX local demo environment.
 
 ## Prerequisites
 
@@ -29,7 +29,7 @@ Do not add real production secrets to `.env`.
 
 Open Docker Desktop and wait until it says Docker is running.
 
-## 4. Start The Demo Stack
+## 4. Start The Local Stack
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\start-demo.ps1 -Build
@@ -52,6 +52,7 @@ The script starts:
 - Enode / Easee Core simulator
 - device command translator
 - dataspace export
+- security gateway
 
 ## 5. Check Health Endpoints
 
@@ -70,12 +71,26 @@ Expected services:
 - `shelly-simulator`
 - `enode-simulator`
 - `device-command-translator`
+- `security-gateway`
+
+For the production-style local path, external HTTP calls should use:
+
+```text
+http://localhost:3010
+```
+
+with this header:
+
+```text
+x-edge-api-key: local-dev-edge-key
+```
 
 ## 6. Send Normal Telemetry
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri http://localhost:3001/telemetry `
+  -Uri http://localhost:3010/telemetry `
+  -Headers @{ "x-edge-api-key" = "local-dev-edge-key" } `
   -ContentType application/json `
   -Body (Get-Content .\examples\household_telemetry.json -Raw)
 ```
@@ -90,7 +105,8 @@ raw.telemetry -> normalized.telemetry -> semantic.enriched -> ieee20305.translat
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri http://localhost:3002/dso/grid-signal `
+  -Uri http://localhost:3010/dso/grid-signal `
+  -Headers @{ "x-edge-api-key" = "local-dev-edge-key" } `
   -ContentType application/json `
   -Body (Get-Content .\examples\dso_grid_signal.json -Raw)
 ```
@@ -100,7 +116,8 @@ This should publish a `GridSignal` to `grid.signals` and create a proposal throu
 ## 8. Find Latest Proposal
 
 ```powershell
-$proposal = (Invoke-RestMethod http://localhost:3003/dispatch/proposals?limit=1).proposals[0]
+$edge = @{ "x-edge-api-key" = "local-dev-edge-key" }
+$proposal = (Invoke-RestMethod -Headers $edge http://localhost:3010/dispatch/proposals?limit=1).proposals[0]
 $proposal.id
 ```
 
@@ -108,7 +125,8 @@ $proposal.id
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri "http://localhost:3004/approvals/proposals/$($proposal.id)/review" `
+  -Uri "http://localhost:3010/approvals/proposals/$($proposal.id)/review" `
+  -Headers $edge `
   -ContentType application/json `
   -Body (Get-Content .\examples\approval_review_request.json -Raw)
 ```
@@ -117,7 +135,8 @@ Invoke-RestMethod -Method Post `
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri "http://localhost:3004/approvals/proposals/$($proposal.id)/approve" `
+  -Uri "http://localhost:3010/approvals/proposals/$($proposal.id)/approve" `
+  -Headers $edge `
   -ContentType application/json `
   -Body (Get-Content .\examples\approval_approve_request.json -Raw)
 ```
@@ -126,7 +145,8 @@ Invoke-RestMethod -Method Post `
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri "http://localhost:3004/approvals/proposals/$($proposal.id)/mark-ready" `
+  -Uri "http://localhost:3010/approvals/proposals/$($proposal.id)/mark-ready" `
+  -Headers $edge `
   -ContentType application/json `
   -Body (Get-Content .\examples\approval_mark_ready_request.json -Raw)
 ```
@@ -136,7 +156,7 @@ This publishes `dispatch.command.ready` with no-execution safety flags.
 ## 12. Verify Mock Dispatch
 
 ```powershell
-Invoke-RestMethod http://localhost:3005/mock-dispatch/audit?limit=5
+Invoke-RestMethod -Headers $edge http://localhost:3010/mock-dispatch/audit?limit=5
 ```
 
 The result should show:
@@ -148,7 +168,7 @@ The result should show:
 ## 13. Verify Simulated Device API Translation
 
 ```powershell
-Invoke-RestMethod http://localhost:3009/device-command/audit?limit=5
+Invoke-RestMethod -Headers $edge http://localhost:3010/device-command/audit?limit=5
 ```
 
 The result should show simulated commands for the local device APIs:
@@ -169,8 +189,8 @@ Invoke-RestMethod http://localhost:3008/enode/chargers
 
 ```powershell
 Invoke-RestMethod `
-  -Uri http://localhost:3006/dataspace/export/full-pipeline-demo-summary `
-  -Headers @{ "x-api-key" = "local-dev-dataspace-key" }
+  -Uri http://localhost:3010/dataspace/export/full-pipeline-demo-summary `
+  -Headers $edge
 ```
 
 Check that:
@@ -179,15 +199,15 @@ Check that:
 - raw telemetry payloads are not returned
 - export metadata says minimization is applied
 
-## 15. Run The Full Demo Script
+## 15. Run The Gateway-Based Demo Script
 
 After the services are healthy, you can run the automated demo path:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\run-full-demo.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\run-full-demo-through-gateway.ps1
 ```
 
-The script also reports `device_command_audit_rows` so you can confirm that approved ready commands were translated into simulated device API commands.
+The script also reports `device_command_audit_rows` and `security_gateway_audit_rows` so you can confirm that approved ready commands were translated into simulated device API commands and that gateway traffic was audited.
 
 ## 16. Check Kafka Topics
 
@@ -207,7 +227,8 @@ This stops containers but keeps volumes.
 
 - Docker not running: start Docker Desktop and rerun the script.
 - Port already in use: stop old containers or change the port in `.env`.
-- Dataspace export returns `401`: add the `x-api-key` header.
+- Gateway returns `401`: add the `x-edge-api-key` header.
+- Dataspace export returns `401` when called directly: add the `x-api-key` header. Through the gateway, use `x-edge-api-key`.
 - Ollama unavailable: known readings still work; unknown readings fall back safely.
 - Proposal not found yet: wait a few seconds and call `/dispatch/proposals` again.
 - Device command audit is empty: confirm `device-command-translator`, `shelly-simulator`, and `enode-simulator` are healthy before marking a proposal ready.
