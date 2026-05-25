@@ -49,6 +49,7 @@ function createTestGateway(options = {}) {
     auditRecorder: {
       record: async (event) => audits.push(event)
     },
+    auditPool: options.auditPool,
     rateLimitStore: new Map()
   });
 
@@ -324,4 +325,51 @@ test("correlation ID is returned and forwarded", async () => {
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("x-correlation-id"), "corr-forwarded");
   assert.equal(calls[0].fetchOptions.headers["x-correlation-id"], "corr-forwarded");
+});
+
+test("security audit endpoint returns sanitized rows", async () => {
+  const { app } = createTestGateway({
+    auditPool: {
+      query: async (_sql, params) => {
+        assert.deepEqual(params, ["corr-1", "blocked", 5]);
+        return {
+          rows: [
+            {
+              id: "1",
+              event_time: "2026-05-25T00:00:00.000Z",
+              created_at: "2026-05-25T00:00:00.000Z",
+              correlation_id: "corr-1",
+              method: "POST",
+              route: "/telemetry",
+              decision: "blocked",
+              reason: "sql_injection_like_payload",
+              status_code: 403,
+              target_service: null,
+              request_hash: "hash-only",
+              auth_mode: "api_key",
+              audit_payload: {
+                no_raw_body_stored: true,
+                secret: "must-not-leak"
+              }
+            }
+          ]
+        };
+      }
+    }
+  });
+
+  const response = await request(
+    app,
+    "GET",
+    "/security/audit?limit=5&correlation_id=corr-1&decision=blocked",
+    {
+      headers: { "x-edge-api-key": "test-edge-key" }
+    }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.count, 1);
+  assert.equal(response.body.audit[0].request_hash, "hash-only");
+  assert.equal(response.body.audit[0].audit_payload.no_raw_body_stored, true);
+  assert.equal(response.body.audit[0].audit_payload.secret, undefined);
 });

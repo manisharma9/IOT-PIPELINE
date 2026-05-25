@@ -6,6 +6,7 @@ const { loadConfig } = require("./config");
 const {
   createPool,
   ensureSecurityGatewayAuditTable,
+  listSecurityGatewayAudit,
   safeInsertSecurityGatewayAudit
 } = require("./db");
 const { createKafka, publishSecurityGatewayAudit } = require("./kafka");
@@ -283,6 +284,40 @@ function createApp(options = {}) {
     return next();
   });
 
+  app.get("/security/audit", async (request, response) => {
+    try {
+      const audit = await listSecurityGatewayAudit(config.auditPool || options.auditPool, {
+        limit: request.query.limit,
+        correlationId: request.query.correlation_id,
+        decision: request.query.decision
+      });
+
+      await auditRecorder.record(buildAuditEvent({
+        request,
+        decision: "accepted",
+        reason: "security_audit_read",
+        statusCode: 200,
+        targetService: "security-gateway",
+        auditPayload: {
+          count: audit.length
+        }
+      }));
+
+      return response.json({
+        status: "ok",
+        count: audit.length,
+        audit
+      });
+    } catch (error) {
+      console.error("Could not read security gateway audit rows:", error);
+      return response.status(503).json({
+        error: "security_gateway_audit_unavailable",
+        message: "Security gateway audit rows could not be read safely.",
+        correlation_id: request.correlationId
+      });
+    }
+  });
+
   app.use(async (request, response) => {
     const route = resolveRoute(request.method, request.path);
     if (!route) {
@@ -346,7 +381,7 @@ async function start() {
     publishAudit: publishSecurityGatewayAudit,
     topic: config.auditTopic
   });
-  const app = createApp({ config, auditRecorder });
+  const app = createApp({ config, auditRecorder, auditPool: pool });
   const server = app.listen(config.port, () => {
     console.log(`Security gateway listening on http://0.0.0.0:${config.port}`);
     console.log(`Publishing security audit events to ${config.auditTopic}`);
