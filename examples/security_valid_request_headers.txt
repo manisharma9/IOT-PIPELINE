@@ -1,0 +1,3 @@
+x-edge-api-key: local-dev-edge-key
+x-correlation-id: demo-correlation-001
+content-type: application/json

@@ -1,0 +1,13 @@
+{
+  "household_id": "household-demo",
+  "community_id": "community-dublin-north",
+  "device_id": "meter-001",
+  "device_type": "smart_meter",
+  "timestamp": "2026-05-24T18:00:00Z",
+  "readings": {
+    "active_power_kw": {
+      "value": "1 OR 1=1",
+      "unit": "kW"
+    }
+  }
+}

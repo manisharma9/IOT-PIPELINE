@@ -23,7 +23,8 @@ $Services = @(
   "shelly-simulator",
   "enode-simulator",
   "device-command-translator",
-  "dataspace-export"
+  "dataspace-export",
+  "security-gateway"
 )
 
 Write-Host "Starting AD-FLEX final demo services from $RepoRoot"

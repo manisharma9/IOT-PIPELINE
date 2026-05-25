@@ -1,25 +1,25 @@
-# Scope Alignment Device API Translation Report
+# Device API Translation Layer Report
 
-This report explains the device API translation alignment added after Phase 9. It is not Phase 10 and does not add real device control.
+This report explains the simulated device API translation layer for the AD-FLEX local development foundation. It does not add real device control.
 
-## Why This Alignment Was Needed
+## Why This Layer Was Added
 
-Paolo clarified that the final scope needs more than a one-way data pipeline. The system must show bidirectional load management:
+The production-style DSO communication pipeline needs more than a one-way data path. The system demonstrates bidirectional load management:
 
 1. A DSO request enters the system and is translated into grid and dispatch concepts.
 2. A human-reviewed approval workflow marks a proposal ready.
 3. The approved command is translated back into the API language of end devices.
 
-The added work keeps the Phase 1 to Phase 9 pipeline intact and adds only a safe, simulated device API translation layer.
+The added layer keeps the existing pipeline intact and adds only a safe, simulated device API translation capability.
 
-## How It Matches Paolo's Scope
+## How It Fits The Technical Architecture
 
-The clarified scope has four parts:
+The architecture has four relevant parts:
 
 - Semantic Connector: already covered by deterministic SAREF4ENER mapping and optional SLM-assisted mapping for unknown readings.
 - DSO Protocol Translation: already covered by the IEEE 2030.5-style translator foundation. No SLM is used there.
 - Load Management: now extended with approved ready command translation into device-specific API commands.
-- Hardware and Integration Focus: now focused on simulated Shelly Plug and simulated Enode / Easee Core charger APIs.
+- Hardware and Integration Focus: represented by simulated Shelly Plug and simulated Enode / Easee Core charger APIs.
 
 No real credentials are used. No real household device is controlled.
 
@@ -111,7 +111,7 @@ DSO grid signal
 -> device_command_audit
 ```
 
-This is bidirectional because the grid request flows into the platform, then the approved command is translated outward toward device APIs. In this project those APIs are local simulators only.
+This is a bidirectional load management workflow because the grid request flows into the platform, then the approved command is translated outward toward device APIs. In this local development foundation those APIs are simulators only.
 
 ## How To Run
 
