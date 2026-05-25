@@ -2,7 +2,6 @@
 
 Smart Grid Communication Pipeline for smart-home energy flexibility. It shows how household telemetry can move from raw ingestion to semantic energy meaning, grid signal translation, safe dispatch proposal governance, mock-only dispatch simulation, simulated device-specific API translation, and minimized dataspace-style export.
 
-This repository is presentation-ready for the final Phase 9 demo. It is a local development foundation, not a production control system.
 
 ## Business Problem
 
