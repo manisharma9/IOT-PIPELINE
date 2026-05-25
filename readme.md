@@ -35,7 +35,7 @@ Safety boundary: the pipeline stops at mock dispatch and simulated device API ca
 
 ## Scope Alignment: Device API Translation
 
-Paolo clarified that the final scope needs bidirectional logic. The DSO request moves forward through semantic and IEEE 2030.5-style translation. After approval, the command moves backward into the API language of end devices.
+The DSO request moves forward through semantic and IEEE 2030.5-style translation. After approval, the command moves backward into the API language of end devices.
 
 This repository now includes simulated adapters for:
 
