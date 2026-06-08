@@ -21,5 +21,5 @@ test("unknown reading falls back without crashing", () => {
   assert.equal(mapping.mapping_confidence, "low");
   assert.equal(mapping.saref_property, "unmapped");
   assert.equal(mapping.ngsi_property, "heat_pump_mystery_metric");
-  assert.match(mapping.explanation, /No deterministic SAREF4ENER mapping exists/);
+  assert.match(mapping.explanation, /No accepted SLM or deterministic SAREF4ENER mapping exists/);
 });

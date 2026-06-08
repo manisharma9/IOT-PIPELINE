@@ -6,6 +6,7 @@ const {
   buildAuditPayload,
   buildResultPayload,
   getRequestedReductionKw,
+  roundKw,
   translateReadyCommand
 } = require("../src/translator");
 
@@ -33,9 +34,10 @@ test("translator maps fixed kW reduction to device commands", () => {
 
   assert.equal(result.valid, true);
   assert.equal(result.requested_reduction_kw, 2.5);
-  assert.equal(result.commands.length, 2);
+  assert.equal(result.commands.length, 3);
   assert.ok(result.commands.some((command) => command.device_id === "shelly-plug-001"));
   assert.ok(result.commands.some((command) => command.device_id === "easee-core-001"));
+  assert.ok(result.commands.some((command) => command.device_id === "heat-pump-001"));
   assert.equal(result.commands[0].simulated, true);
   assert.equal(result.commands[0].no_real_execution, true);
 });
@@ -50,11 +52,11 @@ test("translator maps percentage reduction to device commands", () => {
   assert.equal(getRequestedReductionKw(readyEvent({
     target_kw: undefined,
     requested_reduction_percent: 50
-  })), 4.45);
-  assert.equal(result.commands.length, 2);
+  })), 6.05);
+  assert.equal(result.commands.length, 3);
   assert.equal(
-    result.commands.reduce((sum, command) => sum + command.allocated_reduction_kw, 0),
-    4.45
+    roundKw(result.commands.reduce((sum, command) => sum + command.allocated_reduction_kw, 0)),
+    6.05
   );
 });
 

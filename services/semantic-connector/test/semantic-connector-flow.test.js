@@ -32,8 +32,22 @@ function validSlmOutput(overrides = {}) {
     saref4ener_concept: "saref4ener:GridConditionIndicator",
     ngsi_type: "Property",
     ngsi_property: "gridStressIndex",
-    mapping_confidence: "low",
+    mapping_confidence: "medium",
     explanation: "Unknown grid stress score is mapped as a grid condition indicator.",
+    ...overrides
+  };
+}
+
+function validPowerSlmOutput(overrides = {}) {
+  return {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Power",
+    saref_unit: "unit:KiloW",
+    saref4ener_concept: "saref4ener:PowerMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "activePower",
+    mapping_confidence: "high",
+    explanation: "Active power in kW is an electrical power measurement.",
     ...overrides
   };
 }
@@ -45,7 +59,7 @@ function kafkaMessage(event) {
   };
 }
 
-test("known reading still uses deterministic mapping and never calls SLM", async () => {
+test("known reading uses SLM primary path and deterministic validation", async () => {
   let slmCalled = false;
   const mapping = await resolveSemanticMapping(
     normalizedEvent({
@@ -57,17 +71,42 @@ test("known reading still uses deterministic mapping and never calls SLM", async
       slmEnabled: true,
       slmMapper: async () => {
         slmCalled = true;
-        return validSlmOutput();
+        return validPowerSlmOutput();
       }
     }
   );
 
-  assert.equal(mapping.mapping_source, "deterministic");
+  assert.equal(mapping.mapping_source, "slm_primary");
   assert.equal(mapping.saref_property, "saref:Power");
-  assert.equal(slmCalled, false);
+  assert.equal(mapping.validation_source, "deterministic_validation");
+  assert.equal(mapping.deterministic_validation, "passed");
+  assert.equal(slmCalled, true);
 });
 
-test("unknown reading calls mocked SLM and accepts valid output", async () => {
+test("Ollama available SLM primary path succeeds for known telemetry", async () => {
+  const mapping = await resolveSemanticMapping(
+    normalizedEvent({
+      reading_name: "active_power_kw",
+      reading_value: 1.42,
+      reading_unit: "kW"
+    }),
+    {
+      slmEnabled: true,
+      slmPrimary: true,
+      slmModel: "phi3:mini",
+      slmMapper: async () => validPowerSlmOutput()
+    }
+  );
+
+  assert.equal(mapping.mapping_source, "slm_primary");
+  assert.equal(mapping.slm_called, true);
+  assert.equal(mapping.slm_model, "phi3:mini");
+  assert.equal(mapping.slm_confidence, "high");
+  assert.equal(mapping.deterministic_validation, "passed");
+  assert.equal(mapping.fallback_reason, null);
+});
+
+test("unknown reading uses SLM primary path when output passes guardrails", async () => {
   let slmCalled = false;
   const mapping = await resolveSemanticMapping(normalizedEvent(), {
     slmEnabled: true,
@@ -78,36 +117,80 @@ test("unknown reading calls mocked SLM and accepts valid output", async () => {
   });
 
   assert.equal(slmCalled, true);
-  assert.equal(mapping.mapping_source, "slm_assisted");
+  assert.equal(mapping.mapping_source, "slm_primary");
   assert.equal(mapping.ngsi_property, "gridStressIndex");
+  assert.equal(mapping.validation_source, "slm_guardrails");
 });
 
-test("invalid SLM output falls back safely to unmapped mapping", async () => {
-  const mapping = await resolveSemanticMapping(normalizedEvent(), {
+test("invalid SLM output falls back safely to deterministic mapping when available", async () => {
+  const mapping = await resolveSemanticMapping(normalizedEvent({
+    reading_name: "active_power_kw",
+    reading_value: 1.42,
+    reading_unit: "kW"
+  }), {
     slmEnabled: true,
     slmMapper: async () => ({
       mapping_confidence: "certain"
     })
   });
 
-  assert.equal(mapping.mapping_source, "unmapped");
-  assert.equal(mapping.mapping_confidence, "low");
-  assert.equal(mapping.saref_property, "unmapped");
+  assert.equal(mapping.mapping_source, "deterministic_fallback");
+  assert.equal(mapping.mapping_confidence, "high");
+  assert.equal(mapping.saref_property, "saref:Power");
+  assert.match(mapping.fallback_reason, /slm_rejected/);
 });
 
-test("Ollama failure falls back safely to unmapped mapping", async () => {
-  const mapping = await resolveSemanticMapping(normalizedEvent(), {
+test("low confidence SLM output falls back safely to deterministic mapping", async () => {
+  const mapping = await resolveSemanticMapping(normalizedEvent({
+    reading_name: "active_power_kw",
+    reading_value: 1.42,
+    reading_unit: "kW"
+  }), {
+    slmEnabled: true,
+    slmMapper: async () => validPowerSlmOutput({ mapping_confidence: "low" })
+  });
+
+  assert.equal(mapping.mapping_source, "deterministic_fallback");
+  assert.equal(mapping.saref_property, "saref:Power");
+  assert.match(mapping.fallback_reason, /below minimum/);
+});
+
+test("Ollama failure falls back safely to deterministic mapping when available", async () => {
+  const mapping = await resolveSemanticMapping(normalizedEvent({
+    reading_name: "active_power_kw",
+    reading_value: 1.42,
+    reading_unit: "kW"
+  }), {
     slmEnabled: true,
     slmMapper: async () => {
       throw new Error("Ollama unavailable");
     }
   });
 
-  assert.equal(mapping.mapping_source, "unmapped");
-  assert.equal(mapping.mapping_confidence, "low");
+  assert.equal(mapping.mapping_source, "deterministic_fallback");
+  assert.equal(mapping.mapping_confidence, "high");
+  assert.equal(mapping.fallback_reason, "slm_mapper_error");
 });
 
-test("slm_assisted semantic event is stored and published with mapping_source", async () => {
+test("deterministic validation catches SLM unit or concept mismatch", async () => {
+  const mapping = await resolveSemanticMapping(normalizedEvent({
+    reading_name: "active_power_kw",
+    reading_value: 1.42,
+    reading_unit: "kW"
+  }), {
+    slmEnabled: true,
+    slmMapper: async () => validPowerSlmOutput({
+      saref_unit: "unit:V",
+      saref4ener_concept: "saref4ener:VoltageMeasurement"
+    })
+  });
+
+  assert.equal(mapping.mapping_source, "deterministic_fallback");
+  assert.equal(mapping.saref_property, "saref:Power");
+  assert.match(mapping.fallback_reason, /deterministic SAREF4ENER validation/);
+});
+
+test("slm_primary semantic event is stored and published with mapping_source and audit fields", async () => {
   const sentMessages = [];
   const pool = {
     query: async () => undefined
@@ -131,9 +214,12 @@ test("slm_assisted semantic event is stored and published with mapping_source", 
   const publishedEvent = JSON.parse(sentMessages[0].messages[0].value);
 
   assert.equal(result.status, "processed");
-  assert.equal(result.mapping_source, "slm_assisted");
-  assert.equal(publishedEvent.mapping_source, "slm_assisted");
-  assert.equal(publishedEvent.semantic_payload.mapping_source, "slm_assisted");
+  assert.equal(result.mapping_source, "slm_primary");
+  assert.equal(result.slm_confidence, "medium");
+  assert.equal(publishedEvent.mapping_source, "slm_primary");
+  assert.equal(publishedEvent.semantic_payload.mapping_source, "slm_primary");
+  assert.equal(publishedEvent.semantic_payload.slm_audit.slm_called, true);
+  assert.equal(publishedEvent.semantic_payload.slm_audit.slm_model, "phi3:mini");
   assert.equal(publishedEvent.semantic_payload.original_reading.reading_name, "grid_stress_index");
 });
 
@@ -162,6 +248,8 @@ test("fallback semantic event keeps mapping_source as unmapped", async () => {
 
   assert.equal(result.status, "processed");
   assert.equal(result.mapping_source, "unmapped");
+  assert.equal(result.fallback_reason, "slm_unavailable");
   assert.equal(publishedEvent.mapping_source, "unmapped");
   assert.equal(publishedEvent.semantic_payload.mapping_source, "unmapped");
+  assert.equal(publishedEvent.semantic_payload.slm_audit.fallback_reason, "slm_unavailable");
 });

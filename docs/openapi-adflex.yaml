@@ -1,0 +1,289 @@
+openapi: 3.0.3
+info:
+  title: AD-FLEX Smart Grid Communication Pipeline API
+  version: 1.0.0
+  description: >
+    Local development API contract for the security gateway and internal service routes.
+    External clients should call the security gateway. Direct service ports are for local
+    development and troubleshooting only. This contract does not claim certified IEEE
+    2030.5 or certified ENERSHARE compliance.
+servers:
+  - url: http://localhost:3010
+    description: Local security gateway
+security:
+  - EdgeApiKey: []
+components:
+  securitySchemes:
+    EdgeApiKey:
+      type: apiKey
+      in: header
+      name: x-edge-api-key
+  schemas:
+    Telemetry:
+      type: object
+      description: Existing Phase 1 telemetry shape.
+      required: [household_id, community_id, device_id, device_type, timestamp, readings, protocol, source]
+      properties:
+        household_id: { type: string }
+        community_id: { type: string }
+        device_id: { type: string }
+        device_type: { type: string }
+        timestamp: { type: string, format: date-time }
+        protocol: { type: string, enum: [http, mqtt] }
+        source: { type: string }
+        readings:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: number
+              - type: object
+                required: [value]
+                properties:
+                  value: { type: number }
+                  unit: { type: string }
+    CompatibleTelemetry:
+      type: object
+      description: Simulator-compatible telemetry shape normalized by ingestion before Kafka.
+      required: [deviceId, deviceType, timestamp, data]
+      properties:
+        communityId: { type: string }
+        householdId: { type: string }
+        deviceId: { type: string }
+        deviceType: { type: string }
+        timestamp: { type: string, format: date-time }
+        data:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: number
+              - type: object
+                required: [value]
+                properties:
+                  value: { type: number }
+                  unit: { type: string }
+    DsoGridSignal:
+      type: object
+      required: [signal_id, dso_id, community_id, signal_type, severity, requested_action, start_time, end_time, reason]
+      properties:
+        signal_id: { type: string }
+        dso_id: { type: string }
+        community_id: { type: string }
+        signal_type:
+          type: string
+          enum: [grid_stress, curtailment_request, flexibility_request]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        requested_action:
+          type: string
+          enum: [reduce_load, shift_load, increase_export, reduce_export]
+        start_time: { type: string, format: date-time }
+        end_time: { type: string, format: date-time }
+        reason: { type: string }
+    ApprovalRequest:
+      type: object
+      required: [reviewer_id, reviewer_role]
+      properties:
+        reviewer_id: { type: string }
+        reviewer_role: { type: string }
+        comment: { type: string }
+        reason: { type: string }
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
+paths:
+  /health:
+    get:
+      summary: Gateway health.
+      security: []
+      responses:
+        "200":
+          description: Gateway is running.
+  /edge/health:
+    get:
+      summary: Gateway and downstream health summary.
+      responses:
+        "200":
+          description: Gateway health with downstream service checks.
+  /telemetry:
+    post:
+      summary: Ingest existing Phase 1 telemetry through the security gateway.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Telemetry"
+      responses:
+        "202":
+          description: Telemetry accepted and published to raw.telemetry.
+        "400":
+          description: Validation failed.
+  /api/ingest:
+    post:
+      summary: Compatibility alias for simulator-style telemetry payloads.
+      description: >
+        Accepts either the existing telemetry shape or the deviceId/deviceType/timestamp/data
+        shape used by simulator layers, then forwards to the same raw.telemetry path.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/Telemetry"
+                - $ref: "#/components/schemas/CompatibleTelemetry"
+      responses:
+        "202":
+          description: Telemetry accepted and normalized.
+  /dso/grid-signal:
+    post:
+      summary: Submit a DSO grid signal for IEEE 2030.5-style GridSignal translation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DsoGridSignal"
+      responses:
+        "202":
+          description: Grid signal translated, stored, and published to grid.signals.
+        "400":
+          description: Invalid DSO grid signal.
+  /dispatch/proposals:
+    get:
+      summary: List dispatch command proposals.
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 200 }
+      responses:
+        "200":
+          description: Proposal list.
+  /approvals/proposals:
+    get:
+      summary: List approval workflow proposals.
+      responses:
+        "200":
+          description: Approval proposal list.
+  /approvals/proposals/{id}:
+    get:
+      summary: Read one approval proposal.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Proposal detail.
+  /approvals/proposals/{id}/review:
+    post:
+      summary: Move proposal from proposed to reviewed.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalRequest"
+      responses:
+        "200":
+          description: Proposal reviewed.
+  /approvals/proposals/{id}/approve:
+    post:
+      summary: Move proposal from reviewed to approved.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalRequest"
+      responses:
+        "200":
+          description: Proposal approved.
+  /approvals/proposals/{id}/reject:
+    post:
+      summary: Reject a proposed or reviewed proposal.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalRequest"
+      responses:
+        "200":
+          description: Proposal rejected.
+  /approvals/proposals/{id}/mark-ready:
+    post:
+      summary: Mark an approved proposal ready for dispatch preparation only.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalRequest"
+      responses:
+        "200":
+          description: Ready event published with no_execution and execution_blocked flags.
+  /mock-dispatch/audit:
+    get:
+      summary: List safe mock dispatch audit rows.
+      responses:
+        "200":
+          description: Mock dispatch audit rows.
+  /device-command/audit:
+    get:
+      summary: List simulated device API command translation audit rows.
+      responses:
+        "200":
+          description: Device command audit rows.
+  /security/audit:
+    get:
+      summary: List sanitized security gateway audit metadata.
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 200 }
+        - in: query
+          name: correlation_id
+          schema: { type: string }
+        - in: query
+          name: decision
+          schema: { type: string, enum: [accepted, blocked, unauthorized, rate_limited, downstream_error] }
+      responses:
+        "200":
+          description: Sanitized audit metadata. Raw request bodies and secrets are never returned.
+  /dataspace/catalog:
+    get:
+      summary: Read dataspace-ready catalog metadata.
+      responses:
+        "200":
+          description: Dataspace catalog assets.
+  /dataspace/export/full-pipeline-demo-summary:
+    get:
+      summary: Read minimized full-pipeline dataspace export summary.
+      responses:
+        "200":
+          description: Pseudonymized and minimized dataspace-ready export payload.

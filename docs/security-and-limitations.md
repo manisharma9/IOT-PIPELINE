@@ -51,7 +51,7 @@ Production export would need stronger authentication, authorization, scoped acce
 
 The pipeline does not control real household devices. It does not send commands to EV chargers, batteries, inverters, appliances, or smart meters.
 
-The device API translation layer is also simulated. It does not use real Shelly credentials, real Enode credentials, or real Easee Core charger credentials.
+The device API translation layer is also simulated. It does not use real Shelly credentials, real Enode credentials, real Easee Core charger credentials, or real heat pump credentials.
 
 ## Mock Dispatch Only
 
@@ -63,7 +63,7 @@ Phase 7 is mock dispatch only. It creates simulated command and result events. E
 
 ## Simulated Device API Translation Only
 
-The Shelly Plug and Enode / Easee Core services are local simulators. The device command translator can convert an approved ready dispatch command into simulated device-specific API calls, but it never reaches a real customer device.
+The Shelly Plug, Enode / Easee Core, and Heat Pump services are local simulators. The device command translator can convert an approved ready dispatch command into simulated device-specific API calls, but it never reaches a real customer device.
 
 Every simulated device API command must state:
 
@@ -73,13 +73,13 @@ Every simulated device API command must state:
 
 ## Not Certified IEEE 2030.5
 
-The IEEE 2030.5 translator creates simplified IEEE 2030.5-style payloads for learning and demo purposes. It is not certified and does not implement the full standard.
+The IEEE 2030.5 translator creates simplified IEEE 2030.5-style payloads using concepts such as `MirrorMeter`, `MirrorMeterReading`, `DERStatus`, and DSO-facing gateway context. It is not certified and does not implement the full standard.
 
 Production would require a standards-compliant stack, security profile, conformance testing, and interoperability validation.
 
 ## Not Certified ENERSHARE Connector
 
-The dataspace export service is a dataspace-style foundation. It is not a certified ENERSHARE connector and does not implement real EDC connector credentials, contract negotiation, or production dataspace publication.
+The dataspace export service is an IDS/ENERSHARE-ready export foundation. It is not a certified ENERSHARE connector and does not implement real EDC connector credentials, connector runtime, contract negotiation, or production dataspace publication.
 
 ## Raw Household Data Is Not Exported In Phase 8
 

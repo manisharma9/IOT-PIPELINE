@@ -25,6 +25,18 @@ function createKafka(env = process.env) {
   });
 }
 
+function resolveSimulatorBaseUrl(command, env = process.env) {
+  if (command.provider === "enode") {
+    return env.ENODE_SIMULATOR_URL || "http://localhost:3008";
+  }
+
+  if (command.provider === "heat_pump_simulator") {
+    return env.HEAT_PUMP_SIMULATOR_URL || "http://localhost:3011";
+  }
+
+  return env.SHELLY_SIMULATOR_URL || "http://localhost:3007";
+}
+
 async function publishJson(producer, topic, payload, key) {
   if (!producer || typeof producer.send !== "function") {
     return;
@@ -61,9 +73,7 @@ async function publishDeviceCommandAudit(producer, topic, payload) {
 }
 
 async function sendDeviceCommand(command, env = process.env) {
-  const baseUrl = command.provider === "enode"
-    ? env.ENODE_SIMULATOR_URL || "http://localhost:3008"
-    : env.SHELLY_SIMULATOR_URL || "http://localhost:3007";
+  const baseUrl = resolveSimulatorBaseUrl(command, env);
   const response = await fetch(`${baseUrl}${command.endpoint.path}`, {
     method: command.endpoint.method,
     headers: {
@@ -252,6 +262,7 @@ module.exports = {
   processReadyMessage,
   publishDeviceCommandAudit,
   publishDeviceCommandResult,
+  resolveSimulatorBaseUrl,
   sendDeviceCommand,
   startReadyConsumer
 };

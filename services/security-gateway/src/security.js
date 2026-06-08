@@ -5,7 +5,7 @@ const crypto = require("node:crypto");
 const DPI_PATTERNS = Object.freeze([
   {
     reason: "sql_injection_like_payload",
-    pattern: /(\bunion\b[\s\S]{0,80}\bselect\b|\bdrop\s+table\b|;\s*--|--\s|\bor\s+1\s*=\s*1\b|'\s*or\s*'1'\s*=\s*'1)/i
+    pattern: /(\bunion\b[\s\S]{0,80}\bselect\b|\bselect\b[\s\S]{0,80}\bfrom\b|\bdrop\s+table\b|;\s*--|--\s|\bor\s+1\s*=\s*1\b|'\s*or\s*'1'\s*=\s*'1)/i
   },
   {
     reason: "xss_like_payload",

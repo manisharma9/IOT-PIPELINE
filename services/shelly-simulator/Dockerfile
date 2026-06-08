@@ -9,6 +9,7 @@ WORKDIR /app/services/shelly-simulator
 RUN npm install --omit=dev
 
 WORKDIR /app
+COPY services/common ./services/common
 COPY services/shelly-simulator/src ./services/shelly-simulator/src
 
 WORKDIR /app/services/shelly-simulator

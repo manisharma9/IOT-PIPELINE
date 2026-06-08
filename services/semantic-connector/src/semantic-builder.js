@@ -78,6 +78,14 @@ function validateNormalizedTelemetryEvent(event) {
 
 function buildSemanticPayload(event, mapping) {
   const entityId = buildEntityId(event);
+  const slmAudit = {
+    slm_called: Boolean(mapping.slm_called),
+    slm_model: mapping.slm_model || null,
+    slm_confidence: mapping.slm_confidence || null,
+    fallback_reason: mapping.fallback_reason || null,
+    deterministic_validation: mapping.deterministic_validation || null,
+    validation_source: mapping.validation_source || null
+  };
 
   return {
     context: {
@@ -134,12 +142,20 @@ function buildSemanticPayload(event, mapping) {
     explanation: mapping.explanation,
     mapping_source: mapping.mapping_source,
     mapping_confidence: mapping.mapping_confidence,
+    slm_confidence: mapping.slm_confidence || null,
+    slm_audit: slmAudit,
     mapping: {
       source: mapping.mapping_source,
       confidence: mapping.mapping_confidence,
       explanation: mapping.explanation,
       mapping_source: mapping.mapping_source,
-      mapping_confidence: mapping.mapping_confidence
+      mapping_confidence: mapping.mapping_confidence,
+      slm_confidence: mapping.slm_confidence || null,
+      slm_called: slmAudit.slm_called,
+      slm_model: slmAudit.slm_model,
+      fallback_reason: slmAudit.fallback_reason,
+      deterministic_validation: slmAudit.deterministic_validation,
+      validation_source: slmAudit.validation_source
     }
   };
 }
@@ -164,6 +180,8 @@ function buildSemanticEvent(event, mapping, semanticPayload, processedAt = new D
     semantic_payload: semanticPayload,
     mapping_source: mapping.mapping_source,
     mapping_confidence: mapping.mapping_confidence,
+    slm_confidence: mapping.slm_confidence || null,
+    fallback_reason: mapping.fallback_reason || null,
     explanation: mapping.explanation,
     correlation_id: event.correlation_id || null,
     enrichment_status: mapping.mapping_source === "unmapped" ? "unmapped" : "mapped"

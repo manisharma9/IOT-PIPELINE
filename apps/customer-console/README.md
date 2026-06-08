@@ -7,7 +7,7 @@ The Customer Operator Console is the front-facing web application for the Smart 
 - Give operators a polished view of telemetry, semantic mapping, DSO load management, dispatch proposals, safe mock dispatch, simulated device API translation, dataspace export, and AWS readiness.
 - Keep browser traffic away from internal backend ports.
 - Prove the production-style access pattern: browser -> Next.js API routes -> security gateway -> internal AD-FLEX services.
-- Keep all real execution disabled. Shelly Plug and Enode / Easee Core integrations remain simulated.
+- Keep all real execution disabled. Shelly Plug, Enode / Easee Core, and Heat Pump integrations remain simulated.
 
 ## Pages
 
@@ -102,6 +102,7 @@ The local security gateway maps to a future AWS API Gateway and WAF edge. The co
 - No real household command execution.
 - No real Shelly credentials.
 - No real Enode or Easee credentials.
+- No real heat pump credentials.
 - No certified IEEE 2030.5 claim.
 - No certified ENERSHARE claim.
 - Safe mock dispatch and simulated device API translation only.

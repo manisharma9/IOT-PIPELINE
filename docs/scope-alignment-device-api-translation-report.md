@@ -18,7 +18,7 @@ The added layer keeps the existing pipeline intact and adds only a safe, simulat
 
 The architecture has four relevant parts:
 
-- Semantic Connector: already covered by deterministic SAREF4ENER mapping and optional SLM-assisted mapping for unknown readings.
+- Semantic Connector: covered by local Phi-3 Mini primary semantic interpretation with deterministic SAREF4ENER validation and fallback.
 - DSO Protocol Translation: already covered by the IEEE 2030.5-style translator foundation. No SLM is used there.
 - Load Management: now extended with approved ready command translation into device-specific API commands.
 - Hardware and Integration Focus: represented by simulated Shelly Plug and simulated Enode / Easee Core charger APIs.

@@ -43,6 +43,7 @@ test("SLM prompt asks for JSON-only mapping output", () => {
 
   assert.match(prompt, /Return JSON only/);
   assert.match(prompt, /mapping_confidence/);
+  assert.match(prompt, /Never create commands/);
   assert.match(prompt, /roomHeat/);
 });
 
@@ -61,8 +62,9 @@ test("SLM mapper accepts valid Ollama JSON response", async () => {
   const output = await suggestSlmMapping(normalizedEvent(), {
     env: {
       SLM_ENABLED: "true",
+      SLM_PRIMARY: "true",
       OLLAMA_BASE_URL: "http://ollama.test:11434",
-      OLLAMA_MODEL: "phi3:mini",
+      SLM_MODEL: "phi3:mini",
       SLM_TIMEOUT_MS: "1000"
     },
     fetchImpl
@@ -73,6 +75,23 @@ test("SLM mapper accepts valid Ollama JSON response", async () => {
   assert.equal(JSON.parse(calls[0].request.body).model, "phi3:mini");
   assert.equal(JSON.parse(calls[0].request.body).format, "json");
   assert.equal(output.saref_property, "saref:Temperature");
+});
+
+test("SLM config prefers SLM_MODEL while preserving Ollama base URL", () => {
+  const config = getSlmConfig({
+    SLM_ENABLED: "true",
+    SLM_PRIMARY: "true",
+    OLLAMA_BASE_URL: "http://ollama.test:11434/",
+    OLLAMA_MODEL: "legacy-model",
+    SLM_MODEL: "phi3:mini",
+    SLM_MIN_CONFIDENCE: "high"
+  });
+
+  assert.equal(config.enabled, true);
+  assert.equal(config.primary, true);
+  assert.equal(config.baseUrl, "http://ollama.test:11434");
+  assert.equal(config.model, "phi3:mini");
+  assert.equal(config.minConfidence, "high");
 });
 
 test("SLM mapper rejects invalid Ollama JSON response", async () => {

@@ -73,6 +73,10 @@ test("active_power_kw translates to MirrorMeterReading style payload", () => {
   assert.equal(translated.translation_confidence, "high");
   assert.equal(translated.ieee20305_payload.measurement.value, 1.42);
   assert.equal(translated.ieee20305_payload.measurement.unit, "kW");
+  assert.equal(
+    translated.ieee20305_payload.dso_gateway_context.mirror_meter.resource_type,
+    "MirrorMeter"
+  );
   assert.match(translated.ieee20305_payload.href, /\/mup\//);
   assert.match(translated.ieee20305_payload.note, /not a certified IEEE 2030\.5/);
 });
@@ -141,5 +145,9 @@ test("grid signal translates to GridSignal payload", () => {
   assert.equal(translation.event.output_topic, "grid.signals");
   assert.equal(translation.event.translation_confidence, "high");
   assert.equal(translation.event.ieee20305_payload.signal.requested_action, "reduce_load");
+  assert.equal(
+    translation.event.ieee20305_payload.dso_gateway_context.gateway_role,
+    "DSO-facing IEEE 2030.5-style grid signal gateway"
+  );
   assert.match(translation.event.ieee20305_payload.href, /\/grid-signals\/signal-001/);
 });

@@ -120,7 +120,7 @@ async function start() {
     console.log(`Consuming approved ready commands from ${DISPATCH_READY_TOPIC}`);
     console.log(`Publishing device command results to ${DEVICE_COMMAND_RESULT_TOPIC}`);
     console.log(`Publishing device command audit records to ${DEVICE_COMMAND_AUDIT_TOPIC}`);
-    console.log("Real Shelly and Enode/Easee device control is disabled.");
+    console.log("Real Shelly, Enode/Easee, and heat pump device control is disabled.");
   });
 
   await startReadyConsumer({

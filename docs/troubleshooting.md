@@ -127,18 +127,18 @@ Invoke-RestMethod `
 
 Symptom:
 
-- Unknown readings do not get SLM-assisted mapping.
+- Semantic events fall back to deterministic mapping or unmapped output.
 
 Fix:
 
-Known readings do not require Ollama. To test unknown SLM-assisted mapping, start Ollama and pull the model:
+The semantic connector uses local Phi-3 Mini as the primary semantic interpretation layer. If Ollama is unavailable, the pipeline still runs by falling back to deterministic SAREF4ENER mapping when available. To test the primary SLM path, start Ollama and pull the model:
 
 ```powershell
 ollama pull phi3:mini
 ollama serve
 ```
 
-If Ollama is unavailable, the semantic connector should fall back safely to unmapped output.
+If Ollama remains unavailable, known readings should use deterministic fallback and unknown readings should be stored safely as unmapped.
 
 ## Port Already In Use
 

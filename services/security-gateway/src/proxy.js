@@ -8,6 +8,12 @@ const ROUTES = Object.freeze([
     targetKey: "ingestion"
   },
   {
+    name: "api-ingest",
+    methods: ["POST"],
+    match: (path) => path === "/api/ingest",
+    targetKey: "ingestion"
+  },
+  {
     name: "dso-grid-signal",
     methods: ["POST"],
     match: (path) => path === "/dso/grid-signal",

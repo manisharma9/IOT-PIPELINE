@@ -150,10 +150,13 @@ services:
       SEMANTIC_CONNECTOR_GROUP_ID: ${SEMANTIC_CONNECTOR_GROUP_ID:-saref4ener-semantic-connector}
       NORMALIZED_TELEMETRY_TOPIC: ${NORMALIZED_TELEMETRY_TOPIC:-normalized.telemetry}
       SEMANTIC_ENRICHED_TOPIC: ${SEMANTIC_ENRICHED_TOPIC:-semantic.enriched}
-      SLM_ENABLED: ${SLM_ENABLED:-false}
+      SLM_ENABLED: ${SLM_ENABLED:-true}
+      SLM_PRIMARY: ${SLM_PRIMARY:-true}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      SLM_MODEL: ${SLM_MODEL:-phi3:mini}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-phi3:mini}
-      SLM_TIMEOUT_MS: ${SLM_TIMEOUT_MS:-8000}
+      SLM_TIMEOUT_MS: ${SLM_TIMEOUT_MS:-30000}
+      SLM_MIN_CONFIDENCE: ${SLM_MIN_CONFIDENCE:-medium}
       TIMESCALE_HOST: timescaledb
       TIMESCALE_PORT: 5432
       TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
@@ -279,7 +282,7 @@ services:
       - "${MOCK_DISPATCH_ADAPTER_PORT:-3005}:3005"
     restart: unless-stopped
 
-  # Scope alignment: simulated Shelly Plug API.
+  # Simulator architecture layer: simulated Shelly Plug API.
   shelly-simulator:
     build:
       context: .
@@ -292,7 +295,7 @@ services:
       - "${SHELLY_SIMULATOR_PORT:-3007}:3007"
     restart: unless-stopped
 
-  # Scope alignment: simulated Enode / Easee Core charger API.
+  # Simulator architecture layer: simulated Enode / Easee Core charger API.
   enode-simulator:
     build:
       context: .
@@ -305,7 +308,20 @@ services:
       - "${ENODE_SIMULATOR_PORT:-3008}:3008"
     restart: unless-stopped
 
-  # Scope alignment: approved command to device-specific API translation.
+  # Simulator architecture layer: simulated heat pump API.
+  heat-pump-simulator:
+    build:
+      context: .
+      dockerfile: services/heat-pump-simulator/Dockerfile
+    container_name: adflex-heat-pump-simulator
+    environment:
+      HEAT_PUMP_SIMULATOR_PORT: ${HEAT_PUMP_SIMULATOR_PORT:-3011}
+      REQUEST_BODY_LIMIT: ${REQUEST_BODY_LIMIT:-256kb}
+    ports:
+      - "${HEAT_PUMP_SIMULATOR_PORT:-3011}:3011"
+    restart: unless-stopped
+
+  # Device API translation layer: approved command to simulated device APIs.
   device-command-translator:
     build:
       context: .
@@ -320,6 +336,8 @@ services:
         condition: service_started
       enode-simulator:
         condition: service_started
+      heat-pump-simulator:
+        condition: service_started
     environment:
       DEVICE_COMMAND_TRANSLATOR_PORT: ${DEVICE_COMMAND_TRANSLATOR_PORT:-3009}
       KAFKA_BROKER: kafka:29092
@@ -331,6 +349,7 @@ services:
       DEVICE_COMMAND_AUDIT_TOPIC: ${DEVICE_COMMAND_AUDIT_TOPIC:-device.command.audit}
       SHELLY_SIMULATOR_URL: ${SHELLY_SIMULATOR_URL:-http://shelly-simulator:3007}
       ENODE_SIMULATOR_URL: ${ENODE_SIMULATOR_URL:-http://enode-simulator:3008}
+      HEAT_PUMP_SIMULATOR_URL: ${HEAT_PUMP_SIMULATOR_URL:-http://heat-pump-simulator:3011}
       TIMESCALE_HOST: timescaledb
       TIMESCALE_PORT: 5432
       TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
