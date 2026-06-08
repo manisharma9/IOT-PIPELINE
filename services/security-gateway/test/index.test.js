@@ -203,6 +203,19 @@ test("SQL injection-like payload is blocked", async () => {
   assert.equal(response.body.reason, "sql_injection_like_payload");
 });
 
+test("standalone SQL select-from payload is blocked", async () => {
+  const { app } = createTestGateway();
+  const response = await request(app, "POST", "/telemetry", {
+    headers: edgeHeaders(),
+    body: {
+      source: "SELECT * FROM users"
+    }
+  });
+
+  assert.equal(response.status, 403);
+  assert.equal(response.body.reason, "sql_injection_like_payload");
+});
+
 test("XSS-like payload is blocked", async () => {
   const { app } = createTestGateway();
   const response = await request(app, "POST", "/telemetry", {
@@ -250,6 +263,27 @@ test("valid /telemetry request is forwarded", async () => {
 
   assert.equal(response.status, 202);
   assert.equal(calls[0].url, "http://ingestion-api:3001/telemetry");
+});
+
+test("valid /api/ingest compatibility request is forwarded", async () => {
+  const { app, calls } = createTestGateway({ downstreamStatus: 202 });
+  const response = await request(app, "POST", "/api/ingest", {
+    headers: edgeHeaders(),
+    body: {
+      deviceId: "heat-pump-001",
+      deviceType: "heat_pump",
+      timestamp: "2026-05-25T12:00:00Z",
+      data: {
+        heat_pump_power_kw: {
+          value: 2.1,
+          unit: "kW"
+        }
+      }
+    }
+  });
+
+  assert.equal(response.status, 202);
+  assert.equal(calls[0].url, "http://ingestion-api:3001/api/ingest");
 });
 
 test("valid /dso/grid-signal request is forwarded", async () => {

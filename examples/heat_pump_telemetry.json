@@ -1,0 +1,21 @@
+{
+  "communityId": "community-dublin-north",
+  "householdId": "household-heat-pump-sim",
+  "deviceId": "heat-pump-001",
+  "deviceType": "heat_pump",
+  "timestamp": "2026-05-25T12:00:00Z",
+  "data": {
+    "heat_pump_power_kw": {
+      "value": 2.1,
+      "unit": "kW"
+    },
+    "indoor_temperature_c": {
+      "value": 20.8,
+      "unit": "C"
+    },
+    "flow_temperature_c": {
+      "value": 38.0,
+      "unit": "C"
+    }
+  }
+}

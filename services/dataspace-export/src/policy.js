@@ -1,11 +1,11 @@
 "use strict";
 
 const ACCESS_POLICY =
-  "local-development API key required; minimized community-level summaries only; not a certified ENERSHARE connector";
+  "local-development API key required; IDS/ENERSHARE-ready minimized community-level summaries only; not a certified ENERSHARE connector";
 
 const LIMITATIONS = Object.freeze([
-  "Foundation only, not a certified ENERSHARE connector.",
-  "No real EDC connector, contract negotiation, OAuth/OIDC, or production mTLS.",
+  "IDS/ENERSHARE-ready export foundation only, not a certified ENERSHARE connector.",
+  "No real EDC connector, connector credentials, contract negotiation, OAuth/OIDC, or production mTLS.",
   "Raw telemetry payloads and raw household/device identifiers are not exported.",
   "Exports are capped by DATASPACE_MAX_RECORDS."
 ]);
@@ -114,7 +114,7 @@ function buildCatalogMetadata(options = {}) {
     foundation_only: true,
     enershare_certified_connector: false,
     message:
-      "Dataspace-style export foundation for minimized AD-FLEX demo summaries; not a certified ENERSHARE connector.",
+      "IDS/ENERSHARE-ready dataspace export foundation for minimized AD-FLEX summaries; not a certified ENERSHARE connector.",
     access_policy: ACCESS_POLICY,
     minimization_rules: MINIMIZATION_RULES,
     assets: getAssets()

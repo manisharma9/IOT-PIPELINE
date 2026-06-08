@@ -112,9 +112,58 @@ function validateTelemetry(payload) {
   };
 }
 
+function normalizeReadingData(data) {
+  if (!isPlainObject(data)) {
+    return data;
+  }
+
+  return Object.fromEntries(
+    Object.entries(data).map(([name, reading]) => {
+      if (isFiniteNumber(reading)) {
+        return [name, reading];
+      }
+
+      if (isPlainObject(reading) && "value" in reading) {
+        return [name, reading];
+      }
+
+      return [name, reading];
+    })
+  );
+}
+
+function normalizeTelemetryPayload(payload, options = {}) {
+  if (!isPlainObject(payload)) {
+    return payload;
+  }
+
+  const hasCompatibleShape =
+    "deviceId" in payload ||
+    "deviceType" in payload ||
+    "data" in payload ||
+    "householdId" in payload ||
+    "communityId" in payload;
+
+  if (!hasCompatibleShape) {
+    return payload;
+  }
+
+  return {
+    household_id: payload.household_id || payload.householdId || options.defaultHouseholdId,
+    community_id: payload.community_id || payload.communityId || options.defaultCommunityId,
+    device_id: payload.device_id || payload.deviceId,
+    device_type: payload.device_type || payload.deviceType,
+    timestamp: payload.timestamp,
+    readings: payload.readings || normalizeReadingData(payload.data),
+    protocol: payload.protocol || options.defaultProtocol || "http",
+    source: payload.source || options.defaultSource || "api-ingest"
+  };
+}
+
 module.exports = {
   VALID_PROTOCOLS,
   isPlainObject,
   isFiniteNumber,
+  normalizeTelemetryPayload,
   validateTelemetry
 };

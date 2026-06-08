@@ -38,7 +38,19 @@ test("Shelly simulator health", async () => {
 
   assert.equal(response.status, 200);
   assert.equal(response.body.service, "shelly-simulator");
+  assert.deepEqual(response.body.simulator_contract, ["tick", "getTelemetry"]);
   assert.equal(response.body.real_device_control, false);
+});
+
+test("Shelly simulator telemetry uses compatible deviceId/data shape", async () => {
+  const response = await request(createApp(), "GET", "/shelly/telemetry");
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.telemetry.deviceId, "shelly-plug-001");
+  assert.equal(response.body.telemetry.deviceType, "shelly_plug");
+  assert.ok(response.body.telemetry.timestamp);
+  assert.ok(response.body.telemetry.data.active_power_kw);
+  assert.ok(response.body.telemetry.readings.active_power_kw);
 });
 
 test("Shelly simulator command accepted", async () => {

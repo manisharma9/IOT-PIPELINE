@@ -24,6 +24,20 @@ const DEVICES = Object.freeze([
       "reduce_charging_power",
       "restore_charging_power"
     ])
+  },
+  {
+    device_id: "heat-pump-001",
+    device_type: "heat_pump",
+    provider: "heat_pump_simulator",
+    community_id: "community-dublin-north",
+    area_id: "dublin-north",
+    controllable_load_kw: 3.2,
+    supported_actions: Object.freeze([
+      "reduce_load",
+      "restore_load",
+      "set_temperature",
+      "boost_heat"
+    ])
   }
 ]);
 
@@ -47,7 +61,8 @@ function findDevicesForScope({ communityId, areaId } = {}) {
 }
 
 function getTotalControllableLoadKw(devices = listDevices()) {
-  return devices.reduce((sum, device) => sum + Number(device.controllable_load_kw || 0), 0);
+  const total = devices.reduce((sum, device) => sum + Number(device.controllable_load_kw || 0), 0);
+  return Math.round(total * 1000) / 1000;
 }
 
 module.exports = {

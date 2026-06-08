@@ -8,7 +8,7 @@ const {
 const { validateReadyCommand } = require("./validation");
 
 const EXECUTION_MODE = "simulated_device_api";
-const SAFETY_NOTE = "Simulated device API translation only. No real Shelly or Enode device was controlled.";
+const SAFETY_NOTE = "Simulated device API translation only. No real Shelly, Enode, Easee, or heat pump device was controlled.";
 
 function roundKw(value) {
   return Math.round(Number(value || 0) * 1000) / 1000;
@@ -129,6 +129,21 @@ function getDeviceAction(device, readyEvent, allocatedReductionKw) {
     }
   }
 
+  if (device.device_type === "heat_pump") {
+    if (requested === "restore_load" || proposed === "restore_load") {
+      return "restore_load";
+    }
+    if (requested === "boost_heat" || proposed === "boost_heat") {
+      return "boost_heat";
+    }
+    if (requested === "set_temperature" || proposed === "set_temperature") {
+      return "set_temperature";
+    }
+    if (["reduce_load", "shift_load"].includes(requested) || proposed === "delay_flexible_load") {
+      return "reduce_load";
+    }
+  }
+
   return null;
 }
 
@@ -146,6 +161,14 @@ function buildEndpoint(device) {
       provider: "enode",
       method: "POST",
       path: `/enode/chargers/${device.device_id}/command`
+    };
+  }
+
+  if (device.device_type === "heat_pump") {
+    return {
+      provider: "heat_pump_simulator",
+      method: "POST",
+      path: "/heat-pump/command"
     };
   }
 

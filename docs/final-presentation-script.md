@@ -8,11 +8,11 @@ AD-FLEX demonstrates a safe smart-home energy flexibility pipeline. External HTT
 
 After that edge layer, the pipeline receives household telemetry from HTTP or MQTT, normalizes it, and adds semantic energy meaning using SAREF4ENER.
 
-Known readings are mapped deterministically. Unknown readings can optionally use a local small language model through Ollama, but the SLM is only a helper and the system still works without it.
+The semantic connector uses a local Phi-3 Mini model through Ollama as the primary interpretation layer. Deterministic SAREF4ENER mapping remains in place as validation and fallback, so the system continues to work safely if the local model is unavailable or produces invalid output.
 
 The pipeline then translates semantic events into simplified IEEE 2030.5-style resources and accepts a mock DSO grid signal. The aggregator creates a dispatch proposal, but it does not execute anything. An authorized reviewer must review, approve, and mark the proposal ready.
 
-Even after approval, the dispatch adapter is mock-only. It creates simulated sent and result events and clearly marks that no real household device was controlled. The device API translation layer also converts the approved command into simulated Shelly Plug and Enode / Easee Core API language, again without real credentials or real control.
+Even after approval, the dispatch adapter is mock-only. It creates simulated sent and result events and clearly marks that no real household device was controlled. The device API translation layer also converts the approved command into simulated Shelly Plug, Enode / Easee Core, and Heat Pump API language, again without real credentials or real control.
 
 Finally, the dataspace export service shares minimized and pseudonymized summaries, so an outside stakeholder can see workflow status without raw household data.
 
@@ -28,9 +28,9 @@ The local security gateway update added an edge layer in front of external HTTP 
 
 Phase 2 added deterministic SAREF4ENER mapping. This matters because SAREF4ENER gives the data a standard energy vocabulary. For example, active power and battery state of charge become semantic energy readings instead of arbitrary JSON fields.
 
-Phase 3 added optional SLM-assisted mapping. The important design choice is that deterministic mapping still comes first. Known readings never call the SLM. Only unknown readings can ask Phi-3 Mini through Ollama for a suggested semantic mapping, and invalid or unavailable SLM output falls back safely.
+The semantic mapping layer uses local Phi-3 Mini first for telemetry interpretation. The important design choice is that the model is not trusted blindly: its JSON response is validated, checked against confidence and unit guardrails, and compared with deterministic SAREF4ENER mapping where known mappings exist. Invalid, low-confidence, unavailable, or inconsistent SLM output falls back safely.
 
-Phase 4 added an IEEE 2030.5-style translator foundation. It converts semantic events into simple resources such as `MirrorMeterReading`, `DERStatus`, and `GridSignal`. This is useful because IEEE 2030.5 is a grid/DER communication standard, but this project does not claim certification.
+Phase 4 added an IEEE 2030.5-style translator foundation. It converts semantic events into simple resources and terminology such as `MirrorMeter`, `MirrorMeterReading`, `DERStatus`, and `GridSignal`. This is useful because IEEE 2030.5 is a grid/DER communication standard, but this project does not claim certification.
 
 Phase 5 added the aggregator. It consumes DSO grid signals and creates proposal-only dispatch commands. The aggregator is deliberately rule-based and explainable. It can propose actions such as reducing EV charging or delaying flexible load, but it cannot execute them.
 
@@ -38,11 +38,11 @@ Phase 6 added approval workflow. A proposal must move through allowed transition
 
 Phase 7 added a mock dispatch adapter. This is the safety boundary. It only accepts ready events that explicitly say `no_execution: true` and `execution_blocked: true`. It simulates a device command and result, but no real household command is sent.
 
-Phase 8 added dataspace export. It exposes catalog and export endpoints for minimized summaries. Household and device IDs are pseudonymized, raw private payloads are not exported, and every export is audited. This is a dataspace-style foundation, not a certified ENERSHARE connector.
+Phase 8 added dataspace export. It exposes catalog and export endpoints for minimized summaries. Household and device IDs are pseudonymized, raw private payloads are not exported, and every export is audited. This is an IDS/ENERSHARE-ready export foundation, not a certified ENERSHARE connector.
 
 The production hardening work added runbooks, final architecture documentation, troubleshooting guidance, security limitations, and helper scripts so the system can be reviewed consistently.
 
-The architecture also includes a bidirectional load management workflow: a DSO grid request moves forward through the semantic and IEEE 2030.5-style translators, then the approved command moves backward into simulated device-specific APIs. The device integrations are a simulated Shelly Plug and a simulated Enode / Easee Core charger.
+The architecture also includes a bidirectional load management workflow: a DSO grid request moves forward through the semantic and IEEE 2030.5-style translators, then the approved command moves backward into simulated device-specific APIs. The device integrations are a simulated Shelly Plug, a simulated Enode / Easee Core charger, and a simulated Heat Pump.
 
 ## Technical Backup Explanation
 
@@ -58,7 +58,7 @@ Each service has one responsibility:
 - aggregator proposes actions
 - approval workflow governs transitions
 - mock adapter simulates dispatch
-- device command translator maps approved ready commands to simulated Shelly and Enode API calls
+- device command translator maps approved ready commands to simulated Shelly, Enode/Easee, and Heat Pump API calls
 - dataspace export shares safe summaries
 
 This makes the local demo environment easier to explain and safer to extend.
@@ -81,7 +81,7 @@ SAREF4ENER is an energy-focused semantic model. It helps make readings understan
 
 ## Why SLM Helps
 
-The SLM helps with unknown readings. It is not trusted blindly. It is optional, validated, and only used after deterministic mapping fails.
+The SLM is the primary local semantic interpretation layer. It is not trusted blindly: deterministic SAREF4ENER mapping validates known readings and provides fallback behavior when model output cannot be safely accepted.
 
 ## Why IEEE 2030.5-Style Translator Matters
 
@@ -97,7 +97,7 @@ Mock dispatch proves the end-to-end workflow without touching real household dev
 
 ## Why Device API Translation Matters
 
-The load management workflow requires approved grid requests to be translated back into the language of end-device APIs. The device command translator does that for simulated Shelly Plug and Enode / Easee Core devices. It supports fixed kW and percentage load reduction, but every command is local, simulated, and marked `no_real_execution: true`.
+The load management workflow requires approved grid requests to be translated back into the language of end-device APIs. The device command translator does that for simulated Shelly Plug, Enode / Easee Core, and Heat Pump devices. It supports fixed kW and percentage load reduction, but every command is local, simulated, and marked `no_real_execution: true`.
 
 ## Why Dataspace Export Matters
 

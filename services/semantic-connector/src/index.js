@@ -3,7 +3,7 @@
 const { Kafka } = require("kafkajs");
 const { createPool, ensureSemanticEventsTable, insertSemanticEvent } = require("./db");
 const { getSaref4enerMapping } = require("./saref4ener-mapping");
-const { isSlmEnabled, suggestSlmMapping } = require("./slm-mapper");
+const { getSlmConfig, isSlmEnabled, isSlmPrimaryEnabled, suggestSlmMapping } = require("./slm-mapper");
 const { validateSlmMappingObject } = require("./slm-validation");
 const {
   buildSemanticEvent,
@@ -55,19 +55,44 @@ async function publishSemanticEvent(producer, topic, semanticEvent) {
 
 async function resolveSemanticMapping(
   event,
-  {
-    slmEnabled = isSlmEnabled(),
-    slmMapper = suggestSlmMapping
-  } = {}
+  options = {}
 ) {
+  const slmConfig = options.slmConfig || getSlmConfig(options.env || process.env);
+  const slmEnabled = options.slmEnabled ?? slmConfig.enabled;
+  const slmPrimary = options.slmPrimary ?? slmConfig.primary ?? isSlmPrimaryEnabled();
+  const slmMinConfidence = options.slmMinConfidence || slmConfig.minConfidence;
+  const slmModel = options.slmModel || slmConfig.model;
+  const slmMapper = options.slmMapper || suggestSlmMapping;
   const deterministicMapping = getSaref4enerMapping(event.reading_name);
 
-  if (deterministicMapping.mapping_source !== "unmapped") {
-    return deterministicMapping;
-  }
+  const fallbackToDeterministic = (fallbackReason) => {
+    const fallbackMapping =
+      deterministicMapping.mapping_source === "unmapped"
+        ? deterministicMapping
+        : {
+            ...deterministicMapping,
+            mapping_source: "deterministic_fallback"
+          };
+
+    return {
+      ...fallbackMapping,
+      slm_called: Boolean(slmEnabled && slmPrimary),
+      slm_model: slmEnabled && slmPrimary ? slmModel : null,
+      slm_confidence: null,
+      fallback_reason: fallbackReason,
+      deterministic_validation:
+        deterministicMapping.mapping_source === "unmapped" ? "not_available" : "fallback_used",
+      validation_source:
+        deterministicMapping.mapping_source === "unmapped" ? "unmapped" : "deterministic_fallback"
+    };
+  };
 
   if (!slmEnabled) {
-    return deterministicMapping;
+    return fallbackToDeterministic("slm_disabled");
+  }
+
+  if (!slmPrimary) {
+    return fallbackToDeterministic("slm_primary_disabled");
   }
 
   let slmOutput;
@@ -75,20 +100,39 @@ async function resolveSemanticMapping(
     slmOutput = await slmMapper(event);
   } catch (error) {
     console.warn(
-      `SLM mapping failed for ${event.reading_name}; using unmapped fallback: ${error.message}`
+      `SLM primary mapping failed for ${event.reading_name}; using deterministic fallback: ${error.message}`
     );
-    return deterministicMapping;
+    return fallbackToDeterministic("slm_mapper_error");
   }
 
-  const validation = validateSlmMappingObject(slmOutput);
+  if (!slmOutput) {
+    console.warn(
+      `SLM primary mapping unavailable for ${event.reading_name}; using deterministic fallback`
+    );
+    return fallbackToDeterministic("slm_unavailable");
+  }
+
+  const validation = validateSlmMappingObject(slmOutput, {
+    event,
+    deterministicMapping,
+    minConfidence: slmMinConfidence
+  });
+
   if (!validation.valid) {
     console.warn(
-      `SLM mapping rejected for ${event.reading_name}; using unmapped fallback: ${validation.errors.join("; ")}`
+      `SLM primary mapping rejected for ${event.reading_name}; using deterministic fallback: ${validation.errors.join("; ")}`
     );
-    return deterministicMapping;
+    return fallbackToDeterministic(`slm_rejected:${validation.errors.join("; ")}`);
   }
 
-  return validation.mapping;
+  return {
+    ...validation.mapping,
+    mapping_source: "slm_primary",
+    slm_called: true,
+    slm_model: slmModel,
+    slm_confidence: validation.mapping.slm_confidence,
+    fallback_reason: null
+  };
 }
 
 async function processNormalizedTelemetryMessage({
@@ -99,6 +143,7 @@ async function processNormalizedTelemetryMessage({
   producer,
   semanticTopic = SEMANTIC_ENRICHED_TOPIC,
   slmEnabled = isSlmEnabled(),
+  slmPrimary = isSlmPrimaryEnabled(),
   slmMapper = suggestSlmMapping
 }) {
   const metadata = buildKafkaMetadata(topic, partition, message);
@@ -131,6 +176,7 @@ async function processNormalizedTelemetryMessage({
 
   const mapping = await resolveSemanticMapping(event, {
     slmEnabled,
+    slmPrimary,
     slmMapper
   });
   const semanticPayload = buildSemanticPayload(event, mapping);
@@ -146,6 +192,8 @@ async function processNormalizedTelemetryMessage({
   return {
     status: "processed",
     mapping_source: mapping.mapping_source,
+    slm_confidence: mapping.slm_confidence || null,
+    fallback_reason: mapping.fallback_reason || null,
     topic: semanticTopic
   };
 }

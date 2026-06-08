@@ -1,35 +1,31 @@
 "use strict";
 
 const express = require("express");
+const {
+  ENODE_ACTIONS,
+  createEnodeEaseeDevice
+} = require("../../common/simulators");
 
 const PORT = Number(process.env.ENODE_SIMULATOR_PORT || process.env.PORT || 3008);
 const REQUEST_BODY_LIMIT = process.env.REQUEST_BODY_LIMIT || "256kb";
 const DEFAULT_CHARGER_ID = process.env.ENODE_SIMULATOR_CHARGER_ID || "easee-core-001";
-const VALID_ACTIONS = Object.freeze([
-  "pause_charging",
-  "resume_charging",
-  "reduce_charging_power",
-  "restore_charging_power"
-]);
+const VALID_ACTIONS = ENODE_ACTIONS;
 
-function createResponse(chargerId, action, body = {}, timestamp = new Date().toISOString()) {
+function createResponse(chargerId, action, body = {}, timestamp = new Date().toISOString(), device) {
+  const simulator = device || createEnodeEaseeDevice({ deviceId: chargerId || DEFAULT_CHARGER_ID });
+  const result = simulator.applyCommand(action, { ...body, charger_id: chargerId }, timestamp);
+
   return {
-    charger_id: chargerId || DEFAULT_CHARGER_ID,
-    provider: "enode",
-    charger_type: "easee_core",
-    action,
-    requested_reduction_kw:
-      body.requested_reduction_kw === undefined ? null : Number(body.requested_reduction_kw),
-    accepted: true,
-    simulated: true,
-    no_real_execution: true,
+    ...result,
     execution_mode: "simulated_enode_api",
-    timestamp
+    charger_id: chargerId || DEFAULT_CHARGER_ID,
+    charger_type: "easee_core"
   };
 }
 
-function createApp() {
+function createApp(options = {}) {
   const app = express();
+  const device = options.device || createEnodeEaseeDevice({ deviceId: DEFAULT_CHARGER_ID });
 
   app.use(express.json({ limit: REQUEST_BODY_LIMIT }));
 
@@ -39,6 +35,7 @@ function createApp() {
       service: "enode-simulator",
       provider: "enode",
       charger_type: "easee_core",
+      simulator_contract: ["tick", "getTelemetry"],
       simulated: true,
       real_device_control: false
     });
@@ -54,9 +51,17 @@ function createApp() {
           charger_type: "easee_core",
           online: true,
           simulated: true,
-          no_real_execution: true
+          no_real_execution: true,
+          telemetry: device.getTelemetry()
         }
       ]
+    });
+  });
+
+  app.get("/enode/chargers/:chargerId/telemetry", (_request, response) => {
+    response.json({
+      status: "ok",
+      telemetry: device.getTelemetry()
     });
   });
 
@@ -71,7 +76,9 @@ function createApp() {
       });
     }
 
-    return response.status(202).json(createResponse(request.params.chargerId, action, request.body));
+    return response
+      .status(202)
+      .json(createResponse(request.params.chargerId, action, request.body, new Date().toISOString(), device));
   });
 
   app.use((error, _request, response, _next) => {

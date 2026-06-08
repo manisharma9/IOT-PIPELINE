@@ -7,9 +7,9 @@ This runbook gives a repeatable path for running the AD-FLEX local demo environm
 - Windows with PowerShell.
 - Docker Desktop running.
 - Repository folder: `C:\Users\Mani\Desktop\Github\IOT-PIPELINE`.
-- Optional: Ollama running locally with `phi3:mini` for unknown reading SLM-assisted mapping.
+- Recommended: Ollama running locally with `phi3:mini` for the primary local SLM semantic interpretation path.
 
-Known readings work without Ollama. Unknown readings fall back safely if Ollama is unavailable.
+The semantic connector attempts local SLM mapping first. If Ollama is unavailable, invalid, low confidence, or inconsistent with deterministic validation, deterministic SAREF4ENER fallback keeps the demo running.
 
 ## 1. Open The Repository
 
@@ -50,6 +50,7 @@ The script starts:
 - mock dispatch adapter
 - Shelly Plug simulator
 - Enode / Easee Core simulator
+- Heat Pump simulator
 - device command translator
 - dataspace export
 - security gateway
@@ -70,6 +71,7 @@ Expected services:
 - `dataspace-export`
 - `shelly-simulator`
 - `enode-simulator`
+- `heat-pump-simulator`
 - `device-command-translator`
 - `security-gateway`
 
@@ -102,6 +104,16 @@ raw.telemetry -> normalized.telemetry -> semantic.enriched -> ieee20305.translat
 ```
 
 ## 7. Send DSO Grid Signal
+
+Optional simulator-compatible telemetry can also be sent through the `/api/ingest` alias:
+
+```powershell
+Invoke-RestMethod -Method Post `
+  -Uri http://localhost:3010/api/ingest `
+  -Headers @{ "x-edge-api-key" = "local-dev-edge-key" } `
+  -ContentType application/json `
+  -Body (Get-Content .\examples\heat_pump_telemetry.json -Raw)
+```
 
 ```powershell
 Invoke-RestMethod -Method Post `
@@ -175,6 +187,7 @@ The result should show simulated commands for the local device APIs:
 
 - Shelly Plug actions such as `reduce_load` or `turn_off`
 - Enode / Easee Core actions such as `reduce_charging_power` or `pause_charging`
+- Heat Pump actions such as `reduce_load` or `restore_load`
 - `execution_mode: simulated_device_api`
 - `no_real_execution: true`
 
@@ -183,6 +196,7 @@ You can also call the simulators directly:
 ```powershell
 Invoke-RestMethod http://localhost:3007/shelly/status
 Invoke-RestMethod http://localhost:3008/enode/chargers
+Invoke-RestMethod http://localhost:3011/heat-pump/status
 ```
 
 ## 14. Call Dataspace Export
@@ -229,6 +243,6 @@ This stops containers but keeps volumes.
 - Port already in use: stop old containers or change the port in `.env`.
 - Gateway returns `401`: add the `x-edge-api-key` header.
 - Dataspace export returns `401` when called directly: add the `x-api-key` header. Through the gateway, use `x-edge-api-key`.
-- Ollama unavailable: known readings still work; unknown readings fall back safely.
+- Ollama unavailable: telemetry still flows; the semantic connector falls back to deterministic SAREF4ENER mapping when available and stores unmapped readings safely when no safe mapping exists.
 - Proposal not found yet: wait a few seconds and call `/dispatch/proposals` again.
-- Device command audit is empty: confirm `device-command-translator`, `shelly-simulator`, and `enode-simulator` are healthy before marking a proposal ready.
+- Device command audit is empty: confirm `device-command-translator`, `shelly-simulator`, `enode-simulator`, and `heat-pump-simulator` are healthy before marking a proposal ready.

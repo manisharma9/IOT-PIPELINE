@@ -2,7 +2,10 @@
 
 const express = require("express");
 const { Kafka } = require("kafkajs");
-const { validateTelemetry } = require("../../common/telemetry-validator");
+const {
+  normalizeTelemetryPayload,
+  validateTelemetry
+} = require("../../common/telemetry-validator");
 
 const PORT = Number(process.env.PORT || 3001);
 const KAFKA_BROKERS = (process.env.KAFKA_BROKERS || "localhost:9092")
@@ -26,6 +29,62 @@ function createKafkaProducer() {
   return kafka.producer();
 }
 
+async function handleTelemetryRequest(request, response, { producer, topic, sourceAlias } = {}) {
+  const payload = normalizeTelemetryPayload(request.body, {
+    defaultProtocol: "http",
+    defaultSource: sourceAlias || "ingestion-api"
+  });
+  const validation = validateTelemetry(payload);
+
+  if (!validation.valid) {
+    return response.status(400).json({
+      error: "invalid_telemetry",
+      message: "Telemetry payload failed validation.",
+      details: validation.errors
+    });
+  }
+
+  if (!producer || typeof producer.send !== "function") {
+    return response.status(503).json({
+      error: "kafka_unavailable",
+      message: "Kafka producer is not available."
+    });
+  }
+
+  const receivedAt = new Date().toISOString();
+  const key = buildMessageKey(payload);
+
+  try {
+    await producer.send({
+      topic,
+      messages: [
+        {
+          key,
+          value: JSON.stringify(payload),
+          headers: {
+            received_at: receivedAt,
+            source_protocol: payload.protocol
+          }
+        }
+      ]
+    });
+  } catch (error) {
+    console.error("Kafka publish failed:", error);
+    return response.status(503).json({
+      error: "kafka_publish_failed",
+      message: "Telemetry was valid but could not be published to Kafka."
+    });
+  }
+
+  return response.status(202).json({
+    status: "accepted",
+    topic,
+    key,
+    received_at: receivedAt,
+    compatibility_mode: payload !== request.body
+  });
+}
+
 function createApp({ producer, topic = RAW_TELEMETRY_TOPIC } = {}) {
   const app = express();
 
@@ -39,56 +98,13 @@ function createApp({ producer, topic = RAW_TELEMETRY_TOPIC } = {}) {
     });
   });
 
-  app.post("/telemetry", async (request, response) => {
-    const validation = validateTelemetry(request.body);
+  app.post("/telemetry", (request, response) =>
+    handleTelemetryRequest(request, response, { producer, topic, sourceAlias: "telemetry" })
+  );
 
-    if (!validation.valid) {
-      return response.status(400).json({
-        error: "invalid_telemetry",
-        message: "Telemetry payload failed validation.",
-        details: validation.errors
-      });
-    }
-
-    if (!producer || typeof producer.send !== "function") {
-      return response.status(503).json({
-        error: "kafka_unavailable",
-        message: "Kafka producer is not available."
-      });
-    }
-
-    const receivedAt = new Date().toISOString();
-    const key = buildMessageKey(request.body);
-
-    try {
-      await producer.send({
-        topic,
-        messages: [
-          {
-            key,
-            value: JSON.stringify(request.body),
-            headers: {
-              received_at: receivedAt,
-              source_protocol: request.body.protocol
-            }
-          }
-        ]
-      });
-    } catch (error) {
-      console.error("Kafka publish failed:", error);
-      return response.status(503).json({
-        error: "kafka_publish_failed",
-        message: "Telemetry was valid but could not be published to Kafka."
-      });
-    }
-
-    return response.status(202).json({
-      status: "accepted",
-      topic,
-      key,
-      received_at: receivedAt
-    });
-  });
+  app.post("/api/ingest", (request, response) =>
+    handleTelemetryRequest(request, response, { producer, topic, sourceAlias: "api-ingest" })
+  );
 
   app.use((error, _request, response, _next) => {
     if (error instanceof SyntaxError && "body" in error) {
@@ -139,5 +155,6 @@ if (require.main === module) {
 module.exports = {
   buildMessageKey,
   createApp,
-  createKafkaProducer
+  createKafkaProducer,
+  handleTelemetryRequest
 };

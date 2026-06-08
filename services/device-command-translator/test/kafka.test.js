@@ -4,7 +4,8 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const {
   buildAuditRowFromResult,
-  processReadyMessage
+  processReadyMessage,
+  resolveSimulatorBaseUrl
 } = require("../src/kafka");
 
 function readyEvent(overrides = {}) {
@@ -57,15 +58,25 @@ test("translator publishes device.command.result and device.command.audit payloa
   });
 
   assert.equal(result.status, "translated");
-  assert.equal(result.command_count, 2);
-  assert.equal(published.filter((item) => item.topic === "device.command.result").length, 2);
-  assert.equal(published.filter((item) => item.topic === "device.command.audit").length, 2);
-  assert.equal(inserts.length, 2);
+  assert.equal(result.command_count, 3);
+  assert.equal(published.filter((item) => item.topic === "device.command.result").length, 3);
+  assert.equal(published.filter((item) => item.topic === "device.command.audit").length, 3);
+  assert.equal(inserts.length, 3);
 
   const resultMessage = JSON.parse(published[0].messages[0].value);
   assert.equal(resultMessage.simulated, true);
   assert.equal(resultMessage.no_real_execution, true);
   assert.equal(resultMessage.execution_mode, "simulated_device_api");
+});
+
+test("simulator base URL resolver supports heat pump simulator", () => {
+  assert.equal(
+    resolveSimulatorBaseUrl(
+      { provider: "heat_pump_simulator" },
+      { HEAT_PUMP_SIMULATOR_URL: "http://heat-pump-simulator:3011" }
+    ),
+    "http://heat-pump-simulator:3011"
+  );
 });
 
 test("audit row payload shape is valid", async () => {

@@ -9,6 +9,7 @@ WORKDIR /app/services/enode-simulator
 RUN npm install --omit=dev
 
 WORKDIR /app
+COPY services/common ./services/common
 COPY services/enode-simulator/src ./services/enode-simulator/src
 
 WORKDIR /app/services/enode-simulator

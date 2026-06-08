@@ -646,7 +646,7 @@ function AuditPage() {
 }
 
 function DeviceCommandPage() {
-  const [tab, setTab] = useState<"all" | "shelly" | "enode">("all");
+  const [tab, setTab] = useState<"all" | "shelly" | "enode" | "heat-pump">("all");
   const [data, setData] = useState<ApiEnvelope | null>(null);
   const [loading, setLoading] = useState(false);
   async function load() {
@@ -657,15 +657,16 @@ function DeviceCommandPage() {
   const rows = getArray(getData(data), "audit").filter((row) => {
     if (tab === "shelly") return row.device_type === "shelly_plug";
     if (tab === "enode") return row.provider === "enode" || row.device_type === "ev_charger";
+    if (tab === "heat-pump") return row.device_type === "heat_pump";
     return true;
   });
   return (
     <>
-      <PageHeader eyebrow="Device API translation" title="Shelly Plug and Enode / Easee simulated commands" description="Approved ready commands are translated into simulated end-device API language through the gateway-only dashboard path." />
+      <PageHeader eyebrow="Device API translation" title="Shelly, Enode / Easee, and Heat Pump simulated commands" description="Approved ready commands are translated into simulated end-device API language through the gateway-only dashboard path." />
       <div className="mb-4 flex flex-wrap gap-2">
-        {(["all", "shelly", "enode"] as const).map((nextTab) => (
+        {(["all", "shelly", "enode", "heat-pump"] as const).map((nextTab) => (
           <button key={nextTab} type="button" onClick={() => setTab(nextTab)} className={`rounded-md border px-4 py-2 text-sm ${tab === nextTab ? "border-emerald-300/35 bg-emerald-300/15 text-white" : "border-white/10 bg-white/5 text-slate-300"}`}>
-            {nextTab === "all" ? "All Devices" : nextTab === "shelly" ? "Shelly Plug" : "Enode / Easee Core"}
+            {nextTab === "all" ? "All Devices" : nextTab === "shelly" ? "Shelly Plug" : nextTab === "enode" ? "Enode / Easee Core" : "Heat Pump"}
           </button>
         ))}
         <LoadingButton loading={loading} onClick={load}><RefreshCw className="h-4 w-4" />Load audit</LoadingButton>

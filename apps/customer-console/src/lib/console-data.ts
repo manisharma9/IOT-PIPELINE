@@ -130,7 +130,7 @@ export const pipelineNodes = [
   {
     id: "device",
     label: "Device Command Translator",
-    purpose: "Translates ready commands into simulated Shelly and Enode / Easee API language.",
+    purpose: "Translates ready commands into simulated Shelly, Enode / Easee, and Heat Pump API language.",
     route: "Gateway GET /device-command/audit",
     receives: "dispatch.command.ready",
     produces: "device.command.result and device.command.audit",
@@ -138,8 +138,8 @@ export const pipelineNodes = [
   },
   {
     id: "sims",
-    label: "Shelly / Enode Simulators",
-    purpose: "Local simulated end-device APIs for Shelly Plug and Easee Core charger flows.",
+    label: "Shelly / Enode / Heat Pump Simulators",
+    purpose: "Local simulated end-device APIs for Shelly Plug, Easee Core charger, and heat pump flows.",
     route: "Internal simulator APIs",
     receives: "Translated simulated device commands",
     produces: "Simulated accepted responses",

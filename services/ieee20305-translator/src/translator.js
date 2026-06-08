@@ -172,6 +172,29 @@ function buildSemanticSource(event) {
   };
 }
 
+function buildDsoGatewayContext(resourceType) {
+  return {
+    gateway_role: "DSO-facing IEEE 2030.5-style translation gateway",
+    certification_status: "foundation_only_not_certified",
+    mirror_meter:
+      resourceType === "MirrorMeterReading"
+        ? {
+            resource_type: "MirrorMeter",
+            reading_resource_type: "MirrorMeterReading",
+            meaning: "Meter-style reading exposed through a simplified MirrorMeter/MirrorMeterReading concept."
+          }
+        : null,
+    der_status:
+      resourceType === "DERStatus"
+        ? {
+            resource_type: "DERStatus",
+            meaning: "Distributed energy resource state representation for PV, battery, EV, or flexible load context."
+          }
+        : null
+  };
+}
+
+
 function buildInvalidSemanticTranslation(rawEvent, errors, options = {}) {
   const processedAt = options.processedAt || new Date().toISOString();
   const eventTime = normalizeTimestamp(rawEvent && rawEvent.event_time, processedAt);
@@ -189,6 +212,7 @@ function buildInvalidSemanticTranslation(rawEvent, errors, options = {}) {
     resource_type: "MirrorMeterReading",
     ieee20305_payload: {
       resource_type: "MirrorMeterReading",
+      dso_gateway_context: buildDsoGatewayContext("MirrorMeterReading"),
       href: `/edev/unknown/invalid-semantic/${sanitizeHrefSegment(eventTime)}`,
       event_time: eventTime,
       translation_status: "invalid_semantic_event",
@@ -235,6 +259,7 @@ function translateSemanticEvent(event, options = {}) {
       unit: event.reading_unit || event.saref_unit || null
     },
     semantic_source: buildSemanticSource(event),
+    dso_gateway_context: buildDsoGatewayContext(resourceType),
     suggested_grid_meaning: buildSuggestedGridMeaning(event, resourceType),
     correlation_id: event.correlation_id || null,
     note: "IEEE 2030.5-style translator foundation payload; not a certified IEEE 2030.5 resource."
@@ -359,6 +384,12 @@ function translateGridSignal(signal, options = {}) {
     },
     suggested_grid_meaning:
       "Mock DSO grid signal for later aggregator evaluation; no household dispatch is performed in Phase 4.",
+    dso_gateway_context: {
+      gateway_role: "DSO-facing IEEE 2030.5-style grid signal gateway",
+      certification_status: "foundation_only_not_certified",
+      resource_type: "GridSignal",
+      related_concepts: ["DERControl", "DERProgram", "DERControlCandidate"]
+    },
     note: "IEEE 2030.5-style GridSignal foundation payload; not a certified IEEE 2030.5 resource."
   };
 

@@ -121,7 +121,7 @@ function buildUnmappedResult(readingName) {
     ngsi_property: normalizedName,
     mapping_source: "unmapped",
     mapping_confidence: "low",
-    explanation: `No deterministic SAREF4ENER mapping exists for reading "${normalizedName}". The event is stored and published as unmapped so a later SLM-assisted mapper can review it.`
+    explanation: `No accepted SLM or deterministic SAREF4ENER mapping exists for reading "${normalizedName}". The event is stored and published as unmapped.`
   };
 }
 

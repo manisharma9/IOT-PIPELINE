@@ -356,7 +356,7 @@ async function start() {
     console.log(`Dataspace export service listening on http://0.0.0.0:${PORT}`);
     console.log(`Catalog topic: ${CATALOG_TOPIC}`);
     console.log(`Export audit topic: ${EXPORT_AUDIT_TOPIC}`);
-    console.log("Exports are minimized and pseudonymized. This is not a certified ENERSHARE connector.");
+    console.log("Exports are minimized and pseudonymized. This is an IDS/ENERSHARE-ready foundation, not a certified connector.");
   });
 
   const shutdown = async () => {

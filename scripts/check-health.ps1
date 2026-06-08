@@ -9,6 +9,7 @@ $Endpoints = @(
   @{ Name = "dataspace-export"; Url = "http://localhost:3006/health" },
   @{ Name = "shelly-simulator"; Url = "http://localhost:3007/health" },
   @{ Name = "enode-simulator"; Url = "http://localhost:3008/health" },
+  @{ Name = "heat-pump-simulator"; Url = "http://localhost:3011/health" },
   @{ Name = "device-command-translator"; Url = "http://localhost:3009/health" },
   @{ Name = "security-gateway"; Url = "http://localhost:3010/health" }
 )

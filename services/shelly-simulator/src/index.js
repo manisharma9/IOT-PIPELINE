@@ -1,30 +1,31 @@
 "use strict";
 
 const express = require("express");
+const {
+  SHELLY_ACTIONS,
+  createShellyPlugDevice
+} = require("../../common/simulators");
 
 const PORT = Number(process.env.SHELLY_SIMULATOR_PORT || process.env.PORT || 3007);
 const REQUEST_BODY_LIMIT = process.env.REQUEST_BODY_LIMIT || "256kb";
 const DEVICE_ID = process.env.SHELLY_SIMULATOR_DEVICE_ID || "shelly-plug-001";
 const DEVICE_TYPE = "shelly_plug";
-const VALID_ACTIONS = Object.freeze(["turn_off", "turn_on", "reduce_load", "restore_load"]);
+const VALID_ACTIONS = SHELLY_ACTIONS;
 
-function createResponse(action, body = {}, timestamp = new Date().toISOString()) {
+function createResponse(action, body = {}, timestamp = new Date().toISOString(), device) {
+  const simulator = device || createShellyPlugDevice({ deviceId: body.device_id || DEVICE_ID });
+  const result = simulator.applyCommand(action, body, timestamp);
+
   return {
-    device_id: body.device_id || DEVICE_ID,
+    ...result,
     device_type: DEVICE_TYPE,
-    action,
-    requested_reduction_kw:
-      body.requested_reduction_kw === undefined ? null : Number(body.requested_reduction_kw),
-    accepted: true,
-    simulated: true,
-    no_real_execution: true,
-    execution_mode: "simulated_shelly_api",
-    timestamp
+    execution_mode: "simulated_shelly_api"
   };
 }
 
-function createApp() {
+function createApp(options = {}) {
   const app = express();
+  const device = options.device || createShellyPlugDevice({ deviceId: DEVICE_ID });
 
   app.use(express.json({ limit: REQUEST_BODY_LIMIT }));
 
@@ -34,20 +35,27 @@ function createApp() {
       service: "shelly-simulator",
       device_id: DEVICE_ID,
       device_type: DEVICE_TYPE,
+      simulator_contract: ["tick", "getTelemetry"],
       simulated: true,
       real_device_control: false
     });
   });
 
   app.get("/shelly/status", (_request, response) => {
+    const status = device.tick();
     response.json({
       status: "ok",
+      ...status,
       device_id: DEVICE_ID,
       device_type: DEVICE_TYPE,
-      online: true,
-      simulated: true,
-      no_real_execution: true,
-      relay_state: "simulated_available"
+      relay_state: status.relay_state || "simulated_available"
+    });
+  });
+
+  app.get("/shelly/telemetry", (_request, response) => {
+    response.json({
+      status: "ok",
+      telemetry: device.getTelemetry()
     });
   });
 
@@ -62,7 +70,7 @@ function createApp() {
       });
     }
 
-    return response.status(202).json(createResponse(action, request.body));
+    return response.status(202).json(createResponse(action, request.body, new Date().toISOString(), device));
   });
 
   app.use((error, _request, response, _next) => {

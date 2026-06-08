@@ -2,7 +2,7 @@
   "name": "adflex-semantic-connector",
   "version": "0.2.0",
   "private": true,
-  "description": "Phase 2 deterministic SAREF4ENER semantic connector for normalized telemetry events.",
+  "description": "Local SLM-primary semantic connector with deterministic SAREF4ENER validation and fallback.",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

@@ -39,7 +39,19 @@ test("Enode simulator health", async () => {
   assert.equal(response.status, 200);
   assert.equal(response.body.service, "enode-simulator");
   assert.equal(response.body.provider, "enode");
+  assert.deepEqual(response.body.simulator_contract, ["tick", "getTelemetry"]);
   assert.equal(response.body.real_device_control, false);
+});
+
+test("Enode simulator telemetry uses compatible deviceId/data shape", async () => {
+  const response = await request(createApp(), "GET", "/enode/chargers/easee-core-001/telemetry");
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.telemetry.deviceId, "easee-core-001");
+  assert.equal(response.body.telemetry.deviceType, "ev_charger");
+  assert.ok(response.body.telemetry.timestamp);
+  assert.ok(response.body.telemetry.data.ev_charging_power_kw);
+  assert.ok(response.body.telemetry.readings.ev_charging_power_kw);
 });
 
 test("Enode simulator command accepted", async () => {
