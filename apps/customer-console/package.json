@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start --port 3000",
     "lint": "eslint .",
-    "check:client-boundary": "node scripts/check-client-boundary.mjs"
+    "check:client-boundary": "node scripts/check-client-boundary.mjs",
+    "record:demo": "node scripts/record-dashboard-demo-mp4.js"
   },
   "dependencies": {
     "lucide-react": "^0.556.0",
@@ -28,6 +29,8 @@
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.2.6",
+    "ffmpeg-static": "^5.3.0",
+    "playwright": "^1.60.0",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3"
   }

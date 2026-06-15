@@ -30,6 +30,9 @@ function loadConfig(env = process.env) {
     auditTopic: env.SECURITY_GATEWAY_AUDIT_TOPIC || "security.gateway.audit",
     kafkaBrokers: env.KAFKA_BROKERS || env.KAFKA_BROKER || "kafka:29092",
     dataspacesInternalApiKey: env.DATASPACE_API_KEY || "local-dev-dataspace-key",
+    ollamaBaseUrl: env.OLLAMA_BASE_URL || "http://host.docker.internal:11434",
+    slmModel: env.SLM_MODEL || env.OLLAMA_MODEL || "phi3:mini",
+    slmPrimary: String(env.SLM_PRIMARY || "true").toLowerCase() === "true",
     targets: {
       ingestion: env.INGESTION_API_URL || "http://ingestion-api:3001",
       ieee20305: env.IEEE20305_TRANSLATOR_URL || "http://ieee20305-translator:3002",
