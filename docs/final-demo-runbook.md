@@ -9,7 +9,7 @@ This runbook gives a repeatable path for running the AD-FLEX local demo environm
 - Repository folder: `C:\Users\Mani\Desktop\Github\IOT-PIPELINE`.
 - Recommended: Ollama running locally with `phi3:mini` for the primary local SLM semantic interpretation path.
 
-The semantic connector attempts local SLM mapping first. If Ollama is unavailable, invalid, low confidence, or inconsistent with deterministic validation, deterministic SAREF4ENER fallback keeps the demo running.
+The semantic connector submits every normalized reading to the local SLM. If Ollama is unavailable or its output is invalid, low confidence, or inconsistent with deterministic validation, the connector records the attempts and marks the reading safely unmapped without crashing or creating a deterministic replacement mapping.
 
 ## 1. Open The Repository
 
@@ -243,6 +243,6 @@ This stops containers but keeps volumes.
 - Port already in use: stop old containers or change the port in `.env`.
 - Gateway returns `401`: add the `x-edge-api-key` header.
 - Dataspace export returns `401` when called directly: add the `x-api-key` header. Through the gateway, use `x-edge-api-key`.
-- Ollama unavailable: telemetry still flows; the semantic connector falls back to deterministic SAREF4ENER mapping when available and stores unmapped readings safely when no safe mapping exists.
+- Ollama unavailable: ingestion and normalization still operate; semantic readings receive explicit safely-unmapped audit outcomes after configured attempts. Restore Ollama before expecting mapped semantic and IEEE records.
 - Proposal not found yet: wait a few seconds and call `/dispatch/proposals` again.
 - Device command audit is empty: confirm `device-command-translator`, `shelly-simulator`, `enode-simulator`, and `heat-pump-simulator` are healthy before marking a proposal ready.

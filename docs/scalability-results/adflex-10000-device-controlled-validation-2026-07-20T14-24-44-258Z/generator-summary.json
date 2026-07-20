@@ -1,0 +1,29 @@
+{
+  "scenario_id": "adflex-10000-device-controlled-validation",
+  "started_at": "2026-07-20T14:24:44.262Z",
+  "completed_at": "2026-07-20T14:25:44.282Z",
+  "elapsed_seconds": 60.015,
+  "mode": "steady",
+  "dry_run": true,
+  "configured_devices": 10000,
+  "represented_devices": 10000,
+  "represented_households": 3334,
+  "telemetry_planned": 10000,
+  "telemetry_attempted": 10000,
+  "telemetry_gateway_accepted": 10000,
+  "telemetry_gateway_failed": 0,
+  "readings_generated": 40000,
+  "readings_gateway_accepted": 40000,
+  "readings_gateway_failed": 0,
+  "gateway_acceptance_rate_percent": 100,
+  "generated_messages_per_second": 166.625,
+  "gateway_latency": {
+    "minimum_ms": 0.011999999998806743,
+    "average_ms": 0.050205319999993565,
+    "maximum_ms": 0.8317000000024564
+  },
+  "bounded_concurrency": 64,
+  "output_directory": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results\\adflex-10000-device-controlled-validation-2026-07-20T14-24-44-258Z",
+  "end_to_end_validated": false,
+  "note": "Gateway acceptance is not end-to-end success. Pipeline completion is evaluated separately."
+}

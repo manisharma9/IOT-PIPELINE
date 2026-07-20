@@ -20,22 +20,38 @@ class EnodeEaseeDevice extends BaseDevice {
       areaId: options.areaId,
       controllableLoadKw: options.controllableLoadKw || 7.4,
       supportedActions: ENODE_ACTIONS,
+      random: options.random,
       initialState: {
         charger_type: "easee_core",
         charging_state: "charging",
-        charging_power_kw: 6.8
+        charging_power_kw: Number(options.initialPowerKw ?? 6.8),
+        energy_delivered_kwh: Number(options.initialEnergyKwh ?? 18.4),
+        charging_state_code: 1
       }
     });
   }
 
   tick(timestamp = new Date().toISOString()) {
+    const elapsedHours = this.elapsedHours(timestamp);
     if (this.state.charging_state === "paused") {
       this.state.charging_power_kw = 0;
+      this.state.charging_state_code = 0;
     } else if (this.state.charging_state === "reduced") {
-      this.state.charging_power_kw = round(this.controllableLoadKw * 0.45);
+      this.state.charging_power_kw = round(
+        this.controllableLoadKw * this.randomBetween(0.35, 0.52)
+      );
+      this.state.charging_state_code = 2;
     } else {
-      this.state.charging_power_kw = round(this.controllableLoadKw * 0.92);
+      this.state.charging_power_kw = round(
+        this.controllableLoadKw * this.randomBetween(0.78, 0.96)
+      );
+      this.state.charging_state_code = 1;
     }
+
+    this.state.energy_delivered_kwh = round(
+      this.state.energy_delivered_kwh + this.state.charging_power_kw * elapsedHours,
+      4
+    );
 
     return super.tick(timestamp);
   }
@@ -45,6 +61,14 @@ class EnodeEaseeDevice extends BaseDevice {
       ev_charging_power_kw: {
         value: round(this.state.charging_power_kw),
         unit: "kW"
+      },
+      energy_delivered_kwh: {
+        value: round(this.state.energy_delivered_kwh, 4),
+        unit: "kWh"
+      },
+      charging_state_code: {
+        value: this.state.charging_state_code,
+        unit: "state_code"
       }
     };
   }

@@ -196,6 +196,12 @@ Write-Step "Polling semantic_events for SLM-primary rows"
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
 $rows = $null
 $safeSource = $source.Replace("'", "''")
+$requiredReadings = @(
+  "active_power_kw",
+  "ev_charging_power_kw",
+  "roomHeat",
+  "grid_stress_index"
+)
 
 do {
   Start-Sleep -Seconds 5
@@ -218,16 +224,16 @@ FROM (
 ) q;
 "@
   $rows = @(Invoke-PsqlJsonRows -Sql $sql)
-} while ($rows.Count -lt 4 -and (Get-Date) -lt $deadline)
+  $presentReadings = @($rows | ForEach-Object { $_.reading_name } | Sort-Object -Unique)
+  $hasAllRequiredReadings = $true
+  foreach ($reading in $requiredReadings) {
+    if ($presentReadings -notcontains $reading) {
+      $hasAllRequiredReadings = $false
+    }
+  }
+} while (-not $hasAllRequiredReadings -and (Get-Date) -lt $deadline)
 
 Assert-Condition ($rows.Count -ge 4) "Expected 4 semantic rows for source $source, found $($rows.Count)."
-
-$requiredReadings = @(
-  "active_power_kw",
-  "ev_charging_power_kw",
-  "roomHeat",
-  "grid_stress_index"
-)
 
 foreach ($reading in $requiredReadings) {
   $row = $rows | Where-Object { $_.reading_name -eq $reading } | Select-Object -First 1

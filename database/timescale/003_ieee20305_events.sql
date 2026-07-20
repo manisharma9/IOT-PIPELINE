@@ -3,6 +3,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE TABLE IF NOT EXISTS ieee20305_events (
     id BIGSERIAL NOT NULL,
     event_time TIMESTAMPTZ NOT NULL,
+    reading_id TEXT,
     processed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     source_topic TEXT NOT NULL,
     output_topic TEXT NOT NULL,
@@ -37,3 +38,7 @@ CREATE INDEX IF NOT EXISTS ieee20305_events_status_time_idx
 
 CREATE INDEX IF NOT EXISTS ieee20305_events_correlation_id_idx
     ON ieee20305_events (correlation_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ieee20305_events_reading_id_time_uidx
+    ON ieee20305_events (event_time, reading_id)
+    WHERE reading_id IS NOT NULL;

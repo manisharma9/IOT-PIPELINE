@@ -8,7 +8,7 @@ AD-FLEX demonstrates a safe smart-home energy flexibility pipeline. External HTT
 
 After that edge layer, the pipeline receives household telemetry from HTTP or MQTT, normalizes it, and adds semantic energy meaning using SAREF4ENER.
 
-The semantic connector uses a local Phi-3 Mini model through Ollama as the primary interpretation layer. Deterministic SAREF4ENER mapping remains in place as validation and fallback, so the system continues to work safely if the local model is unavailable or produces invalid output.
+The semantic connector submits every normalized reading to a local Phi-3 Mini model through Ollama. Deterministic SAREF4ENER logic validates the model output and rejects unsafe results; failed readings are explicitly audited as safely unmapped instead of receiving a deterministic replacement.
 
 The pipeline then translates semantic events into simplified IEEE 2030.5-style resources and accepts a mock DSO grid signal. The aggregator creates a dispatch proposal, but it does not execute anything. An authorized reviewer must review, approve, and mark the proposal ready.
 
@@ -28,7 +28,7 @@ The local security gateway update added an edge layer in front of external HTTP 
 
 Phase 2 added deterministic SAREF4ENER mapping. This matters because SAREF4ENER gives the data a standard energy vocabulary. For example, active power and battery state of charge become semantic energy readings instead of arbitrary JSON fields.
 
-The semantic mapping layer uses local Phi-3 Mini first for telemetry interpretation. The important design choice is that the model is not trusted blindly: its JSON response is validated, checked against confidence and unit guardrails, and compared with deterministic SAREF4ENER mapping where known mappings exist. Invalid, low-confidence, unavailable, or inconsistent SLM output falls back safely.
+The semantic mapping layer uses local Phi-3 Mini for every telemetry reading. The model is not trusted blindly: its JSON response is validated, checked against confidence and unit guardrails, and compared with deterministic SAREF4ENER expectations where known mappings exist. Invalid, low-confidence, unavailable, or inconsistent output is retried and then recorded as safely unmapped; deterministic logic does not invent a replacement mapping.
 
 Phase 4 added an IEEE 2030.5-style translator foundation. It converts semantic events into simple resources and terminology such as `MirrorMeter`, `MirrorMeterReading`, `DERStatus`, and `GridSignal`. This is useful because IEEE 2030.5 is a grid/DER communication standard, but this project does not claim certification.
 
@@ -81,7 +81,7 @@ SAREF4ENER is an energy-focused semantic model. It helps make readings understan
 
 ## Why SLM Helps
 
-The SLM is the primary local semantic interpretation layer. It is not trusted blindly: deterministic SAREF4ENER mapping validates known readings and provides fallback behavior when model output cannot be safely accepted.
+The SLM is the mandatory semantic interpretation layer. It is not trusted blindly: deterministic SAREF4ENER logic validates known readings, rejects inconsistent model output, and triggers retry or a safely-unmapped terminal state.
 
 ## Why IEEE 2030.5-Style Translator Matters
 

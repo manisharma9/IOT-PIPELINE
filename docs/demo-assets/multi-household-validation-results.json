@@ -1,0 +1,1649 @@
+{
+  "run_id": "mh-20260720071954",
+  "source": "multi-household-validation-mh-20260720071954",
+  "validation_started_at": "2026-07-20T07:19:54.940Z",
+  "validation_completed_at": "2026-07-20T07:23:48.343Z",
+  "validation_uptime_seconds": 233.4,
+  "configuration": {
+    "households": 5,
+    "devices": 15,
+    "cycles": 2,
+    "expected_telemetry_messages": 30,
+    "expected_normalized_readings": 120,
+    "randomized_interval_ms": {
+      "minimum": 322,
+      "maximum": 1382,
+      "per_device": [
+        {
+          "device_id": "mh-20260720071954-shelly-01",
+          "device_type": "shelly_plug",
+          "household_id": "mh-20260720071954-household-01",
+          "interval_ms": 800
+        },
+        {
+          "device_id": "mh-20260720071954-easee-01",
+          "device_type": "ev_charger",
+          "household_id": "mh-20260720071954-household-01",
+          "interval_ms": 322
+        },
+        {
+          "device_id": "mh-20260720071954-heat-pump-01",
+          "device_type": "heat_pump",
+          "household_id": "mh-20260720071954-household-01",
+          "interval_ms": 912
+        },
+        {
+          "device_id": "mh-20260720071954-shelly-02",
+          "device_type": "shelly_plug",
+          "household_id": "mh-20260720071954-household-02",
+          "interval_ms": 347
+        },
+        {
+          "device_id": "mh-20260720071954-easee-02",
+          "device_type": "ev_charger",
+          "household_id": "mh-20260720071954-household-02",
+          "interval_ms": 897
+        },
+        {
+          "device_id": "mh-20260720071954-heat-pump-02",
+          "device_type": "heat_pump",
+          "household_id": "mh-20260720071954-household-02",
+          "interval_ms": 1382
+        },
+        {
+          "device_id": "mh-20260720071954-shelly-03",
+          "device_type": "shelly_plug",
+          "household_id": "mh-20260720071954-household-03",
+          "interval_ms": 994
+        },
+        {
+          "device_id": "mh-20260720071954-easee-03",
+          "device_type": "ev_charger",
+          "household_id": "mh-20260720071954-household-03",
+          "interval_ms": 371
+        },
+        {
+          "device_id": "mh-20260720071954-heat-pump-03",
+          "device_type": "heat_pump",
+          "household_id": "mh-20260720071954-household-03",
+          "interval_ms": 752
+        },
+        {
+          "device_id": "mh-20260720071954-shelly-04",
+          "device_type": "shelly_plug",
+          "household_id": "mh-20260720071954-household-04",
+          "interval_ms": 540
+        },
+        {
+          "device_id": "mh-20260720071954-easee-04",
+          "device_type": "ev_charger",
+          "household_id": "mh-20260720071954-household-04",
+          "interval_ms": 946
+        },
+        {
+          "device_id": "mh-20260720071954-heat-pump-04",
+          "device_type": "heat_pump",
+          "household_id": "mh-20260720071954-household-04",
+          "interval_ms": 1223
+        },
+        {
+          "device_id": "mh-20260720071954-shelly-05",
+          "device_type": "shelly_plug",
+          "household_id": "mh-20260720071954-household-05",
+          "interval_ms": 1188
+        },
+        {
+          "device_id": "mh-20260720071954-easee-05",
+          "device_type": "ev_charger",
+          "household_id": "mh-20260720071954-household-05",
+          "interval_ms": 421
+        },
+        {
+          "device_id": "mh-20260720071954-heat-pump-05",
+          "device_type": "heat_pump",
+          "household_id": "mh-20260720071954-household-05",
+          "interval_ms": 593
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "gateway_status": "ok",
+    "ollama_status": "ok",
+    "model": "phi3:mini",
+    "installed_models": [
+      "phi3:latest",
+      "phi3:mini"
+    ]
+  },
+  "generation": {
+    "started_at": "2026-07-20T07:19:57.162Z",
+    "completed_at": "2026-07-20T07:20:01.359Z",
+    "duration_seconds": 4.2,
+    "messages": [
+      {
+        "household_id": "mh-20260720071954-household-01",
+        "device_id": "mh-20260720071954-easee-01",
+        "device_type": "ev_charger",
+        "cycle": 1,
+        "interval_ms": 322,
+        "reading_count": 3,
+        "timestamp": "2026-07-20T07:19:57.497Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 17.3,
+        "correlation_id": "mh-20260720071954-02-1",
+        "sample": {
+          "ev_charging_power_kw": {
+            "value": 6.144,
+            "unit": "kW"
+          },
+          "energy_delivered_kwh": {
+            "value": 14.2613,
+            "unit": "kWh"
+          },
+          "charging_state_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-02",
+        "device_id": "mh-20260720071954-shelly-02",
+        "device_type": "shelly_plug",
+        "cycle": 1,
+        "interval_ms": 347,
+        "reading_count": 4,
+        "timestamp": "2026-07-20T07:19:57.512Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.88,
+        "correlation_id": "mh-20260720071954-04-1",
+        "sample": {
+          "active_power_kw": {
+            "value": 1.245,
+            "unit": "kW"
+          },
+          "voltage_v": {
+            "value": 235.6,
+            "unit": "V"
+          },
+          "current_a": {
+            "value": 5.28,
+            "unit": "A"
+          },
+          "energy_import_kwh": {
+            "value": 111.4024,
+            "unit": "kWh"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-03",
+        "device_id": "mh-20260720071954-easee-03",
+        "device_type": "ev_charger",
+        "cycle": 1,
+        "interval_ms": 371,
+        "reading_count": 3,
+        "timestamp": "2026-07-20T07:19:57.543Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 12.22,
+        "correlation_id": "mh-20260720071954-08-1",
+        "sample": {
+          "ev_charging_power_kw": {
+            "value": 6.705,
+            "unit": "kW"
+          },
+          "energy_delivered_kwh": {
+            "value": 22.762,
+            "unit": "kWh"
+          },
+          "charging_state_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-05",
+        "device_id": "mh-20260720071954-easee-05",
+        "device_type": "ev_charger",
+        "cycle": 1,
+        "interval_ms": 421,
+        "reading_count": 3,
+        "timestamp": "2026-07-20T07:19:57.589Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 12.24,
+        "correlation_id": "mh-20260720071954-14-1",
+        "sample": {
+          "ev_charging_power_kw": {
+            "value": 5.958,
+            "unit": "kW"
+          },
+          "energy_delivered_kwh": {
+            "value": 31.262,
+            "unit": "kWh"
+          },
+          "charging_state_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-04",
+        "device_id": "mh-20260720071954-shelly-04",
+        "device_type": "shelly_plug",
+        "cycle": 1,
+        "interval_ms": 540,
+        "reading_count": 4,
+        "timestamp": "2026-07-20T07:19:57.713Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 12.45,
+        "correlation_id": "mh-20260720071954-10-1",
+        "sample": {
+          "active_power_kw": {
+            "value": 1.287,
+            "unit": "kW"
+          },
+          "voltage_v": {
+            "value": 236.3,
+            "unit": "V"
+          },
+          "current_a": {
+            "value": 5.45,
+            "unit": "A"
+          },
+          "energy_import_kwh": {
+            "value": 138.8029,
+            "unit": "kWh"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-05",
+        "device_id": "mh-20260720071954-heat-pump-05",
+        "device_type": "heat_pump",
+        "cycle": 1,
+        "interval_ms": 593,
+        "reading_count": 5,
+        "timestamp": "2026-07-20T07:19:57.761Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.25,
+        "correlation_id": "mh-20260720071954-15-1",
+        "sample": {
+          "heat_pump_power_kw": {
+            "value": 2.881,
+            "unit": "kW"
+          },
+          "indoor_temperature_c": {
+            "value": 20.7,
+            "unit": "C"
+          },
+          "target_temperature_c": {
+            "value": 21.8,
+            "unit": "C"
+          },
+          "flow_temperature_c": {
+            "value": 37.3,
+            "unit": "C"
+          },
+          "operating_mode_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-03",
+        "device_id": "mh-20260720071954-heat-pump-03",
+        "device_type": "heat_pump",
+        "cycle": 1,
+        "interval_ms": 752,
+        "reading_count": 5,
+        "timestamp": "2026-07-20T07:19:57.917Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 12.4,
+        "correlation_id": "mh-20260720071954-09-1",
+        "sample": {
+          "heat_pump_power_kw": {
+            "value": 2.483,
+            "unit": "kW"
+          },
+          "indoor_temperature_c": {
+            "value": 20.2,
+            "unit": "C"
+          },
+          "target_temperature_c": {
+            "value": 21.2,
+            "unit": "C"
+          },
+          "flow_temperature_c": {
+            "value": 39,
+            "unit": "C"
+          },
+          "operating_mode_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-01",
+        "device_id": "mh-20260720071954-shelly-01",
+        "device_type": "shelly_plug",
+        "cycle": 1,
+        "interval_ms": 800,
+        "reading_count": 4,
+        "timestamp": "2026-07-20T07:19:57.964Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 12.84,
+        "correlation_id": "mh-20260720071954-01-1",
+        "sample": {
+          "active_power_kw": {
+            "value": 0.892,
+            "unit": "kW"
+          },
+          "voltage_v": {
+            "value": 235.2,
+            "unit": "V"
+          },
+          "current_a": {
+            "value": 3.79,
+            "unit": "A"
+          },
+          "energy_import_kwh": {
+            "value": 97.7021,
+            "unit": "kWh"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-01",
+        "device_id": "mh-20260720071954-heat-pump-01",
+        "device_type": "heat_pump",
+        "cycle": 1,
+        "interval_ms": 912,
+        "reading_count": 5,
+        "timestamp": "2026-07-20T07:19:58.074Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 10.56,
+        "correlation_id": "mh-20260720071954-03-1",
+        "sample": {
+          "heat_pump_power_kw": {
+            "value": 2.097,
+            "unit": "kW"
+          },
+          "indoor_temperature_c": {
+            "value": 19.5,
+            "unit": "C"
+          },
+          "target_temperature_c": {
+            "value": 20.7,
+            "unit": "C"
+          },
+          "flow_temperature_c": {
+            "value": 38.1,
+            "unit": "C"
+          },
+          "operating_mode_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-02",
+        "device_id": "mh-20260720071954-easee-02",
+        "device_type": "ev_charger",
+        "cycle": 1,
+        "interval_ms": 897,
+        "reading_count": 3,
+        "timestamp": "2026-07-20T07:19:58.074Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 12.12,
+        "correlation_id": "mh-20260720071954-05-1",
+        "sample": {
+          "ev_charging_power_kw": {
+            "value": 6.422,
+            "unit": "kW"
+          },
+          "energy_delivered_kwh": {
+            "value": 18.5127,
+            "unit": "kWh"
+          },
+          "charging_state_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-04",
+        "device_id": "mh-20260720071954-easee-04",
+        "device_type": "ev_charger",
+        "cycle": 1,
+        "interval_ms": 946,
+        "reading_count": 3,
+        "timestamp": "2026-07-20T07:19:58.121Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.97,
+        "correlation_id": "mh-20260720071954-11-1",
+        "sample": {
+          "ev_charging_power_kw": {
+            "value": 5.695,
+            "unit": "kW"
+          },
+          "energy_delivered_kwh": {
+            "value": 27.0125,
+            "unit": "kWh"
+          },
+          "charging_state_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-03",
+        "device_id": "mh-20260720071954-shelly-03",
+        "device_type": "shelly_plug",
+        "cycle": 1,
+        "interval_ms": 994,
+        "reading_count": 4,
+        "timestamp": "2026-07-20T07:19:58.168Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 12.18,
+        "correlation_id": "mh-20260720071954-07-1",
+        "sample": {
+          "active_power_kw": {
+            "value": 1.279,
+            "unit": "kW"
+          },
+          "voltage_v": {
+            "value": 236,
+            "unit": "V"
+          },
+          "current_a": {
+            "value": 5.42,
+            "unit": "A"
+          },
+          "energy_import_kwh": {
+            "value": 125.1029,
+            "unit": "kWh"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-01",
+        "device_id": "mh-20260720071954-easee-01",
+        "device_type": "ev_charger",
+        "cycle": 2,
+        "interval_ms": 322,
+        "reading_count": 3,
+        "timestamp": "2026-07-20T07:19:58.169Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 11.75,
+        "correlation_id": "mh-20260720071954-02-2",
+        "sample": {
+          "ev_charging_power_kw": {
+            "value": 6.318,
+            "unit": "kW"
+          },
+          "energy_delivered_kwh": {
+            "value": 14.2625,
+            "unit": "kWh"
+          },
+          "charging_state_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-02",
+        "device_id": "mh-20260720071954-shelly-02",
+        "device_type": "shelly_plug",
+        "cycle": 2,
+        "interval_ms": 347,
+        "reading_count": 4,
+        "timestamp": "2026-07-20T07:19:58.230Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 14,
+        "correlation_id": "mh-20260720071954-04-2",
+        "sample": {
+          "active_power_kw": {
+            "value": 1.006,
+            "unit": "kW"
+          },
+          "voltage_v": {
+            "value": 236.3,
+            "unit": "V"
+          },
+          "current_a": {
+            "value": 4.26,
+            "unit": "A"
+          },
+          "energy_import_kwh": {
+            "value": 111.4026,
+            "unit": "kWh"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-03",
+        "device_id": "mh-20260720071954-easee-03",
+        "device_type": "ev_charger",
+        "cycle": 2,
+        "interval_ms": 371,
+        "reading_count": 3,
+        "timestamp": "2026-07-20T07:19:58.308Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 12.05,
+        "correlation_id": "mh-20260720071954-08-2",
+        "sample": {
+          "ev_charging_power_kw": {
+            "value": 5.859,
+            "unit": "kW"
+          },
+          "energy_delivered_kwh": {
+            "value": 22.7632,
+            "unit": "kWh"
+          },
+          "charging_state_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-05",
+        "device_id": "mh-20260720071954-shelly-05",
+        "device_type": "shelly_plug",
+        "cycle": 1,
+        "interval_ms": 1188,
+        "reading_count": 4,
+        "timestamp": "2026-07-20T07:19:58.356Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.16,
+        "correlation_id": "mh-20260720071954-13-1",
+        "sample": {
+          "active_power_kw": {
+            "value": 1.726,
+            "unit": "kW"
+          },
+          "voltage_v": {
+            "value": 236.7,
+            "unit": "V"
+          },
+          "current_a": {
+            "value": 7.29,
+            "unit": "A"
+          },
+          "energy_import_kwh": {
+            "value": 152.5037,
+            "unit": "kWh"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-04",
+        "device_id": "mh-20260720071954-heat-pump-04",
+        "device_type": "heat_pump",
+        "cycle": 1,
+        "interval_ms": 1223,
+        "reading_count": 5,
+        "timestamp": "2026-07-20T07:19:58.386Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.38,
+        "correlation_id": "mh-20260720071954-12-1",
+        "sample": {
+          "heat_pump_power_kw": {
+            "value": 2.68,
+            "unit": "kW"
+          },
+          "indoor_temperature_c": {
+            "value": 20.4,
+            "unit": "C"
+          },
+          "target_temperature_c": {
+            "value": 21.5,
+            "unit": "C"
+          },
+          "flow_temperature_c": {
+            "value": 38.1,
+            "unit": "C"
+          },
+          "operating_mode_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-05",
+        "device_id": "mh-20260720071954-easee-05",
+        "device_type": "ev_charger",
+        "cycle": 2,
+        "interval_ms": 421,
+        "reading_count": 3,
+        "timestamp": "2026-07-20T07:19:58.447Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 10.91,
+        "correlation_id": "mh-20260720071954-14-2",
+        "sample": {
+          "ev_charging_power_kw": {
+            "value": 6.651,
+            "unit": "kW"
+          },
+          "energy_delivered_kwh": {
+            "value": 31.2636,
+            "unit": "kWh"
+          },
+          "charging_state_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-02",
+        "device_id": "mh-20260720071954-heat-pump-02",
+        "device_type": "heat_pump",
+        "cycle": 1,
+        "interval_ms": 1382,
+        "reading_count": 5,
+        "timestamp": "2026-07-20T07:19:58.555Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 14.09,
+        "correlation_id": "mh-20260720071954-06-1",
+        "sample": {
+          "heat_pump_power_kw": {
+            "value": 2.288,
+            "unit": "kW"
+          },
+          "indoor_temperature_c": {
+            "value": 19.8,
+            "unit": "C"
+          },
+          "target_temperature_c": {
+            "value": 21,
+            "unit": "C"
+          },
+          "flow_temperature_c": {
+            "value": 37.3,
+            "unit": "C"
+          },
+          "operating_mode_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-04",
+        "device_id": "mh-20260720071954-shelly-04",
+        "device_type": "shelly_plug",
+        "cycle": 2,
+        "interval_ms": 540,
+        "reading_count": 4,
+        "timestamp": "2026-07-20T07:19:58.817Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 14,
+        "correlation_id": "mh-20260720071954-10-2",
+        "sample": {
+          "active_power_kw": {
+            "value": 1.391,
+            "unit": "kW"
+          },
+          "voltage_v": {
+            "value": 231.2,
+            "unit": "V"
+          },
+          "current_a": {
+            "value": 6.02,
+            "unit": "A"
+          },
+          "energy_import_kwh": {
+            "value": 138.8033,
+            "unit": "kWh"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-05",
+        "device_id": "mh-20260720071954-heat-pump-05",
+        "device_type": "heat_pump",
+        "cycle": 2,
+        "interval_ms": 593,
+        "reading_count": 5,
+        "timestamp": "2026-07-20T07:19:58.971Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.84,
+        "correlation_id": "mh-20260720071954-15-2",
+        "sample": {
+          "heat_pump_power_kw": {
+            "value": 2.671,
+            "unit": "kW"
+          },
+          "indoor_temperature_c": {
+            "value": 20.7,
+            "unit": "C"
+          },
+          "target_temperature_c": {
+            "value": 21.8,
+            "unit": "C"
+          },
+          "flow_temperature_c": {
+            "value": 38.7,
+            "unit": "C"
+          },
+          "operating_mode_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-03",
+        "device_id": "mh-20260720071954-heat-pump-03",
+        "device_type": "heat_pump",
+        "cycle": 2,
+        "interval_ms": 752,
+        "reading_count": 5,
+        "timestamp": "2026-07-20T07:19:59.437Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 14.87,
+        "correlation_id": "mh-20260720071954-09-2",
+        "sample": {
+          "heat_pump_power_kw": {
+            "value": 2.432,
+            "unit": "kW"
+          },
+          "indoor_temperature_c": {
+            "value": 20.2,
+            "unit": "C"
+          },
+          "target_temperature_c": {
+            "value": 21.2,
+            "unit": "C"
+          },
+          "flow_temperature_c": {
+            "value": 39.1,
+            "unit": "C"
+          },
+          "operating_mode_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-01",
+        "device_id": "mh-20260720071954-shelly-01",
+        "device_type": "shelly_plug",
+        "cycle": 2,
+        "interval_ms": 800,
+        "reading_count": 4,
+        "timestamp": "2026-07-20T07:19:59.579Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.01,
+        "correlation_id": "mh-20260720071954-01-2",
+        "sample": {
+          "active_power_kw": {
+            "value": 0.981,
+            "unit": "kW"
+          },
+          "voltage_v": {
+            "value": 228.8,
+            "unit": "V"
+          },
+          "current_a": {
+            "value": 4.29,
+            "unit": "A"
+          },
+          "energy_import_kwh": {
+            "value": 97.7025,
+            "unit": "kWh"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-02",
+        "device_id": "mh-20260720071954-easee-02",
+        "device_type": "ev_charger",
+        "cycle": 2,
+        "interval_ms": 897,
+        "reading_count": 3,
+        "timestamp": "2026-07-20T07:19:59.887Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 11.54,
+        "correlation_id": "mh-20260720071954-05-2",
+        "sample": {
+          "ev_charging_power_kw": {
+            "value": 6.098,
+            "unit": "kW"
+          },
+          "energy_delivered_kwh": {
+            "value": 18.5158,
+            "unit": "kWh"
+          },
+          "charging_state_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-01",
+        "device_id": "mh-20260720071954-heat-pump-01",
+        "device_type": "heat_pump",
+        "cycle": 2,
+        "interval_ms": 912,
+        "reading_count": 5,
+        "timestamp": "2026-07-20T07:19:59.918Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 11.98,
+        "correlation_id": "mh-20260720071954-03-2",
+        "sample": {
+          "heat_pump_power_kw": {
+            "value": 2.168,
+            "unit": "kW"
+          },
+          "indoor_temperature_c": {
+            "value": 19.5,
+            "unit": "C"
+          },
+          "target_temperature_c": {
+            "value": 20.7,
+            "unit": "C"
+          },
+          "flow_temperature_c": {
+            "value": 37,
+            "unit": "C"
+          },
+          "operating_mode_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-04",
+        "device_id": "mh-20260720071954-easee-04",
+        "device_type": "ev_charger",
+        "cycle": 2,
+        "interval_ms": 946,
+        "reading_count": 3,
+        "timestamp": "2026-07-20T07:20:00.042Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.12,
+        "correlation_id": "mh-20260720071954-11-2",
+        "sample": {
+          "ev_charging_power_kw": {
+            "value": 6.899,
+            "unit": "kW"
+          },
+          "energy_delivered_kwh": {
+            "value": 27.0162,
+            "unit": "kWh"
+          },
+          "charging_state_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-03",
+        "device_id": "mh-20260720071954-shelly-03",
+        "device_type": "shelly_plug",
+        "cycle": 2,
+        "interval_ms": 994,
+        "reading_count": 4,
+        "timestamp": "2026-07-20T07:20:00.181Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.02,
+        "correlation_id": "mh-20260720071954-07-2",
+        "sample": {
+          "active_power_kw": {
+            "value": 1.379,
+            "unit": "kW"
+          },
+          "voltage_v": {
+            "value": 233.8,
+            "unit": "V"
+          },
+          "current_a": {
+            "value": 5.9,
+            "unit": "A"
+          },
+          "energy_import_kwh": {
+            "value": 125.1037,
+            "unit": "kWh"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-05",
+        "device_id": "mh-20260720071954-shelly-05",
+        "device_type": "shelly_plug",
+        "cycle": 2,
+        "interval_ms": 1188,
+        "reading_count": 4,
+        "timestamp": "2026-07-20T07:20:00.756Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 14.3,
+        "correlation_id": "mh-20260720071954-13-2",
+        "sample": {
+          "active_power_kw": {
+            "value": 1.375,
+            "unit": "kW"
+          },
+          "voltage_v": {
+            "value": 228.7,
+            "unit": "V"
+          },
+          "current_a": {
+            "value": 6.01,
+            "unit": "A"
+          },
+          "energy_import_kwh": {
+            "value": 152.5046,
+            "unit": "kWh"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-04",
+        "device_id": "mh-20260720071954-heat-pump-04",
+        "device_type": "heat_pump",
+        "cycle": 2,
+        "interval_ms": 1223,
+        "reading_count": 5,
+        "timestamp": "2026-07-20T07:20:00.849Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.71,
+        "correlation_id": "mh-20260720071954-12-2",
+        "sample": {
+          "heat_pump_power_kw": {
+            "value": 2.217,
+            "unit": "kW"
+          },
+          "indoor_temperature_c": {
+            "value": 20.4,
+            "unit": "C"
+          },
+          "target_temperature_c": {
+            "value": 21.5,
+            "unit": "C"
+          },
+          "flow_temperature_c": {
+            "value": 38.9,
+            "unit": "C"
+          },
+          "operating_mode_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      },
+      {
+        "household_id": "mh-20260720071954-household-02",
+        "device_id": "mh-20260720071954-heat-pump-02",
+        "device_type": "heat_pump",
+        "cycle": 2,
+        "interval_ms": 1382,
+        "reading_count": 5,
+        "timestamp": "2026-07-20T07:20:01.346Z",
+        "status_code": 202,
+        "accepted": true,
+        "gateway_response_ms": 13.11,
+        "correlation_id": "mh-20260720071954-06-2",
+        "sample": {
+          "heat_pump_power_kw": {
+            "value": 2.009,
+            "unit": "kW"
+          },
+          "indoor_temperature_c": {
+            "value": 19.8,
+            "unit": "C"
+          },
+          "target_temperature_c": {
+            "value": 21,
+            "unit": "C"
+          },
+          "flow_temperature_c": {
+            "value": 39.3,
+            "unit": "C"
+          },
+          "operating_mode_code": {
+            "value": 1,
+            "unit": "state_code"
+          }
+        }
+      }
+    ],
+    "gateway_latency_ms": {
+      "minimum": 10.56,
+      "average": 13.04,
+      "maximum": 17.3,
+      "p95": 14.87
+    },
+    "accepted_messages": 30,
+    "rejected_messages": 0,
+    "generated_readings": 120
+  },
+  "pipeline": {
+    "raw_telemetry": 30,
+    "normalized_telemetry": 120,
+    "semantic_events": 120,
+    "ieee20305_events": 120,
+    "semantic_unique_readings": 120,
+    "ieee20305_unique_readings": 120,
+    "semantic_duplicate_rows": 0,
+    "ieee20305_duplicate_rows": 0,
+    "unique_households": 5,
+    "unique_devices": 15,
+    "slm_calls": 120,
+    "slm_primary": 80,
+    "deterministic_fallback": 10,
+    "unmapped": 30,
+    "processing_errors": 0,
+    "raw_insert_latency_ms": {
+      "minimum": 7.08,
+      "average": 10.02,
+      "maximum": 18.92
+    },
+    "semantic_processing_ms": {
+      "minimum": 2219.08,
+      "average": 112863.29,
+      "maximum": 222256.91
+    },
+    "pipeline_latency_ms": {
+      "minimum": 2236.08,
+      "average": 112867.65,
+      "maximum": 222260.91
+    },
+    "first_received_at": "2026-07-20T07:19:57.515922+00:00",
+    "last_ieee_processed_at": "2026-07-20T07:23:43.615+00:00",
+    "fallback_reasons": [
+      {
+        "reason": "none",
+        "count": 80
+      },
+      {
+        "reason": "slm_rejected:saref_unit is incompatible with the normalized telemetry unit",
+        "count": 14
+      },
+      {
+        "reason": "slm_rejected:mapping_confidence low is below minimum medium",
+        "count": 13
+      },
+      {
+        "reason": "slm_rejected:saref_unit is incompatible with the normalized telemetry unit; SLM unit failed deterministic SAREF4ENER validation; SLM property failed deterministic SAREF4ENER validation",
+        "count": 5
+      },
+      {
+        "reason": "slm_rejected:SLM property failed deterministic SAREF4ENER validation",
+        "count": 5
+      },
+      {
+        "reason": "slm_rejected:saref_unit is not supported by the local semantic guardrails; saref_unit is incompatible with the normalized telemetry unit",
+        "count": 3
+      }
+    ],
+    "per_device": [
+      {
+        "household_id": "mh-20260720071954-household-01",
+        "device_id": "mh-20260720071954-easee-01",
+        "device_type": "ev_charger",
+        "telemetry_messages": 2,
+        "normalized_readings": 6,
+        "semantic_readings": 6,
+        "ieee_readings": 6
+      },
+      {
+        "household_id": "mh-20260720071954-household-01",
+        "device_id": "mh-20260720071954-heat-pump-01",
+        "device_type": "heat_pump",
+        "telemetry_messages": 2,
+        "normalized_readings": 10,
+        "semantic_readings": 10,
+        "ieee_readings": 10
+      },
+      {
+        "household_id": "mh-20260720071954-household-01",
+        "device_id": "mh-20260720071954-shelly-01",
+        "device_type": "shelly_plug",
+        "telemetry_messages": 2,
+        "normalized_readings": 8,
+        "semantic_readings": 8,
+        "ieee_readings": 8
+      },
+      {
+        "household_id": "mh-20260720071954-household-02",
+        "device_id": "mh-20260720071954-easee-02",
+        "device_type": "ev_charger",
+        "telemetry_messages": 2,
+        "normalized_readings": 6,
+        "semantic_readings": 6,
+        "ieee_readings": 6
+      },
+      {
+        "household_id": "mh-20260720071954-household-02",
+        "device_id": "mh-20260720071954-heat-pump-02",
+        "device_type": "heat_pump",
+        "telemetry_messages": 2,
+        "normalized_readings": 10,
+        "semantic_readings": 10,
+        "ieee_readings": 10
+      },
+      {
+        "household_id": "mh-20260720071954-household-02",
+        "device_id": "mh-20260720071954-shelly-02",
+        "device_type": "shelly_plug",
+        "telemetry_messages": 2,
+        "normalized_readings": 8,
+        "semantic_readings": 8,
+        "ieee_readings": 8
+      },
+      {
+        "household_id": "mh-20260720071954-household-03",
+        "device_id": "mh-20260720071954-easee-03",
+        "device_type": "ev_charger",
+        "telemetry_messages": 2,
+        "normalized_readings": 6,
+        "semantic_readings": 6,
+        "ieee_readings": 6
+      },
+      {
+        "household_id": "mh-20260720071954-household-03",
+        "device_id": "mh-20260720071954-heat-pump-03",
+        "device_type": "heat_pump",
+        "telemetry_messages": 2,
+        "normalized_readings": 10,
+        "semantic_readings": 10,
+        "ieee_readings": 10
+      },
+      {
+        "household_id": "mh-20260720071954-household-03",
+        "device_id": "mh-20260720071954-shelly-03",
+        "device_type": "shelly_plug",
+        "telemetry_messages": 2,
+        "normalized_readings": 8,
+        "semantic_readings": 8,
+        "ieee_readings": 8
+      },
+      {
+        "household_id": "mh-20260720071954-household-04",
+        "device_id": "mh-20260720071954-easee-04",
+        "device_type": "ev_charger",
+        "telemetry_messages": 2,
+        "normalized_readings": 6,
+        "semantic_readings": 6,
+        "ieee_readings": 6
+      },
+      {
+        "household_id": "mh-20260720071954-household-04",
+        "device_id": "mh-20260720071954-heat-pump-04",
+        "device_type": "heat_pump",
+        "telemetry_messages": 2,
+        "normalized_readings": 10,
+        "semantic_readings": 10,
+        "ieee_readings": 10
+      },
+      {
+        "household_id": "mh-20260720071954-household-04",
+        "device_id": "mh-20260720071954-shelly-04",
+        "device_type": "shelly_plug",
+        "telemetry_messages": 2,
+        "normalized_readings": 8,
+        "semantic_readings": 8,
+        "ieee_readings": 8
+      },
+      {
+        "household_id": "mh-20260720071954-household-05",
+        "device_id": "mh-20260720071954-easee-05",
+        "device_type": "ev_charger",
+        "telemetry_messages": 2,
+        "normalized_readings": 6,
+        "semantic_readings": 6,
+        "ieee_readings": 6
+      },
+      {
+        "household_id": "mh-20260720071954-household-05",
+        "device_id": "mh-20260720071954-heat-pump-05",
+        "device_type": "heat_pump",
+        "telemetry_messages": 2,
+        "normalized_readings": 10,
+        "semantic_readings": 10,
+        "ieee_readings": 10
+      },
+      {
+        "household_id": "mh-20260720071954-household-05",
+        "device_id": "mh-20260720071954-shelly-05",
+        "device_type": "shelly_plug",
+        "telemetry_messages": 2,
+        "normalized_readings": 8,
+        "semantic_readings": 8,
+        "ieee_readings": 8
+      }
+    ],
+    "duration_seconds": 226.1,
+    "telemetry_throughput_messages_per_second": 0.133,
+    "reading_throughput_per_second": 0.531,
+    "dropped_messages": 0,
+    "dropped_readings": 0,
+    "overall_success_rate_percent": 100
+  },
+  "load_management": {
+    "signal_id": "mh-20260720071954-signal",
+    "dso_status": "accepted",
+    "proposal_id": "89",
+    "actions": [
+      {
+        "action": "review",
+        "status": "reviewed"
+      },
+      {
+        "action": "approve",
+        "status": "approved"
+      },
+      {
+        "action": "mark-ready",
+        "status": "ready_to_dispatch"
+      }
+    ],
+    "command_evidence": {
+      "proposal_status": "ready_to_dispatch",
+      "approval_audit_rows": 3,
+      "mock_dispatch_rows": 1,
+      "device_command_rows": 3,
+      "no_real_execution": true,
+      "device_no_real_execution": true
+    },
+    "dataspace": {
+      "export_type": "full_pipeline_demo_summary",
+      "record_count": 100,
+      "minimization_applied": true,
+      "pseudonymization_applied": true,
+      "no_raw_private_payloads": true
+    }
+  },
+  "platform_status": {
+    "pipeline_status": "operational",
+    "kafka_status": "ok",
+    "kafka_topic_count": 18,
+    "timescaledb_status": "ok",
+    "ollama_status": "ok",
+    "slm_primary_enabled": true,
+    "no_real_device_control": true
+  },
+  "resources": {
+    "before": [
+      {
+        "container": "adflex-semantic-connector",
+        "cpu_percent": "2.43%",
+        "memory_usage": "20.92MiB / 7.621GiB",
+        "memory_percent": "0.27%",
+        "network_io": "604kB / 720kB",
+        "block_io": "0B / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-security-gateway",
+        "cpu_percent": "2.39%",
+        "memory_usage": "27.18MiB / 7.621GiB",
+        "memory_percent": "0.35%",
+        "network_io": "494kB / 602kB",
+        "block_io": "3.67MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-mqtt-subscriber",
+        "cpu_percent": "0.00%",
+        "memory_usage": "25.02MiB / 7.621GiB",
+        "memory_percent": "0.32%",
+        "network_io": "8.66kB / 4.91kB",
+        "block_io": "3.8MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-device-command-translator",
+        "cpu_percent": "2.61%",
+        "memory_usage": "24.31MiB / 7.621GiB",
+        "memory_percent": "0.31%",
+        "network_io": "74.9kB / 137kB",
+        "block_io": "3.53MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-mqtt-broker",
+        "cpu_percent": "0.02%",
+        "memory_usage": "1.449MiB / 7.621GiB",
+        "memory_percent": "0.02%",
+        "network_io": "9.08kB / 2.16kB",
+        "block_io": "4.51MB / 0B",
+        "processes": "1"
+      },
+      {
+        "container": "adflex-enode-simulator",
+        "cpu_percent": "0.00%",
+        "memory_usage": "14.5MiB / 7.621GiB",
+        "memory_percent": "0.19%",
+        "network_io": "8.89kB / 4.36kB",
+        "block_io": "16.3MB / 0B",
+        "processes": "7"
+      },
+      {
+        "container": "adflex-dataspace-export",
+        "cpu_percent": "2.25%",
+        "memory_usage": "21.32MiB / 7.621GiB",
+        "memory_percent": "0.27%",
+        "network_io": "200kB / 305kB",
+        "block_io": "3.27MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-shelly-simulator",
+        "cpu_percent": "0.00%",
+        "memory_usage": "16.58MiB / 7.621GiB",
+        "memory_percent": "0.21%",
+        "network_io": "8.71kB / 4.26kB",
+        "block_io": "24.9MB / 0B",
+        "processes": "7"
+      },
+      {
+        "container": "adflex-ingestion-api",
+        "cpu_percent": "2.26%",
+        "memory_usage": "18.51MiB / 7.621GiB",
+        "memory_percent": "0.24%",
+        "network_io": "56.2kB / 46.9kB",
+        "block_io": "3.01MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-engine",
+        "cpu_percent": "2.44%",
+        "memory_usage": "20.25MiB / 7.621GiB",
+        "memory_percent": "0.26%",
+        "network_io": "102kB / 330kB",
+        "block_io": "6.03MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-heat-pump-simulator",
+        "cpu_percent": "0.00%",
+        "memory_usage": "14.22MiB / 7.621GiB",
+        "memory_percent": "0.18%",
+        "network_io": "8.83kB / 4.55kB",
+        "block_io": "17.2MB / 0B",
+        "processes": "7"
+      },
+      {
+        "container": "adflex-aggregator",
+        "cpu_percent": "2.45%",
+        "memory_usage": "24MiB / 7.621GiB",
+        "memory_percent": "0.31%",
+        "network_io": "366kB / 225kB",
+        "block_io": "3.92MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-mock-dispatch-adapter",
+        "cpu_percent": "2.53%",
+        "memory_usage": "23.11MiB / 7.621GiB",
+        "memory_percent": "0.30%",
+        "network_io": "62.3kB / 98.6kB",
+        "block_io": "3.52MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-ieee20305-translator",
+        "cpu_percent": "2.50%",
+        "memory_usage": "25.22MiB / 7.621GiB",
+        "memory_percent": "0.32%",
+        "network_io": "529kB / 1.48MB",
+        "block_io": "3.65MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-approval-workflow",
+        "cpu_percent": "2.48%",
+        "memory_usage": "23.9MiB / 7.621GiB",
+        "memory_percent": "0.31%",
+        "network_io": "143kB / 146kB",
+        "block_io": "3.64MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-kafka",
+        "cpu_percent": "0.67%",
+        "memory_usage": "569.1MiB / 7.621GiB",
+        "memory_percent": "7.29%",
+        "network_io": "1.88MB / 981kB",
+        "block_io": "38.4MB / 6.3MB",
+        "processes": "106"
+      },
+      {
+        "container": "adflex-timescaledb",
+        "cpu_percent": "0.00%",
+        "memory_usage": "54.64MiB / 7.621GiB",
+        "memory_percent": "0.70%",
+        "network_io": "1.67MB / 763kB",
+        "block_io": "43MB / 11.8MB",
+        "processes": "9"
+      },
+      {
+        "container": "adflex-zookeeper",
+        "cpu_percent": "0.15%",
+        "memory_usage": "176.6MiB / 7.621GiB",
+        "memory_percent": "2.26%",
+        "network_io": "47.4kB / 45kB",
+        "block_io": "71.6MB / 774kB",
+        "processes": "132"
+      }
+    ],
+    "after": [
+      {
+        "container": "adflex-semantic-connector",
+        "cpu_percent": "2.24%",
+        "memory_usage": "37.75MiB / 7.621GiB",
+        "memory_percent": "0.48%",
+        "network_io": "1.76MB / 2.11MB",
+        "block_io": "0B / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-security-gateway",
+        "cpu_percent": "2.04%",
+        "memory_usage": "29.93MiB / 7.621GiB",
+        "memory_percent": "0.38%",
+        "network_io": "742kB / 930kB",
+        "block_io": "3.67MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-mqtt-subscriber",
+        "cpu_percent": "0.00%",
+        "memory_usage": "25.09MiB / 7.621GiB",
+        "memory_percent": "0.32%",
+        "network_io": "9.49kB / 5.78kB",
+        "block_io": "3.8MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-device-command-translator",
+        "cpu_percent": "2.14%",
+        "memory_usage": "27.53MiB / 7.621GiB",
+        "memory_percent": "0.35%",
+        "network_io": "100kB / 190kB",
+        "block_io": "3.53MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-mqtt-broker",
+        "cpu_percent": "0.02%",
+        "memory_usage": "1.453MiB / 7.621GiB",
+        "memory_percent": "0.02%",
+        "network_io": "10.2kB / 2.77kB",
+        "block_io": "4.51MB / 0B",
+        "processes": "1"
+      },
+      {
+        "container": "adflex-enode-simulator",
+        "cpu_percent": "0.00%",
+        "memory_usage": "14.6MiB / 7.621GiB",
+        "memory_percent": "0.19%",
+        "network_io": "9.9kB / 6.01kB",
+        "block_io": "16.3MB / 0B",
+        "processes": "7"
+      },
+      {
+        "container": "adflex-dataspace-export",
+        "cpu_percent": "2.35%",
+        "memory_usage": "22.82MiB / 7.621GiB",
+        "memory_percent": "0.29%",
+        "network_io": "299kB / 454kB",
+        "block_io": "3.27MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-shelly-simulator",
+        "cpu_percent": "0.00%",
+        "memory_usage": "16.68MiB / 7.621GiB",
+        "memory_percent": "0.21%",
+        "network_io": "9.7kB / 5.87kB",
+        "block_io": "24.9MB / 0B",
+        "processes": "7"
+      },
+      {
+        "container": "adflex-ingestion-api",
+        "cpu_percent": "2.16%",
+        "memory_usage": "19.25MiB / 7.621GiB",
+        "memory_percent": "0.25%",
+        "network_io": "103kB / 90.4kB",
+        "block_io": "3.01MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-engine",
+        "cpu_percent": "2.33%",
+        "memory_usage": "21.58MiB / 7.621GiB",
+        "memory_percent": "0.28%",
+        "network_io": "175kB / 631kB",
+        "block_io": "6.03MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-heat-pump-simulator",
+        "cpu_percent": "0.00%",
+        "memory_usage": "14.32MiB / 7.621GiB",
+        "memory_percent": "0.18%",
+        "network_io": "9.82kB / 6.31kB",
+        "block_io": "17.2MB / 0B",
+        "processes": "7"
+      },
+      {
+        "container": "adflex-aggregator",
+        "cpu_percent": "2.23%",
+        "memory_usage": "25.92MiB / 7.621GiB",
+        "memory_percent": "0.33%",
+        "network_io": "497kB / 306kB",
+        "block_io": "3.92MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-mock-dispatch-adapter",
+        "cpu_percent": "2.17%",
+        "memory_usage": "24.97MiB / 7.621GiB",
+        "memory_percent": "0.32%",
+        "network_io": "81.3kB / 134kB",
+        "block_io": "3.52MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-ieee20305-translator",
+        "cpu_percent": "2.18%",
+        "memory_usage": "29.52MiB / 7.621GiB",
+        "memory_percent": "0.38%",
+        "network_io": "1.01MB / 2.9MB",
+        "block_io": "3.65MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-approval-workflow",
+        "cpu_percent": "2.25%",
+        "memory_usage": "25.84MiB / 7.621GiB",
+        "memory_percent": "0.33%",
+        "network_io": "202kB / 206kB",
+        "block_io": "3.64MB / 0B",
+        "processes": "11"
+      },
+      {
+        "container": "adflex-kafka",
+        "cpu_percent": "0.86%",
+        "memory_usage": "571MiB / 7.621GiB",
+        "memory_percent": "7.32%",
+        "network_io": "3.35MB / 1.69MB",
+        "block_io": "38.4MB / 9.18MB",
+        "processes": "105"
+      },
+      {
+        "container": "adflex-timescaledb",
+        "cpu_percent": "0.02%",
+        "memory_usage": "99.29MiB / 7.621GiB",
+        "memory_percent": "1.27%",
+        "network_io": "3.13MB / 1.12MB",
+        "block_io": "43MB / 17.8MB",
+        "processes": "26"
+      },
+      {
+        "container": "adflex-zookeeper",
+        "cpu_percent": "0.22%",
+        "memory_usage": "176.8MiB / 7.621GiB",
+        "memory_percent": "2.27%",
+        "network_io": "53.2kB / 48.4kB",
+        "block_io": "71.6MB / 967kB",
+        "processes": "132"
+      }
+    ],
+    "note": "Point-in-time Docker resource samples; not peak utilization measurements."
+  },
+  "safety": {
+    "real_device_control": false,
+    "mock_dispatch_only": true,
+    "certified_ieee20305": false,
+    "certified_enershare": false,
+    "aws_deployed": false
+  }
+}

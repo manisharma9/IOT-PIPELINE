@@ -33,6 +33,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: ${KAFKA_DEFAULT_PARTITIONS:-12}
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
@@ -50,7 +51,7 @@ services:
     ports:
       - "1883:1883"
     volumes:
-      - ./services/mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./services/mqtt-broker/mosquitto.conf/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     restart: unless-stopped
 
   timescaledb:
@@ -138,7 +139,6 @@ services:
     build:
       context: .
       dockerfile: services/semantic-connector/Dockerfile
-    container_name: adflex-semantic-connector
     depends_on:
       kafka:
         condition: service_healthy
@@ -150,13 +150,33 @@ services:
       SEMANTIC_CONNECTOR_GROUP_ID: ${SEMANTIC_CONNECTOR_GROUP_ID:-saref4ener-semantic-connector}
       NORMALIZED_TELEMETRY_TOPIC: ${NORMALIZED_TELEMETRY_TOPIC:-normalized.telemetry}
       SEMANTIC_ENRICHED_TOPIC: ${SEMANTIC_ENRICHED_TOPIC:-semantic.enriched}
+      SEMANTIC_RETRY_TOPIC: ${SEMANTIC_RETRY_TOPIC:-semantic.mapping.retry}
+      SEMANTIC_DLQ_TOPIC: ${SEMANTIC_DLQ_TOPIC:-semantic.mapping.dlq}
       SLM_ENABLED: ${SLM_ENABLED:-true}
       SLM_PRIMARY: ${SLM_PRIMARY:-true}
+      SLM_PROVIDER: ${SLM_PROVIDER:-ollama}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       SLM_MODEL: ${SLM_MODEL:-phi3:mini}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-phi3:mini}
       SLM_TIMEOUT_MS: ${SLM_TIMEOUT_MS:-30000}
-      SLM_MIN_CONFIDENCE: ${SLM_MIN_CONFIDENCE:-medium}
+      SLM_MIN_CONFIDENCE: ${SLM_MIN_CONFIDENCE:-0.70}
+      SLM_BATCH_MAX_READINGS: ${SLM_BATCH_MAX_READINGS:-128}
+      SLM_BATCH_MAX_WAIT_MS: ${SLM_BATCH_MAX_WAIT_MS:-20}
+      SLM_BATCH_MAX_PROMPT_TOKENS: ${SLM_BATCH_MAX_PROMPT_TOKENS:-4096}
+      SLM_BATCH_MAX_RETRIES: ${SLM_BATCH_MAX_RETRIES:-2}
+      SLM_MAX_OUTPUT_TOKENS: ${SLM_MAX_OUTPUT_TOKENS:-8192}
+      SLM_PROVIDER_MAX_CONCURRENCY: ${SLM_PROVIDER_MAX_CONCURRENCY:-1}
+      SLM_CIRCUIT_FAILURE_THRESHOLD: ${SLM_CIRCUIT_FAILURE_THRESHOLD:-5}
+      SLM_CIRCUIT_COOLDOWN_MS: ${SLM_CIRCUIT_COOLDOWN_MS:-30000}
+      SLM_WARMUP_ENABLED: ${SLM_WARMUP_ENABLED:-true}
+      VLLM_BASE_URL: ${VLLM_BASE_URL:-http://host.docker.internal:8000}
+      VLLM_MODEL: ${VLLM_MODEL:-microsoft/Phi-3-mini-4k-instruct}
+      VLLM_API_KEY: ${VLLM_API_KEY:-}
+      SEMANTIC_PARTITIONS_CONCURRENTLY: ${SEMANTIC_PARTITIONS_CONCURRENTLY:-2}
+      SEMANTIC_KAFKA_SESSION_TIMEOUT_MS: ${SEMANTIC_KAFKA_SESSION_TIMEOUT_MS:-180000}
+      SEMANTIC_KAFKA_HEARTBEAT_MS: ${SEMANTIC_KAFKA_HEARTBEAT_MS:-3000}
+      SEMANTIC_KAFKA_MAX_BYTES_PER_PARTITION: ${SEMANTIC_KAFKA_MAX_BYTES_PER_PARTITION:-1048576}
+      TIMESCALE_POOL_SIZE: ${SEMANTIC_TIMESCALE_POOL_SIZE:-10}
       TIMESCALE_HOST: timescaledb
       TIMESCALE_PORT: 5432
       TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}
@@ -429,6 +449,10 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
       DATASPACE_API_KEY: ${DATASPACE_API_KEY:-local-dev-dataspace-key}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-phi3:mini}
+      SLM_MODEL: ${SLM_MODEL:-phi3:mini}
+      SLM_PRIMARY: ${SLM_PRIMARY:-true}
       KAFKA_BROKER: kafka:29092
       KAFKA_BROKERS: kafka:29092
       KAFKA_CLIENT_ID: adflex-security-gateway

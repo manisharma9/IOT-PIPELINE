@@ -1,0 +1,5 @@
+arrival_readings_per_second,completion_readings_per_second,configured_devices,duplicate_ieee_ids,duplicate_semantic_ids,end_to_end_p50_ms,end_to_end_p95_ms,end_to_end_p99_ms,final_kafka_lag,households,mapped_readings,maximum_kafka_lag,normalized_readings,processing_errors,represented_devices,run_id,safely_unmapped_readings,slm_called_readings,slm_invocation_percentage,slm_p50_ms,slm_p95_ms,slm_p99_ms,status,telemetry_messages
+6.664,0.276,100,0,0,631933.5,1131163.3,1213723.64,112,34,123,397,400,0,100,scale-100-2026-07-20T13-56-57-347Z,221,344,86,21632.07753200014,77128,88899,failed,100
+,,1000,,,,,,,,,,,,,,,,,,,,not_run_due_to_prior_gate,
+,,5000,,,,,,,,,,,,,,,,,,,,not_run_due_to_prior_gate,
+,,10000,,,,,,,,,,,,,,,,,,,,not_run_due_to_prior_gate,

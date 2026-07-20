@@ -2,7 +2,7 @@
   "name": "adflex-semantic-connector",
   "version": "0.2.0",
   "private": true,
-  "description": "Local SLM-primary semantic connector with deterministic SAREF4ENER validation and fallback.",
+  "description": "Mandatory SLM-first semantic connector with deterministic SAREF4ENER validation guardrails.",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

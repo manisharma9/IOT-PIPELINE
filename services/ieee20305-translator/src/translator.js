@@ -200,6 +200,7 @@ function buildInvalidSemanticTranslation(rawEvent, errors, options = {}) {
   const eventTime = normalizeTimestamp(rawEvent && rawEvent.event_time, processedAt);
 
   return {
+    reading_id: rawEvent && rawEvent.reading_id ? String(rawEvent.reading_id) : null,
     event_time: eventTime,
     processed_at: processedAt,
     source_topic: options.sourceTopic || "semantic.enriched",
@@ -254,6 +255,7 @@ function translateSemanticEvent(event, options = {}) {
       id: event.community_id
     },
     measurement: {
+      reading_id: event.reading_id || null,
       name: event.reading_name,
       value: event.reading_value,
       unit: event.reading_unit || event.saref_unit || null
@@ -266,6 +268,7 @@ function translateSemanticEvent(event, options = {}) {
   };
 
   return {
+    reading_id: event.reading_id || null,
     event_time: eventTime,
     processed_at: processedAt,
     source_topic: options.sourceTopic || "semantic.enriched",
@@ -397,6 +400,7 @@ function translateGridSignal(signal, options = {}) {
     status: "translated",
     errors: [],
     event: {
+      reading_id: null,
       event_time: eventTime,
       processed_at: processedAt,
       source_topic: options.sourceTopic || "http.post./dso/grid-signal",

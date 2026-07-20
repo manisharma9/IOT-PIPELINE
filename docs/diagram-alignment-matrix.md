@@ -18,8 +18,8 @@ This matrix maps the final architecture diagram components to the local reposito
 | MQTT broker | Mosquitto container | `services/mqtt-broker` | AWS IoT Core or broker container | Local-ready | Production MQTT choice |
 | Apache Kafka | Kafka container | `docker-compose.yml` | Amazon MSK or managed/self-hosted Kafka | Local-ready | Cluster sizing and auth |
 | Engine | Normalization service | `services/engine` | ECS/Fargate service | Complete locally | Production scaling |
-| SLM semantic connector | Local Phi-3 Mini primary semantic interpretation with deterministic validation and fallback | `services/semantic-connector` | ECS/Fargate plus private model endpoint | Complete locally | Production model hosting policy |
-| SAREF4ENER | Deterministic validation and fallback mapping | `services/semantic-connector/src/saref4ener-mapping.js` | Same service/library | Complete locally | Vocabulary governance |
+| SLM semantic connector | Mandatory reading-level inference through Ollama or a vLLM-compatible provider | `services/semantic-connector` | ECS/Fargate workers plus private GPU model endpoint | Complete locally; high-scale capacity not validated | Production model hosting and GPU profile |
+| SAREF4ENER | Deterministic post-inference validation, rejection, and retry guidance | `services/semantic-connector/src/saref4ener-mapping.js` | Same service/library | Complete locally | Vocabulary governance |
 | PostgreSQL/Timescale hypertables | TimescaleDB container and migrations | `database/timescale` | Managed Timescale/Postgres or staging DB | Local-ready | Managed database decision |
 | IEEE 2030.5 translator | Simplified translator foundation | `services/ieee20305-translator` | ECS/Fargate service behind private API | Complete locally | Certification decision if required |
 | DSO request parser | `/dso/grid-signal` through gateway | `services/ieee20305-translator` | API Gateway route to service | Local-ready | DSO auth and contracts |

@@ -33,6 +33,7 @@ import { Badge, Card, CopyJsonButton, EmptyState, JsonViewer, LoadingButton, Pag
 
 type ViewName =
   | "overview"
+  | "scalability"
   | "architecture"
   | "security"
   | "telemetry"
@@ -84,6 +85,30 @@ function getArray(value: unknown, key: string) {
 
 function getData(envelope: ApiEnvelope | null) {
   return envelope?.data;
+}
+
+function getPlatform(envelope: ApiEnvelope | null) {
+  return asRecord(asRecord(getData(envelope)).platform);
+}
+
+function formatNumber(value: unknown) {
+  const number = Number(value || 0);
+  return Number.isFinite(number) ? number.toLocaleString() : "0";
+}
+
+function formatDateTime(value: unknown) {
+  if (!value) return "No events yet";
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
+}
+
+function toneForStatus(status: unknown): "emerald" | "blue" | "amber" | "rose" | "neutral" {
+  const value = String(status || "").toLowerCase();
+  if (["ok", "online", "operational", "available", "stored", "slm_primary", "mapped", "ready_to_dispatch"].includes(value)) return "emerald";
+  if (["active", "enabled", "prepared", "reviewed", "approved"].includes(value)) return "blue";
+  if (["degraded", "waiting_for_exports", "deterministic_fallback", "unmapped", "safely_unmapped"].includes(value)) return "amber";
+  if (["unavailable", "error", "failed", "blocked", "rejected"].includes(value)) return "rose";
+  return "neutral";
 }
 
 async function fetchJson(path: string, options?: RequestInit): Promise<ApiEnvelope> {
@@ -168,6 +193,7 @@ function SelectInput({
 
 export function DashboardView({ view }: DashboardViewProps) {
   if (view === "overview") return <OverviewPage />;
+  if (view === "scalability") return <ScalabilityPage />;
   if (view === "architecture") return <ArchitecturePage />;
   if (view === "security") return <SecurityPage />;
   if (view === "telemetry") return <TelemetryPage />;
@@ -183,44 +209,287 @@ export function DashboardView({ view }: DashboardViewProps) {
 }
 
 function OverviewPage() {
-  const [health, setHealth] = useState<ApiEnvelope | null>(null);
-  const [proposals, setProposals] = useState<ApiEnvelope | null>(null);
-  const [exportData, setExportData] = useState<ApiEnvelope | null>(null);
+  const [platformStatus, setPlatformStatus] = useState<ApiEnvelope | null>(null);
+  const [blockedResult, setBlockedResult] = useState<ApiEnvelope | null>(null);
+  const [dataspaceResult, setDataspaceResult] = useState<ApiEnvelope | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  async function refresh() {
+    setLoading(true);
+    setPlatformStatus(await fetchJson("/api/platform/status"));
+    setLoading(false);
+  }
 
   useEffect(() => {
-    Promise.all([
-      fetchJson("/api/health"),
-      fetchJson("/api/dispatch/proposals?limit=5"),
-      fetchJson("/api/dataspace/export?asset=full&limit=5")
-    ])
-      .then(([healthResult, proposalResult, exportResult]) => {
-        setHealth(healthResult);
-        setProposals(proposalResult);
-        setExportData(exportResult);
+    let active = true;
+    fetchJson("/api/platform/status")
+      .then((result) => {
+        if (active) {
+          setPlatformStatus(result);
+        }
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const downstream = getArray(asRecord(getData(health)).downstream, "none");
-  const proposalCount = getArray(getData(proposals), "proposals").length;
+  const platform = getPlatform(platformStatus);
+  const services = asRecord(platform.services);
+  const downstream = Array.isArray(services.downstream) ? (services.downstream as Record<string, unknown>[]) : [];
+  const storage = asRecord(platform.storage);
+  const tableCounts = asRecord(storage.table_counts);
+  const latest = asRecord(storage.latest);
+  const kafka = asRecord(platform.kafka);
+  const semantic = asRecord(platform.semantic);
+  const semanticCounts = asRecord(semantic.counts);
+  const ollama = asRecord(semantic.ollama);
+  const security = asRecord(platform.security);
+  const loadManagement = asRecord(platform.load_management);
+  const dataspace = asRecord(platform.dataspace);
+  const pipelineBlocks = Array.isArray(platform.pipeline_blocks) ? (platform.pipeline_blocks as Record<string, unknown>[]) : [];
+  const devices = Array.isArray(platform.devices) ? (platform.devices as Record<string, unknown>[]) : [];
+  const topics = Array.isArray(kafka.topics) ? kafka.topics as string[] : [];
+  const latestMappings = Array.isArray(semantic.latest_mappings) ? semantic.latest_mappings as Record<string, unknown>[] : [];
+  const securityRows = Array.isArray(security.latest_audit_rows) ? security.latest_audit_rows as Record<string, unknown>[] : [];
+  const latestProposals = Array.isArray(loadManagement.latest_proposals) ? loadManagement.latest_proposals as Record<string, unknown>[] : [];
+  const mockResults = Array.isArray(loadManagement.mock_dispatch_results) ? loadManagement.mock_dispatch_results as Record<string, unknown>[] : [];
+  const deviceCommands = Array.isArray(loadManagement.device_command_outputs) ? loadManagement.device_command_outputs as Record<string, unknown>[] : [];
+  const latestExports = Array.isArray(dataspace.latest_exports) ? dataspace.latest_exports as Record<string, unknown>[] : [];
+
+  async function showBlockedExample() {
+    setActionLoading("blocked");
+    setBlockedResult(await fetchJson("/api/security/blocked-test", { method: "POST", body: "{}" }));
+    setActionLoading(null);
+  }
+
+  async function showDataspaceSample() {
+    setActionLoading("dataspace");
+    setDataspaceResult(await fetchJson("/api/dataspace/export?asset=full&limit=5"));
+    setActionLoading(null);
+  }
 
   return (
     <>
       <PageHeader
         eyebrow="Executive overview"
-        title="Production-style DSO communication pipeline"
-        description="A client-facing view of telemetry ingestion, semantic translation, grid signaling, approval governance, safe mock dispatch, simulated device API translation, and minimized dataspace export."
+        title="Live Smart Grid Communication Pipeline"
+        description="Client-facing status for telemetry, security, Kafka, SLM-primary semantic mapping, TimescaleDB storage, DSO workflow, safe mock dispatch, simulated device API translation, and dataspace-ready export."
       />
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <LoadingButton loading={loading} onClick={refresh}>
+          <RefreshCw className="h-4 w-4" />
+          Refresh latest records
+        </LoadingButton>
+        <Badge tone={toneForStatus(platform.pipeline_status)}>
+          Pipeline {String(platform.pipeline_status || (loading ? "checking" : "offline"))}
+        </Badge>
+        <Badge tone="emerald">No real device control</Badge>
+        <Badge tone="blue">Gateway-only browser path</Badge>
+      </div>
+
+      {platformStatus?.error ? (
+        <div className="mb-5">
+          <EmptyState title="Platform status unavailable" message={platformStatus.message || "The dashboard is online, but the gateway status endpoint could not be reached. Panels below will remain in safe empty states."} />
+        </div>
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card title="Security gateway" value={health?.ok ? "Online" : loading ? "Checking" : "Unavailable"} description="External traffic enters through the local edge only." tone={health?.ok ? "emerald" : "amber"} />
-        <Card title="Active components" value={String(downstream.length || 7)} description="Gateway health summarizes downstream services." tone="blue" />
-        <Card title="Latest proposals" value={String(proposalCount)} description="Proposal records available through the gateway." />
-        <Card title="Dataspace export" value={exportData?.ok ? "Ready" : "Pending data"} description="Minimized summaries, no raw private payloads." tone={exportData?.ok ? "emerald" : "amber"} />
+        <Card title="Pipeline status" value={String(platform.pipeline_status || "Checking")} description="Overall live status from the security gateway." tone={toneForStatus(platform.pipeline_status)} />
+        <Card title="Services healthy" value={`${downstream.filter((service) => service.status === "ok").length}/${downstream.length || 7}`} description="Downstream service health through the gateway." tone="blue" />
+        <Card title="Telemetry processed" value={formatNumber(tableCounts.raw_telemetry)} description="Raw telemetry rows stored in TimescaleDB." tone="emerald" />
+        <Card title="SLM mandatory status" value={ollama.phi3_mini_available ? "Phi-3 Mini active" : "Inference unavailable"} description="Every reading enters the SLM. Failed results are retried, then marked safely unmapped." tone={ollama.phi3_mini_available ? "emerald" : "amber"} />
+        <Card title="Kafka status" value={String(kafka.status || "Checking")} description={`${formatNumber(kafka.topic_count || topics.length)} topics visible`} tone={toneForStatus(kafka.status)} />
+        <Card title="TimescaleDB status" value={String(storage.status || "Checking")} description={`${formatNumber(tableCounts.semantic_events)} semantic events stored`} tone={toneForStatus(storage.status)} />
+        <Card title="Security gateway" value={String(asRecord(services.gateway).status || "Checking")} description={`${formatNumber(security.accepted_requests)} accepted, ${formatNumber(security.rejected_requests)} rejected`} tone={toneForStatus(asRecord(services.gateway).status)} />
+        <Card title="Active simulators" value={String(devices.length || 4)} description="Shelly Plug, Enode / Easee, Heat Pump, and unknown telemetry support." tone="blue" />
       </div>
 
       <div className="mt-6 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card title="Pipeline readiness trend" description="Illustrative readiness by pipeline capability.">
+        <Card title="Live pipeline flow" description="Each block reports live status and latest known event time where available.">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {pipelineBlocks.map((block) => (
+              <div key={String(block.id)} className="rounded-md border border-white/10 bg-black/20 p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-semibold text-white">{String(block.label)}</p>
+                  <Badge tone={toneForStatus(block.status)}>{String(block.status || "unknown")}</Badge>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-slate-400">{String(block.purpose || "")}</p>
+                <p className="mt-3 text-xs text-slate-500">Latest: {formatDateTime(block.latest_event_time)}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card title="Service health" description="Gateway health summary for internal services.">
+          <div className="space-y-3">
+            {downstream.length ? downstream.map((service) => (
+              <StateLine key={String(service.service)} ok={service.status === "ok"} label={String(service.service)} detail={`Status ${String(service.status)} | HTTP ${String(service.status_code || "n/a")}`} />
+            )) : <EmptyState title="No health rows yet" message="Start the Docker stack or refresh the dashboard." />}
+          </div>
+        </Card>
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+        <Card title="Device simulator insights" description="Latest telemetry and semantic/storage status for simulated and unknown valid telemetry devices.">
+          <div className="grid gap-3 md:grid-cols-2">
+            {devices.length ? devices.map((device) => (
+              <div key={String(device.device_id)} className="rounded-md border border-white/10 bg-black/20 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-white">{String(device.device_id)}</p>
+                  <Badge tone={toneForStatus(device.semantic_status)}>{String(device.semantic_status || "unknown")}</Badge>
+                </div>
+                <p className="mt-1 text-xs text-slate-400">{String(device.device_type)} | {String(device.latest_reading)} = {String(device.value)} {String(device.unit || "")}</p>
+                <p className="mt-2 text-xs text-slate-500">Last message: {formatDateTime(device.last_message_time)}</p>
+                <p className="mt-1 text-xs text-slate-500">Storage: {String(device.storage_status || "unknown")} | Confidence: {String(device.mapping_confidence || "n/a")}</p>
+              </div>
+            )) : <EmptyState title="No device telemetry yet" message="Run the full demo or send telemetry from the console." />}
+          </div>
+        </Card>
+        <Card title="SLM semantic intelligence" description="Phi-3 Mini is the mandatory primary semantic mapper. Deterministic SAREF4ENER logic validates model output and never creates a replacement mapping.">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricTile label="Ollama" value={String(ollama.status || "checking")} tone={toneForStatus(ollama.status)} />
+            <MetricTile label="Phi-3 Mini" value={ollama.phi3_mini_available ? "Available" : "Unavailable"} tone={ollama.phi3_mini_available ? "emerald" : "amber"} />
+            <MetricTile label="SLM calls" value={formatNumber(semanticCounts.slm_call_count)} />
+            <MetricTile label="SLM mappings" value={formatNumber(semanticCounts.successful_slm_mappings)} tone="emerald" />
+            <MetricTile label="Safely unmapped" value={formatNumber(semanticCounts.unmapped_count)} tone={Number(semanticCounts.unmapped_count || 0) ? "amber" : "emerald"} />
+            <MetricTile label="Validation role" value="Guardrail only" tone="blue" />
+            <MetricTile label="Model" value={String(ollama.model || "phi3:mini")} tone="blue" />
+            <MetricTile label="Role" value="Mandatory SLM" detail="No deterministic replacement mappings." tone="emerald" />
+          </div>
+          <div className="mt-4 space-y-3">
+            {latestMappings.slice(0, 5).map((row, index) => (
+              <div key={index} className="rounded-md border border-white/10 bg-black/20 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-white">{String(row.reading_name)} on {String(row.device_id)}</p>
+                  <Badge tone={toneForStatus(row.mapping_source)}>{String(row.mapping_source)}</Badge>
+                </div>
+                <p className="mt-2 text-xs text-slate-400">{String(row.saref4ener_concept)} | confidence {String(row.mapping_confidence)} | fallback {String(row.fallback_reason || "none")}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-2">
+        <Card title="Security gateway insights" description="Accepted, rejected, blocked, rate-limited, and correlated requests from gateway audit metadata.">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <MetricTile label="Accepted" value={formatNumber(security.accepted_requests)} tone="emerald" />
+            <MetricTile label="Rejected" value={formatNumber(security.rejected_requests)} tone="amber" />
+            <MetricTile label="Blocked unsafe" value={formatNumber(security.blocked_unsafe_payloads)} tone="rose" />
+            <MetricTile label="Rate limited" value={formatNumber(security.rate_limited_requests)} tone="amber" />
+            <MetricTile label="Correlation IDs" value={formatNumber(security.correlation_id_count)} tone="blue" />
+          </div>
+          <div className="mt-4 space-y-2">
+            {securityRows.slice(0, 5).map((row, index) => (
+              <div key={index} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-white/10 bg-black/20 p-3 text-xs">
+                <span className="font-mono text-slate-300">{String(row.correlation_id || "no-correlation")}</span>
+                <Badge tone={toneForStatus(row.decision)}>{String(row.decision)} / {String(row.status_code)}</Badge>
+                <span className="text-slate-400">{String(row.reason || row.route || "")}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card title="Kafka and storage insights" description="Live topics and TimescaleDB row counts for pipeline persistence.">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <MetricTile label="Raw telemetry" value={formatNumber(tableCounts.raw_telemetry)} />
+            <MetricTile label="Semantic events" value={formatNumber(tableCounts.semantic_events)} />
+            <MetricTile label="Audit rows" value={formatNumber(tableCounts.security_gateway_audit)} />
+            <MetricTile label="Dispatch rows" value={formatNumber(tableCounts.dispatch_commands)} />
+            <MetricTile label="Dataspace exports" value={formatNumber(tableCounts.dataspace_exports)} />
+            <MetricTile label="Processing errors" value={formatNumber(tableCounts.processing_errors)} tone={Number(tableCounts.processing_errors || 0) ? "rose" : "emerald"} />
+          </div>
+          <div className="mt-4">
+            <p className="mb-2 text-xs uppercase tracking-[0.16em] text-slate-500">Kafka topics</p>
+            <div className="flex max-h-32 flex-wrap gap-2 overflow-auto">
+              {topics.map((topic) => <Badge key={topic} tone="blue">{topic}</Badge>)}
+            </div>
+            <p className="mt-3 text-xs text-slate-500">Latest raw telemetry: {formatDateTime(latest.latest_raw_telemetry_time)}</p>
+            <p className="mt-1 text-xs text-slate-500">Latest semantic event: {formatDateTime(latest.latest_semantic_event_time)}</p>
+          </div>
+        </Card>
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_1fr]">
+        <Card title="DSO and load management" description="IEEE 2030.5-style translator, aggregator proposals, approval states, mock dispatch, and device command translation output.">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricTile label="Proposals" value={formatNumber(tableCounts.dispatch_commands)} />
+            <MetricTile label="Approval audit" value={formatNumber(tableCounts.dispatch_approval_audit)} />
+            <MetricTile label="Mock results" value={formatNumber(tableCounts.dispatch_execution_audit)} />
+            <MetricTile label="Device command audit" value={formatNumber(tableCounts.device_command_audit)} />
+          </div>
+          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+            <MiniList title="Latest proposals" rows={latestProposals} primary="status" secondary="proposed_action" />
+            <MiniList title="Mock dispatch results" rows={mockResults} primary="simulation_status" secondary="execution_mode" />
+            <MiniList title="Device translator output" rows={deviceCommands} primary="action" secondary="device_type" />
+          </div>
+          <div className="mt-4"><StateLine ok label="no_real_execution = true" detail="Load management remains proposal, approval, mock dispatch, and simulated device API translation only." /></div>
+        </Card>
+        <Card title="Dataspace export" description="Foundation for future dataspace integration. No official ENERSHARE certification is claimed.">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <StateLine ok label="Export endpoint" detail={String(dataspace.export_endpoint || "/dataspace/export/full-pipeline-demo-summary")} />
+            <StateLine ok label="Catalog endpoint" detail={String(dataspace.catalog_endpoint || "/dataspace/catalog")} />
+            <StateLine ok label="Pseudonymized output" detail="Household and device IDs are transformed for export summaries." />
+            <StateLine ok label="Minimized data" detail="No raw private telemetry payloads are exposed by the export policy." />
+          </div>
+          <div className="mt-4 space-y-2">
+            {latestExports.slice(0, 4).map((row, index) => (
+              <div key={index} className="rounded-md border border-white/10 bg-black/20 p-3 text-xs text-slate-300">
+                {String(row.export_type)} | records {String(row.record_count)} | {String(row.export_status)}
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
+        <Card title="Demo mode actions" description="Safe read-only and gateway-routed actions for live client walkthroughs.">
+          <div className="flex flex-wrap gap-2">
+            <LoadingButton loading={loading} onClick={refresh}><RefreshCw className="h-4 w-4" />Refresh latest records</LoadingButton>
+            <LoadingButton variant="secondary" onClick={() => document.getElementById("slm-primary-panel")?.scrollIntoView({ behavior: "smooth" })}>Show SLM-primary result</LoadingButton>
+            <LoadingButton variant="secondary" onClick={showBlockedExample} loading={actionLoading === "blocked"}>Show blocked security payload</LoadingButton>
+            <LoadingButton variant="secondary" onClick={showDataspaceSample} loading={actionLoading === "dataspace"}>Show dataspace export sample</LoadingButton>
+          </div>
+          <div id="slm-primary-panel" className="mt-4">
+            <StateLine ok label="SLM-primary proof" detail={`Latest mapping source: ${String(latestMappings[0]?.mapping_source || "not available")}; model: ${String(ollama.model || "phi3:mini")}`} />
+            <div className="mt-3"><StateLine ok label="Safe failure example" detail={`Safely unmapped count: ${formatNumber(semanticCounts.unmapped_count)}. Invalid, unavailable, or low-confidence SLM outputs are retried and never replaced by deterministic mappings.`} /></div>
+          </div>
+        </Card>
+        <Card title="Demo action output">
+          <JsonViewer value={{ blocked_security_payload: blockedResult, dataspace_export_sample: dataspaceResult }} />
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <Card title="Layered architecture panel" description="Professional client demo view of the current local architecture sequence.">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            {[
+              "Devices",
+              "Security",
+              "Ingestion",
+              "Kafka Digital Spine",
+              "SLM Semantic Intelligence",
+              "Storage",
+              "IEEE 2030.5",
+              "Aggregator",
+              "Dataspace",
+              "Dashboard"
+            ].map((layer, index) => (
+              <div key={layer} className="rounded-md border border-white/10 bg-white/[0.04] p-3">
+                <p className="text-xs text-slate-500">Layer {index + 1}</p>
+                <p className="mt-1 text-sm font-semibold text-white">{layer}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <Card title="Pipeline readiness trend" description="Readiness by capability, shown as a simple client-friendly visual indicator.">
           <ClientChartFrame>
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <AreaChart data={chartData}>
@@ -249,6 +518,170 @@ function OverviewPage() {
         </Card>
       </div>
     </>
+  );
+}
+
+function ScalabilityPage() {
+  const [status, setStatus] = useState<ApiEnvelope | null>(null);
+  const [devicePage, setDevicePage] = useState<ApiEnvelope | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const limit = 25;
+
+  async function refresh(nextOffset = offset) {
+    setLoading(true);
+    const [platform, devices] = await Promise.all([
+      fetchJson("/api/platform/status"),
+      fetchJson(`/api/platform/devices?limit=${limit}&offset=${nextOffset}`)
+    ]);
+    setStatus(platform);
+    setDevicePage(devices);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      fetchJson("/api/platform/status"),
+      fetchJson(`/api/platform/devices?limit=${limit}&offset=0`)
+    ]).then(([platform, devices]) => {
+      if (!active) return;
+      setStatus(platform);
+      setDevicePage(devices);
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const platform = getPlatform(status);
+  const scalability = asRecord(platform.scalability);
+  const latency = asRecord(scalability.slm_latency_ms);
+  const batches = asRecord(scalability.batches);
+  const lag = asRecord(scalability.kafka_lag);
+  const payload = asRecord(getData(devicePage));
+  const devices = Array.isArray(payload.devices) ? payload.devices as Record<string, unknown>[] : [];
+  const total = Number(payload.total || 0);
+  const invocation = Number(scalability.slm_invocation_percentage || 0);
+
+  const rateData = [
+    { name: "Normalized", value: Number(scalability.normalized_reading_rate_per_second || 0) },
+    { name: "SLM accepted", value: Number(scalability.slm_primary_acceptance_rate || 0) },
+    { name: "Safely unmapped", value: Number(scalability.safely_unmapped_rate || 0) },
+    { name: "Retry", value: Number(scalability.retry_rate || 0) }
+  ];
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="Scalability operations"
+        title="SLM-First Capacity Visibility"
+        description="Aggregate operational metrics for staged device simulations. This view does not claim 10,000-device support until the measured validation gates pass."
+      />
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <LoadingButton loading={loading} onClick={() => refresh()}><RefreshCw className="h-4 w-4" />Refresh metrics</LoadingButton>
+        <Badge tone={invocation === 100 ? "emerald" : "amber"}>{invocation.toFixed(2)}% readings sent to SLM</Badge>
+        <Badge tone="emerald">No real execution</Badge>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card title="Simulated devices" value={formatNumber(scalability.total_simulated_devices)} description="Unique devices in the bounded metrics window." tone="blue" />
+        <Card title="Active households" value={formatNumber(scalability.active_households)} description="Unique households represented." tone="blue" />
+        <Card title="Reading rate" value={`${Number(scalability.normalized_reading_rate_per_second || 0).toFixed(2)}/s`} description="Normalized readings observed per second." tone="emerald" />
+        <Card title="Kafka lag" value={lag.total === null || lag.total === undefined ? "Unavailable" : formatNumber(lag.total)} description="Semantic consumer-group lag." tone={Number(lag.total || 0) === 0 ? "emerald" : "amber"} />
+        <Card title="SLM invocation" value={`${invocation.toFixed(2)}%`} description="Must equal 100% for a passing stage." tone={invocation === 100 ? "emerald" : "amber"} />
+        <Card title="SLM acceptance" value={`${Number(scalability.slm_primary_acceptance_rate || 0).toFixed(2)}%`} description="Validated SLM mappings." tone="emerald" />
+        <Card title="Safely unmapped" value={`${Number(scalability.safely_unmapped_rate || 0).toFixed(2)}%`} description="Explicit terminal outcomes after retries." tone={Number(scalability.safely_unmapped_rate || 0) ? "amber" : "emerald"} />
+        <Card title="Missing outcomes" value={formatNumber(scalability.missing_final_outcomes)} description="Normalized readings without durable SLM audit evidence." tone={Number(scalability.missing_final_outcomes || 0) ? "rose" : "emerald"} />
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-2">
+        <Card title="Inference and batch latency" description="Measured percentiles from durable semantic batch records.">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <MetricTile label="SLM p50" value={`${Number(latency.p50 || 0).toFixed(1)} ms`} />
+            <MetricTile label="SLM p95" value={`${Number(latency.p95 || 0).toFixed(1)} ms`} tone="amber" />
+            <MetricTile label="SLM p99" value={`${Number(latency.p99 || 0).toFixed(1)} ms`} tone="amber" />
+            <MetricTile label="Average batch" value={Number(batches.average_size || 0).toFixed(1)} />
+            <MetricTile label="Maximum batch" value={formatNumber(batches.maximum_size)} />
+            <MetricTile label="Retry count" value={formatNumber(scalability.retry_count)} tone={Number(scalability.retry_count || 0) ? "amber" : "emerald"} />
+          </div>
+        </Card>
+        <Card title="Mapping outcomes" description="Rates are aggregated; the browser does not load every device.">
+          <ClientChartFrame>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={rateData} margin={{ top: 12, right: 12, left: 0, bottom: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.12)" />
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} />
+                <Tooltip contentStyle={{ background: "#10141b", border: "1px solid rgba(255,255,255,.1)" }} />
+                <Bar dataKey="value" fill="#34d399" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ClientChartFrame>
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <Card title="Paginated device evidence" description={`Showing ${offset + 1}-${Math.min(offset + devices.length, total)} of ${formatNumber(total)} durable device summaries.`}>
+          {devices.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="text-xs text-slate-500"><tr><th className="p-2">Device</th><th className="p-2">Household</th><th className="p-2">Type</th><th className="p-2">Latest reading</th><th className="p-2">Source</th><th className="p-2">Status</th></tr></thead>
+                <tbody>{devices.map((device) => <tr key={String(device.device_id)} className="border-t border-white/10 text-slate-300"><td className="p-2 font-medium text-white">{String(device.device_id)}</td><td className="p-2">{String(device.household_id)}</td><td className="p-2">{String(device.device_type)}</td><td className="p-2">{String(device.reading_name)} = {String(device.reading_value)} {String(device.reading_unit || "")}</td><td className="p-2">{String(device.mapping_source)}</td><td className="p-2"><Badge tone={toneForStatus(device.final_status)}>{String(device.final_status)}</Badge></td></tr>)}</tbody>
+              </table>
+            </div>
+          ) : <EmptyState title="No scale evidence yet" message="Run a staged validation, then refresh this page." />}
+          <div className="mt-4 flex gap-2">
+            <LoadingButton variant="secondary" disabled={offset === 0} onClick={() => { const next = Math.max(0, offset - limit); setOffset(next); refresh(next); }}>Previous</LoadingButton>
+            <LoadingButton variant="secondary" disabled={offset + limit >= total} onClick={() => { const next = offset + limit; setOffset(next); refresh(next); }}>Next</LoadingButton>
+          </div>
+        </Card>
+      </div>
+    </>
+  );
+}
+
+function MiniList({ title, rows, primary, secondary }: { title: string; rows: Record<string, unknown>[]; primary: string; secondary: string }) {
+  return (
+    <div className="rounded-md border border-white/10 bg-black/20 p-3">
+      <p className="text-sm font-semibold text-white">{title}</p>
+      <div className="mt-3 space-y-2">
+        {rows.length ? rows.slice(0, 4).map((row, index) => (
+          <div key={index} className="rounded-md border border-white/10 bg-white/[0.035] p-2">
+            <Badge tone={toneForStatus(row[primary])}>{String(row[primary] || "unknown")}</Badge>
+            <p className="mt-2 text-xs text-slate-400">{String(row[secondary] || row.id || row.proposal_id || "latest row")}</p>
+          </div>
+        )) : <p className="text-xs text-slate-500">No rows yet.</p>}
+      </div>
+    </div>
+  );
+}
+
+function MetricTile({
+  label,
+  value,
+  detail,
+  tone = "neutral"
+}: {
+  label: string;
+  value: string;
+  detail?: string;
+  tone?: "neutral" | "emerald" | "blue" | "amber" | "rose";
+}) {
+  const color = {
+    neutral: "border-white/10 bg-black/20",
+    emerald: "border-emerald-300/20 bg-emerald-300/[0.08]",
+    blue: "border-blue-300/20 bg-blue-300/[0.08]",
+    amber: "border-amber-300/20 bg-amber-300/[0.08]",
+    rose: "border-rose-300/20 bg-rose-300/[0.08]"
+  }[tone];
+
+  return (
+    <div className={`rounded-md border p-3 ${color}`}>
+      <p className="text-xs uppercase tracking-[0.14em] text-slate-500">{label}</p>
+      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
+      {detail ? <p className="mt-1 text-xs leading-5 text-slate-400">{detail}</p> : null}
+    </div>
   );
 }
 

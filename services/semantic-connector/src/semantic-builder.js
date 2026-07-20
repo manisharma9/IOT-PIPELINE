@@ -80,7 +80,12 @@ function buildSemanticPayload(event, mapping) {
   const entityId = buildEntityId(event);
   const slmAudit = {
     slm_called: Boolean(mapping.slm_called),
+    slm_provider: mapping.slm_provider || null,
     slm_model: mapping.slm_model || null,
+    slm_worker_id: mapping.slm_worker_id || null,
+    slm_batch_id: mapping.slm_batch_id || null,
+    slm_request_id: mapping.slm_request_id || null,
+    slm_attempt_count: mapping.slm_attempt_count || null,
     slm_confidence: mapping.slm_confidence || null,
     fallback_reason: mapping.fallback_reason || null,
     deterministic_validation: mapping.deterministic_validation || null,
@@ -107,6 +112,7 @@ function buildSemanticPayload(event, mapping) {
       id: event.community_id
     },
     measurement: {
+      reading_id: event.reading_id || null,
       name: event.reading_name,
       value: event.reading_value,
       unit: event.reading_unit,
@@ -115,6 +121,7 @@ function buildSemanticPayload(event, mapping) {
       correlation_id: event.correlation_id || null
     },
     original_reading: {
+      reading_id: event.reading_id || null,
       event_time: event.event_time,
       household_id: event.household_id,
       community_id: event.community_id,
@@ -152,7 +159,12 @@ function buildSemanticPayload(event, mapping) {
       mapping_confidence: mapping.mapping_confidence,
       slm_confidence: mapping.slm_confidence || null,
       slm_called: slmAudit.slm_called,
+      slm_provider: slmAudit.slm_provider,
       slm_model: slmAudit.slm_model,
+      slm_worker_id: slmAudit.slm_worker_id,
+      slm_batch_id: slmAudit.slm_batch_id,
+      slm_request_id: slmAudit.slm_request_id,
+      slm_attempt_count: slmAudit.slm_attempt_count,
       fallback_reason: slmAudit.fallback_reason,
       deterministic_validation: slmAudit.deterministic_validation,
       validation_source: slmAudit.validation_source
@@ -162,6 +174,7 @@ function buildSemanticPayload(event, mapping) {
 
 function buildSemanticEvent(event, mapping, semanticPayload, processedAt = new Date().toISOString()) {
   return {
+    reading_id: event.reading_id || null,
     event_time: event.event_time,
     processed_at: processedAt,
     household_id: event.household_id,
@@ -180,11 +193,16 @@ function buildSemanticEvent(event, mapping, semanticPayload, processedAt = new D
     semantic_payload: semanticPayload,
     mapping_source: mapping.mapping_source,
     mapping_confidence: mapping.mapping_confidence,
+    slm_called: Boolean(mapping.slm_called),
+    slm_provider: mapping.slm_provider || null,
+    slm_model: mapping.slm_model || null,
     slm_confidence: mapping.slm_confidence || null,
     fallback_reason: mapping.fallback_reason || null,
     explanation: mapping.explanation,
     correlation_id: event.correlation_id || null,
-    enrichment_status: mapping.mapping_source === "unmapped" ? "unmapped" : "mapped"
+    enrichment_status: mapping.mapping_source === "unmapped" ? "unmapped" : "mapped",
+    final_status: mapping.mapping_source === "unmapped" ? "safely_unmapped" : "mapped",
+    safely_unmapped: mapping.mapping_source === "unmapped"
   };
 }
 

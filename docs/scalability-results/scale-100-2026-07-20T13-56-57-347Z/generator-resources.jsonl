@@ -1,0 +1,12 @@
+{"recorded_at":"2026-07-20T13:57:02.323Z","generated":8,"in_flight":0,"rss_bytes":58970112,"heap_used_bytes":10238976,"external_bytes":3984830}
+{"recorded_at":"2026-07-20T13:57:07.338Z","generated":16,"in_flight":0,"rss_bytes":57511936,"heap_used_bytes":9377384,"external_bytes":3977655}
+{"recorded_at":"2026-07-20T13:57:12.345Z","generated":24,"in_flight":0,"rss_bytes":58806272,"heap_used_bytes":9478360,"external_bytes":3988816}
+{"recorded_at":"2026-07-20T13:57:17.347Z","generated":33,"in_flight":0,"rss_bytes":58773504,"heap_used_bytes":9759144,"external_bytes":4000972}
+{"recorded_at":"2026-07-20T13:57:22.355Z","generated":41,"in_flight":0,"rss_bytes":58949632,"heap_used_bytes":9917864,"external_bytes":4018203}
+{"recorded_at":"2026-07-20T13:57:27.363Z","generated":49,"in_flight":0,"rss_bytes":60825600,"heap_used_bytes":10739048,"external_bytes":4020564}
+{"recorded_at":"2026-07-20T13:57:32.367Z","generated":58,"in_flight":0,"rss_bytes":61640704,"heap_used_bytes":11018912,"external_bytes":4024528}
+{"recorded_at":"2026-07-20T13:57:37.381Z","generated":66,"in_flight":0,"rss_bytes":61935616,"heap_used_bytes":11175064,"external_bytes":4044066}
+{"recorded_at":"2026-07-20T13:57:42.383Z","generated":74,"in_flight":0,"rss_bytes":62296064,"heap_used_bytes":11278576,"external_bytes":4046147}
+{"recorded_at":"2026-07-20T13:57:47.387Z","generated":83,"in_flight":0,"rss_bytes":62595072,"heap_used_bytes":11497136,"external_bytes":4050110}
+{"recorded_at":"2026-07-20T13:57:52.400Z","generated":91,"in_flight":0,"rss_bytes":62685184,"heap_used_bytes":11643520,"external_bytes":4060250}
+{"recorded_at":"2026-07-20T13:57:57.415Z","generated":100,"in_flight":1,"rss_bytes":62930944,"heap_used_bytes":11808800,"external_bytes":4070985}

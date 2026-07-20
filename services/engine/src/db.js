@@ -13,6 +13,20 @@ function createPool() {
   });
 }
 
+async function ensureEngineScalabilitySchema(pool) {
+  await pool.query("ALTER TABLE normalized_telemetry ADD COLUMN IF NOT EXISTS reading_id TEXT");
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS normalized_telemetry_reading_id_time_uidx
+      ON normalized_telemetry (event_time, reading_id)
+      WHERE reading_id IS NOT NULL
+  `);
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS raw_telemetry_kafka_identity_time_uidx
+      ON raw_telemetry (event_time, kafka_topic, kafka_partition, kafka_offset)
+      WHERE kafka_offset IS NOT NULL
+  `);
+}
+
 async function insertTelemetryBatch(pool, normalizedTelemetry, kafkaMetadata) {
   const client = await pool.connect();
 
@@ -36,6 +50,8 @@ async function insertTelemetryBatch(pool, normalizedTelemetry, kafkaMetadata) {
           kafka_offset
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11)
+        ON CONFLICT (event_time, kafka_topic, kafka_partition, kafka_offset)
+          WHERE kafka_offset IS NOT NULL DO NOTHING
       `,
       [
         raw.event_time,
@@ -57,6 +73,7 @@ async function insertTelemetryBatch(pool, normalizedTelemetry, kafkaMetadata) {
         `
           INSERT INTO normalized_telemetry (
             event_time,
+            reading_id,
             household_id,
             community_id,
             device_id,
@@ -71,10 +88,12 @@ async function insertTelemetryBatch(pool, normalizedTelemetry, kafkaMetadata) {
             kafka_partition,
             kafka_offset
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12, $13, $14)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb, $13, $14, $15)
+          ON CONFLICT (event_time, reading_id) WHERE reading_id IS NOT NULL DO NOTHING
         `,
         [
           row.event_time,
+          row.reading_id,
           row.household_id,
           row.community_id,
           row.device_id,
@@ -131,6 +150,7 @@ async function insertProcessingError(pool, errorRecord) {
 
 module.exports = {
   createPool,
+  ensureEngineScalabilitySchema,
   insertProcessingError,
   insertTelemetryBatch
 };

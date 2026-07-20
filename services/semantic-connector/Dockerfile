@@ -10,6 +10,7 @@ RUN npm install --omit=dev
 
 WORKDIR /app
 COPY services/semantic-connector/src ./services/semantic-connector/src
+COPY schemas/slm-semantic-batch-response.schema.json ./schemas/slm-semantic-batch-response.schema.json
 
 WORKDIR /app/services/semantic-connector
 

@@ -1,0 +1,181 @@
+{
+  "run_id": "scale-100-2026-07-20T13-47-10-993Z",
+  "status": "failed",
+  "started_at": "2026-07-20T13:47:09.996Z",
+  "completed_at": "2026-07-20T13:50:01.676Z",
+  "configuration": {
+    "scenario_id": "scale-100-2026-07-20T13-47-10-993Z",
+    "device_count": 100,
+    "household_count": 34,
+    "devices_per_household": 3,
+    "device_distribution": {
+      "shelly_plug": 0.34,
+      "ev_charger": 0.33,
+      "heat_pump": 0.33
+    },
+    "reporting_interval_seconds": 60,
+    "test_duration_minutes": 1,
+    "random_seed": 20305,
+    "ramp_up_seconds": 0,
+    "burst_percentage": 0,
+    "cycles": 1,
+    "target_telemetry_rate_per_second": 1.6667,
+    "maximum_permitted_backlog_readings": 5000,
+    "mode": "steady",
+    "gateway": {
+      "base_url": "http://localhost:3010",
+      "telemetry_path": "/telemetry",
+      "api_key_env": "EDGE_API_KEY",
+      "concurrency": 32,
+      "request_timeout_ms": 15000
+    },
+    "evidence": {
+      "output_location": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results",
+      "stream_events": true,
+      "sample_success_every": 1000,
+      "resource_sample_interval_ms": 5000
+    },
+    "safety": {
+      "real_device_control": false,
+      "no_real_execution": true
+    },
+    "dry_run": false,
+    "max_messages": null
+  },
+  "generator": {
+    "scenario_id": "scale-100-2026-07-20T13-47-10-993Z",
+    "started_at": "2026-07-20T13:47:11.040Z",
+    "completed_at": "2026-07-20T13:48:11.063Z",
+    "elapsed_seconds": 60.023,
+    "mode": "steady",
+    "dry_run": false,
+    "configured_devices": 100,
+    "represented_devices": 100,
+    "represented_households": 34,
+    "telemetry_planned": 100,
+    "telemetry_attempted": 100,
+    "telemetry_gateway_accepted": 100,
+    "telemetry_gateway_failed": 0,
+    "readings_generated": 400,
+    "readings_gateway_accepted": 400,
+    "readings_gateway_failed": 0,
+    "gateway_acceptance_rate_percent": 100,
+    "generated_messages_per_second": 1.666,
+    "gateway_latency": {
+      "minimum_ms": 12.675100000000384,
+      "average_ms": 27.880276999999907,
+      "maximum_ms": 799.1692999999999
+    },
+    "bounded_concurrency": 32,
+    "output_directory": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results\\scale-100-2026-07-20T13-47-10-993Z",
+    "end_to_end_validated": false,
+    "note": "Gateway acceptance is not end-to-end success. Pipeline completion is evaluated separately."
+  },
+  "pipeline": {
+    "raw_messages": 100,
+    "normalized_readings": 400,
+    "unique_devices": 100,
+    "unique_households": 34,
+    "audited_readings": 400,
+    "slm_called_readings": 400,
+    "mapped_readings": 0,
+    "safely_unmapped_readings": 400,
+    "output_received_readings": 0,
+    "retried_readings": 400,
+    "retry_count": 800,
+    "semantic_rows": 0,
+    "ieee_rows": 0,
+    "duplicate_audit_ids": 0,
+    "duplicate_semantic_ids": 0,
+    "duplicate_ieee_ids": 0,
+    "processing_errors": 0,
+    "batch_count": 13,
+    "average_batch_size": 30.76923076923077,
+    "maximum_batch_size": 35,
+    "average_database_latency_ms": 204.48402276923298,
+    "slm_latency_p50_ms": 0,
+    "slm_latency_p95_ms": 0,
+    "slm_latency_p99_ms": 0,
+    "end_to_end_p50_ms": 120951.5,
+    "end_to_end_p95_ms": 148793.3,
+    "end_to_end_p99_ms": 150786.07,
+    "first_normalized_at": "2026-07-20T13:47:12.525097+00:00",
+    "last_audited_at": "2026-07-20T13:49:44.471+00:00",
+    "providers": [
+      "ollama"
+    ],
+    "models": [
+      "phi3:mini"
+    ],
+    "workers": [
+      "f84f58048157-1"
+    ],
+    "final_kafka_lag": {
+      "status": "ok",
+      "total": 0,
+      "partitions": [
+        {
+          "partition": 0,
+          "current_offset": 644,
+          "log_end_offset": 644,
+          "lag": 0
+        },
+        {
+          "partition": 1,
+          "current_offset": 274,
+          "log_end_offset": 274,
+          "lag": 0
+        },
+        {
+          "partition": 2,
+          "current_offset": 262,
+          "log_end_offset": 262,
+          "lag": 0
+        }
+      ]
+    },
+    "maximum_observed_kafka_lag": 400,
+    "sustained_arrival_readings_per_second": 6.664,
+    "completion_readings_per_second": 2.633,
+    "required_improvement_factor": 2.531,
+    "slm_invocation_percentage": 100,
+    "slm_acceptance_percentage": 0,
+    "safely_unmapped_percentage": 100
+  },
+  "workflow": {
+    "status": "completed",
+    "signal_id": "scale-100-2026-07-20T13-47-10-993Z-signal",
+    "proposal_id": "92",
+    "dispatch_status": "ready_to_dispatch",
+    "mock_rows": 1,
+    "device_command_rows": 0,
+    "unsafe_execution_rows": 0,
+    "dataspace_export_type": "full_pipeline_demo_summary",
+    "dataspace_minimization_applied": true,
+    "dataspace_pseudonymization_applied": true,
+    "no_raw_private_payloads": true
+  },
+  "pass_criteria": {
+    "all_devices_represented": true,
+    "all_gateway_messages_accepted": true,
+    "all_readings_normalized": true,
+    "all_readings_have_terminal_audit": true,
+    "slm_called_for_all_readings": true,
+    "no_duplicate_audit_rows": true,
+    "no_duplicate_semantic_rows": true,
+    "no_duplicate_ieee_rows": true,
+    "no_processing_errors": true,
+    "kafka_backlog_cleared": true,
+    "backlog_within_limit": true,
+    "processing_kept_up_with_arrival": false,
+    "safe_control_flow_completed": true,
+    "dataspace_export_completed": true
+  },
+  "output_directory": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results\\scale-100-2026-07-20T13-47-10-993Z",
+  "safety": {
+    "no_real_execution": true,
+    "real_device_control": false,
+    "certified_ieee20305": false,
+    "certified_enershare_or_ids": false
+  }
+}

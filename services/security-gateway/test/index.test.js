@@ -50,6 +50,8 @@ function createTestGateway(options = {}) {
       record: async (event) => audits.push(event)
     },
     auditPool: options.auditPool,
+    platformStatusReader: options.platformStatusReader,
+    platformDevicesReader: options.platformDevicesReader,
     rateLimitStore: new Map()
   });
 
@@ -406,4 +408,80 @@ test("security audit endpoint returns sanitized rows", async () => {
   assert.equal(response.body.audit[0].request_hash, "hash-only");
   assert.equal(response.body.audit[0].audit_payload.no_raw_body_stored, true);
   assert.equal(response.body.audit[0].audit_payload.secret, undefined);
+});
+
+test("platform status endpoint returns safe local pipeline summary", async () => {
+  const { app, audits } = createTestGateway({
+    platformStatusReader: async () => ({
+      generated_at: "2026-06-15T00:00:00.000Z",
+      pipeline_status: "operational",
+      services: {
+        gateway: {
+          service: "security-gateway",
+          status: "ok"
+        },
+        downstream: []
+      },
+      kafka: {
+        status: "ok",
+        topics: ["raw.telemetry", "semantic.enriched"]
+      },
+      storage: {
+        status: "ok",
+        table_counts: {
+          raw_telemetry: 12,
+          semantic_events: 10
+        }
+      },
+      semantic: {
+        ollama: {
+          status: "ok",
+          model: "phi3:mini",
+          phi3_mini_available: true,
+          slm_primary_enabled: true
+        },
+        counts: {
+          slm_call_count: 10,
+          successful_slm_mappings: 8,
+          deterministic_fallback_count: 2
+        }
+      },
+      safety: {
+        no_real_device_control: true
+      }
+    })
+  });
+
+  const response = await request(app, "GET", "/platform/status", {
+    headers: { "x-edge-api-key": "test-edge-key" }
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.status, "ok");
+  assert.equal(response.body.platform.pipeline_status, "operational");
+  assert.equal(response.body.platform.semantic.ollama.model, "phi3:mini");
+  assert.equal(response.body.platform.safety.no_real_device_control, true);
+  assert.equal(audits.at(-1).reason, "platform_status_read");
+});
+
+test("platform devices endpoint returns a bounded paginated summary", async () => {
+  const { app, audits } = createTestGateway({
+    platformDevicesReader: async (_pool, options) => ({
+      limit: Number(options.limit),
+      offset: Number(options.offset),
+      total: 10000,
+      devices: [{ device_id: "scale-device-000026", final_status: "mapped" }]
+    })
+  });
+
+  const response = await request(app, "GET", "/platform/devices?limit=25&offset=25", {
+    headers: { "x-edge-api-key": "test-edge-key" }
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.limit, 25);
+  assert.equal(response.body.offset, 25);
+  assert.equal(response.body.total, 10000);
+  assert.equal(response.body.devices.length, 1);
+  assert.equal(audits.at(-1).reason, "platform_devices_read");
 });
