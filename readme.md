@@ -111,8 +111,8 @@ Production authentication can later be connected to Cognito, Auth0, or another J
 | Module | Reference Release | Capability |
 | --- | --- | --- |
 | Foundation | `phase-1-foundation-v1` | HTTP/MQTT ingestion, Kafka backbone, engine normalization, TimescaleDB storage. |
-| Semantic mapping | `phase-2-saref4ener-v1` | Deterministic SAREF4ENER/NGSI semantic validation and fallback in `semantic_events`. |
-| SLM-primary mapping | `phase-3-slm-assisted-v1` | Local Ollama/Phi-3 Mini semantic interpretation used as the primary mapping path, with deterministic SAREF4ENER validation and fallback. |
+| Semantic guardrails | `phase-2-saref4ener-v1` | Deterministic SAREF4ENER/NGSI validation of model output and safe rejection of invalid mappings. |
+| Mandatory SLM-first mapping | `phase-3-slm-assisted-v1` plus scalability alignment | Every normalized reading is submitted to the configured SLM; deterministic SAREF4ENER logic validates output, requests retry, or marks it safely unmapped. |
 | IEEE translator | `phase-4-ieee20305-v1` | IEEE 2030.5-style translator foundation and mock DSO grid signal endpoint. |
 | Aggregator | `phase-5-aggregator-v1` | Proposal-only aggregator and dispatch command audit path. |
 | Approval workflow | `phase-6-approval-workflow-v1` | Review, approve, reject, and mark-ready workflow with audit. |
@@ -128,7 +128,7 @@ Production authentication can later be connected to Cognito, Auth0, or another J
 | `ingestion-api` | 3001 | Receives HTTP telemetry and publishes `raw.telemetry`. |
 | `mqtt-subscriber` | none | Subscribes to MQTT telemetry and publishes `raw.telemetry`. |
 | `engine` | none | Normalizes raw telemetry and publishes `normalized.telemetry`. |
-| `semantic-connector` | none | Uses local Phi-3 Mini as the primary semantic interpretation layer, with deterministic SAREF4ENER validation and fallback. |
+| `semantic-connector` | none | Submits every normalized reading to local Phi-3 Mini, with deterministic SAREF4ENER validation, retry, and safely-unmapped outcomes. |
 | `ieee20305-translator` | 3002 | Translates semantic events and accepts mock DSO grid signals. |
 | `aggregator` | 3003 | Creates proposal-only dispatch commands. |
 | `approval-workflow` | 3004 | Manages safe proposal status transitions. |
@@ -186,7 +186,7 @@ Prerequisites:
 
 - Docker Desktop running.
 - PowerShell.
-- Recommended: Ollama with `phi3:mini` for the primary local SLM semantic interpretation path. If Ollama is unavailable, deterministic SAREF4ENER fallback keeps the local demo running.
+- Required for mapped local semantic output: Ollama with `phi3:mini`. If inference is unavailable or invalid, the connector remains operational, records the failed SLM attempts, and marks affected readings safely unmapped; it does not synthesize a deterministic replacement mapping.
 
 ```powershell
 cd C:\Users\Mani\Desktop\Github\IOT-PIPELINE
@@ -213,6 +213,20 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run-multi-household-validatio
 The runner sends telemetry through the security gateway, waits for semantic and IEEE 2030.5-style persistence, completes the safe DSO approval/mock dispatch/device translation path, requests a minimized dataspace export, and writes machine-readable evidence to `docs/demo-assets/multi-household-validation-results.json`.
 
 The measured implementation report is available at [docs/multi-household-scalability-validation-report.md](docs/multi-household-scalability-validation-report.md). The stakeholder Word report is available at [docs/multi-household-pipeline-validation-report.docx](docs/multi-household-pipeline-validation-report.docx).
+
+### Mandatory SLM Scalability Validation
+
+The semantic connector supports strict reading-level microbatching, Ollama and vLLM-compatible providers, Kafka retry/dead-letter topics, durable SLM evidence, multiple worker replicas, and aggregate console metrics. Every normalized reading must enter an SLM request. Deterministic SAREF4ENER logic can validate, reject, request retry, or mark the result safely unmapped; it cannot provide a replacement mapping.
+
+Inspect and apply the non-destructive 100-device partition profile, then run the first gate:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\configure-scalability-topics.ps1 -Devices 100
+powershell -ExecutionPolicy Bypass -File .\scripts\configure-scalability-topics.ps1 -Devices 100 -Apply
+powershell -ExecutionPolicy Bypass -File .\scripts\run-scale-stage.ps1 -Devices 100 -Households 34 -IntervalSeconds 60 -DurationMinutes 1 -Cycles 1
+```
+
+Do not advance to 1,000, 5,000, or 10,000 devices when the preceding stage fails its throughput, lag, durability, duplicate, or SLM-evidence gate. Generator-only representation is not an end-to-end capacity claim. See [the validation plan](docs/10000-device-validation-plan.md), [batching design](docs/slm-batching-design.md), and [scalability limitations](docs/scalability-limitations.md).
 
 ## Validate The Demo Manually
 
@@ -283,14 +297,14 @@ Invoke-RestMethod `
 - API key protection is local development only.
 - The local security gateway is a development foundation for API Gateway/WAF readiness, not production security by itself.
 - Dataspace export is minimized and pseudonymized, but not production privacy compliance by itself.
-- The Semantic Connector uses local Phi-3 Mini as the primary semantic interpretation layer. Deterministic SAREF4ENER mapping remains active as validation and fallback when the SLM is unavailable, invalid, low confidence, or inconsistent with known readings.
+- The Semantic Connector submits every normalized reading to the configured SLM. Deterministic SAREF4ENER logic remains active only as validation, retry guidance, and safe rejection; failed readings become auditable `safely_unmapped` outcomes.
 
 ## Client-Facing Technical Talking Points
 
 - The pipeline turns raw IoT telemetry into structured energy-flexibility knowledge.
 - Security gateway aligns local external traffic with the production API Gateway/WAF pattern.
 - Local Phi-3 Mini provides the primary semantic interpretation path without using cloud AI.
-- SAREF4ENER deterministic mapping validates known readings and provides a fallback when SLM output is invalid or unavailable.
+- SAREF4ENER deterministic logic validates known SLM outputs and prevents unsafe or inconsistent mappings; it does not bypass inference.
 - IEEE 2030.5-style translation gives a bridge toward grid/DER concepts without claiming certification.
 - Aggregator and approval workflow keep dispatch proposal creation separate from execution.
 - Mock dispatch proves the workflow end to end without controlling a real device.

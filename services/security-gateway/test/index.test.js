@@ -51,6 +51,7 @@ function createTestGateway(options = {}) {
     },
     auditPool: options.auditPool,
     platformStatusReader: options.platformStatusReader,
+    platformDevicesReader: options.platformDevicesReader,
     rateLimitStore: new Map()
   });
 
@@ -461,4 +462,26 @@ test("platform status endpoint returns safe local pipeline summary", async () =>
   assert.equal(response.body.platform.semantic.ollama.model, "phi3:mini");
   assert.equal(response.body.platform.safety.no_real_device_control, true);
   assert.equal(audits.at(-1).reason, "platform_status_read");
+});
+
+test("platform devices endpoint returns a bounded paginated summary", async () => {
+  const { app, audits } = createTestGateway({
+    platformDevicesReader: async (_pool, options) => ({
+      limit: Number(options.limit),
+      offset: Number(options.offset),
+      total: 10000,
+      devices: [{ device_id: "scale-device-000026", final_status: "mapped" }]
+    })
+  });
+
+  const response = await request(app, "GET", "/platform/devices?limit=25&offset=25", {
+    headers: { "x-edge-api-key": "test-edge-key" }
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.limit, 25);
+  assert.equal(response.body.offset, 25);
+  assert.equal(response.body.total, 10000);
+  assert.equal(response.body.devices.length, 1);
+  assert.equal(audits.at(-1).reason, "platform_devices_read");
 });

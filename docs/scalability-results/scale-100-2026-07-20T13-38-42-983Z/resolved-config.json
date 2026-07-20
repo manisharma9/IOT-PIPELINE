@@ -1,0 +1,39 @@
+{
+  "scenario_id": "scale-100-2026-07-20T13-38-42-983Z",
+  "device_count": 100,
+  "household_count": 34,
+  "devices_per_household": 3,
+  "device_distribution": {
+    "shelly_plug": 0.34,
+    "ev_charger": 0.33,
+    "heat_pump": 0.33
+  },
+  "reporting_interval_seconds": 60,
+  "test_duration_minutes": 1,
+  "random_seed": 20305,
+  "ramp_up_seconds": 0,
+  "burst_percentage": 0,
+  "cycles": 1,
+  "target_telemetry_rate_per_second": 1.6667,
+  "maximum_permitted_backlog_readings": 5000,
+  "mode": "steady",
+  "gateway": {
+    "base_url": "http://localhost:3010",
+    "telemetry_path": "/telemetry",
+    "api_key_env": "EDGE_API_KEY",
+    "concurrency": 32,
+    "request_timeout_ms": 15000
+  },
+  "evidence": {
+    "output_location": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results",
+    "stream_events": true,
+    "sample_success_every": 1000,
+    "resource_sample_interval_ms": 5000
+  },
+  "safety": {
+    "real_device_control": false,
+    "no_real_execution": true
+  },
+  "dry_run": false,
+  "max_messages": null
+}

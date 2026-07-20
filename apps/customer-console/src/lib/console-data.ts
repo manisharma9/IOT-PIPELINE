@@ -22,6 +22,7 @@ import {
 
 export const navigation = [
   { href: "/overview", label: "Executive Overview", icon: Home },
+  { href: "/scalability", label: "Scale Operations", icon: Gauge },
   { href: "/architecture", label: "Architecture Flow", icon: GitBranch },
   { href: "/security", label: "Security Gateway", icon: ShieldCheck },
   { href: "/telemetry", label: "Telemetry Simulator", icon: Send },
@@ -85,7 +86,7 @@ export const pipelineNodes = [
   {
     id: "semantic",
     label: "SLM Semantic Connector",
-    purpose: "Adds deterministic SAREF4ENER meaning and optional SLM assistance for unknown readings.",
+    purpose: "Submits every normalized reading to the configured SLM and applies deterministic SAREF4ENER validation guardrails.",
     route: "Internal worker",
     receives: "normalized.telemetry",
     produces: "semantic.enriched and semantic_events",

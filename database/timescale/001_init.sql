@@ -28,6 +28,7 @@ CREATE INDEX IF NOT EXISTS raw_telemetry_community_time_idx
 CREATE TABLE IF NOT EXISTS normalized_telemetry (
     id BIGSERIAL NOT NULL,
     event_time TIMESTAMPTZ NOT NULL,
+    reading_id TEXT,
     processed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     household_id TEXT NOT NULL,
     community_id TEXT NOT NULL,
@@ -52,6 +53,10 @@ CREATE INDEX IF NOT EXISTS normalized_telemetry_device_time_idx
 
 CREATE INDEX IF NOT EXISTS normalized_telemetry_reading_time_idx
     ON normalized_telemetry (reading_name, event_time DESC);
+
+CREATE UNIQUE INDEX IF NOT EXISTS normalized_telemetry_reading_id_time_uidx
+    ON normalized_telemetry (event_time, reading_id)
+    WHERE reading_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS processing_errors (
     id BIGSERIAL NOT NULL,

@@ -20,6 +20,7 @@ async function ensureIeee20305EventsTable(pool) {
     CREATE TABLE IF NOT EXISTS ieee20305_events (
       id BIGSERIAL NOT NULL,
       event_time TIMESTAMPTZ NOT NULL,
+      reading_id TEXT,
       processed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       source_topic TEXT NOT NULL,
       output_topic TEXT NOT NULL,
@@ -61,6 +62,12 @@ async function ensureIeee20305EventsTable(pool) {
     CREATE INDEX IF NOT EXISTS ieee20305_events_correlation_id_idx
       ON ieee20305_events (correlation_id)
   `);
+  await pool.query("ALTER TABLE ieee20305_events ADD COLUMN IF NOT EXISTS reading_id TEXT");
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS ieee20305_events_reading_id_time_uidx
+      ON ieee20305_events (event_time, reading_id)
+      WHERE reading_id IS NOT NULL
+  `);
 }
 
 async function insertIeee20305Event(pool, event) {
@@ -68,6 +75,7 @@ async function insertIeee20305Event(pool, event) {
     `
       INSERT INTO ieee20305_events (
         event_time,
+        reading_id,
         processed_at,
         source_topic,
         output_topic,
@@ -85,12 +93,14 @@ async function insertIeee20305Event(pool, event) {
         raw_semantic_payload
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8,
-        $9, $10, $11::jsonb, $12, $13, $14, $15, $16::jsonb
+        $1, $2, $3, $4, $5, $6, $7, $8, $9,
+        $10, $11, $12::jsonb, $13, $14, $15, $16, $17::jsonb
       )
+      ON CONFLICT (event_time, reading_id) WHERE reading_id IS NOT NULL DO NOTHING
     `,
     [
       event.event_time,
+      event.reading_id || null,
       event.processed_at,
       event.source_topic,
       event.output_topic,

@@ -66,7 +66,7 @@ The system starts at the local production-style edge. External HTTP clients, a f
 
 Household telemetry can still arrive over MQTT for local development. HTTP telemetry now enters the production-style local path through the gateway, which forwards it to the ingestion API. MQTT telemetry continues through the MQTT subscriber.
 
-Next, the semantic connector turns readings into energy-aware meaning. It uses local Phi-3 Mini through Ollama as the primary semantic interpretation layer for every telemetry reading. Deterministic SAREF4ENER mapping remains active as validation and fallback when the SLM is unavailable, invalid, low confidence, or inconsistent with known readings.
+Next, the semantic connector turns readings into energy-aware meaning. Every normalized reading is submitted to the configured SLM. Local Phi-3 Mini through Ollama is the reference provider, and a vLLM-compatible adapter supports a scalable deployment path. Deterministic SAREF4ENER logic validates the model result, rejects inconsistent output, can trigger a retry, and otherwise records a safely-unmapped outcome. It does not create a replacement mapping.
 
 The IEEE 2030.5 translator foundation turns semantic readings and DSO grid signals into simple IEEE 2030.5-style payloads. It uses terminology such as `MirrorMeter`, `MirrorMeterReading`, `DERStatus`, `DERControlCandidate`, and DSO-facing gateway context where appropriate. This helps explain grid and DER concepts, but it is not a certified IEEE 2030.5 stack.
 
@@ -98,7 +98,7 @@ This separation is the main safety feature. Each phase leaves an auditable hando
 | `ingestion-api` | Receives HTTP telemetry and publishes `raw.telemetry`. |
 | `mqtt-subscriber` | Receives MQTT telemetry and publishes `raw.telemetry`. |
 | `engine` | Validates and normalizes telemetry into `normalized.telemetry`. |
-| `semantic-connector` | Uses local Phi-3 Mini as the primary semantic interpretation layer with deterministic SAREF4ENER validation and fallback. |
+| `semantic-connector` | Submits every normalized reading to the configured SLM, then applies deterministic SAREF4ENER validation, retry, and safe rejection. |
 | `ieee20305-translator` | Builds simplified IEEE 2030.5-style resources and accepts mock DSO signals. |
 | `aggregator` | Creates safe dispatch command proposals only. |
 | `approval-workflow` | Manages proposal status transitions and publishes ready events. |
@@ -183,14 +183,14 @@ Future AWS mapping:
 
 ## Where SLM Is Used
 
-The SLM is used only inside `semantic-connector`. In the final local pipeline it is the primary semantic interpretation path for every telemetry reading when `SLM_ENABLED=true` and `SLM_PRIMARY=true`.
+The SLM is used only inside `semantic-connector`. In the scalability architecture it is mandatory: every normalized telemetry reading is submitted to the configured provider before it can receive a semantic mapping.
 
-The connector calls local Ollama/Phi-3 Mini first, validates the JSON response, checks confidence and unit compatibility, and then runs deterministic SAREF4ENER validation for known readings. If the SLM is unavailable, times out, returns invalid JSON, produces low confidence, suggests an unsupported concept, or conflicts with deterministic validation, the connector falls back to deterministic SAREF4ENER mapping. If neither path can safely map the reading, the event is stored as `unmapped`.
+The connector microbatches readings, calls the configured inference provider, validates the strict JSON response, checks reading identity, confidence, ontology allowlists and unit compatibility, and then runs deterministic SAREF4ENER validation for known readings. If inference is unavailable, times out, returns invalid JSON, produces low confidence, suggests an unsupported concept, or conflicts with deterministic validation, the reading is retried when configured and then stored as `safely_unmapped` with full audit evidence.
 
 Semantic events show the mapping path with values such as:
 
 - `slm_primary`
-- `deterministic_fallback`
+- `safely_unmapped`
 - `unmapped`
 
 The semantic payload also records `slm_called`, `slm_model`, `slm_confidence`, `deterministic_validation`, `validation_source`, and `fallback_reason` without storing raw prompts.

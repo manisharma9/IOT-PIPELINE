@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adflex.local/schemas/slm-semantic-batch-response.schema.json",
+  "title": "AD-FLEX SLM semantic batch response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mappings"],
+  "properties": {
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reading_id",
+          "saref_concept",
+          "saref_property",
+          "saref_unit",
+          "confidence",
+          "mapping_reason_code"
+        ],
+        "properties": {
+          "reading_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "saref_concept": {
+            "type": "string",
+            "enum": [
+              "saref4ener:PowerMeasurement",
+              "saref4ener:VoltageMeasurement",
+              "saref4ener:CurrentMeasurement",
+              "saref4ener:EnergyConsumptionMeasurement",
+              "saref4ener:EnergyImportMeasurement",
+              "saref4ener:GridFrequencyMeasurement",
+              "saref4ener:PowerFactorMeasurement",
+              "saref4ener:PVGenerationMeasurement",
+              "saref4ener:EVChargingDemandMeasurement",
+              "saref4ener:BatteryStateOfChargeMeasurement",
+              "saref4ener:TemperatureMeasurement",
+              "saref4ener:GridConditionIndicator",
+              "saref4ener:LoadMeasurement",
+              "saref4ener:DemandMeasurement",
+              "saref4ener:HeatPumpPowerMeasurement",
+              "saref4ener:HeatPumpTemperatureMeasurement",
+              "saref4ener:FlexibilityMeasurement",
+              "saref4ener:Measurement"
+            ]
+          },
+          "saref_property": {
+            "type": "string",
+            "enum": [
+              "saref:Power",
+              "saref:Energy",
+              "saref:Voltage",
+              "saref:Current",
+              "saref:Frequency",
+              "saref:Temperature",
+              "saref:StateOfCharge",
+              "saref:PowerFactor",
+              "saref:Property"
+            ]
+          },
+          "saref_unit": {
+            "type": "string",
+            "enum": [
+              "unit:KiloW",
+              "unit:KiloW-HR",
+              "unit:V",
+              "unit:A",
+              "unit:HZ",
+              "unit:PERCENT",
+              "unit:DEG_C",
+              "unit:UNITLESS"
+            ]
+          },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "mapping_reason_code": {
+            "type": "string",
+            "enum": [
+              "exact_field_unit_match",
+              "device_context_match",
+              "canonical_energy_measurement",
+              "temperature_measurement",
+              "state_measurement",
+              "unitless_indicator",
+              "generic_safe_mapping",
+              "uncertain_mapping"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

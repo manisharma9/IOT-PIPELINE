@@ -2,9 +2,15 @@
 
 const { Kafka } = require("kafkajs");
 const { validateTelemetry } = require("../../common/telemetry-validator");
-const { createPool, insertProcessingError, insertTelemetryBatch } = require("./db");
+const {
+  createPool,
+  ensureEngineScalabilitySchema,
+  insertProcessingError,
+  insertTelemetryBatch
+} = require("./db");
 const { normalizeTelemetry } = require("./normalizer");
 const {
+  assignReadingIds,
   buildCorrelationId,
   buildNormalizedTelemetryEvent,
   buildNormalizedTelemetryMessages,
@@ -69,7 +75,7 @@ async function processRawTelemetryMessage({
       throw validationError;
     }
 
-    const normalizedTelemetry = normalizeTelemetry(payload);
+    const normalizedTelemetry = assignReadingIds(normalizeTelemetry(payload), correlationId);
     await insertTelemetryBatch(pool, normalizedTelemetry, metadata);
     await publishNormalizedTelemetry(
       producer,
@@ -105,6 +111,8 @@ async function start() {
   const consumer = kafka.consumer({ groupId: ENGINE_GROUP_ID });
   const producer = kafka.producer();
   const pool = createPool();
+
+  await ensureEngineScalabilitySchema(pool);
 
   await producer.connect();
   await consumer.connect();

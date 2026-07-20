@@ -42,10 +42,13 @@ test("engine builds one Kafka message per normalized row", () => {
   assert.equal(messages.length, 1);
   assert.equal(
     messages[0].key,
-    "community-dublin-north/household-001/meter-001/active_power_kw"
+    "community-dublin-north/household-001/meter-001"
   );
-  assert.deepEqual(JSON.parse(messages[0].value), {
+  const event = JSON.parse(messages[0].value);
+  assert.deepEqual(event, {
     ...normalizedRow,
+    reading_id: event.reading_id,
     correlation_id: "raw.telemetry:0:12"
   });
+  assert.match(event.reading_id, /^reading_[a-f0-9]{64}$/);
 });

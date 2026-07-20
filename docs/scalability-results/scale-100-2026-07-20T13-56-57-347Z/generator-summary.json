@@ -1,0 +1,29 @@
+{
+  "scenario_id": "scale-100-2026-07-20T13-56-57-347Z",
+  "started_at": "2026-07-20T13:56:57.407Z",
+  "completed_at": "2026-07-20T13:57:57.435Z",
+  "elapsed_seconds": 60.028,
+  "mode": "steady",
+  "dry_run": false,
+  "configured_devices": 100,
+  "represented_devices": 100,
+  "represented_households": 34,
+  "telemetry_planned": 100,
+  "telemetry_attempted": 100,
+  "telemetry_gateway_accepted": 100,
+  "telemetry_gateway_failed": 0,
+  "readings_generated": 400,
+  "readings_gateway_accepted": 400,
+  "readings_gateway_failed": 0,
+  "gateway_acceptance_rate_percent": 100,
+  "generated_messages_per_second": 1.666,
+  "gateway_latency": {
+    "minimum_ms": 12.994399999999587,
+    "average_ms": 20.251388999999925,
+    "maximum_ms": 262.6586
+  },
+  "bounded_concurrency": 32,
+  "output_directory": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results\\scale-100-2026-07-20T13-56-57-347Z",
+  "end_to_end_validated": false,
+  "note": "Gateway acceptance is not end-to-end success. Pipeline completion is evaluated separately."
+}

@@ -1,0 +1,36 @@
+{
+  "recorded_at": "2026-07-20T13:53:16.781Z",
+  "provider": "ollama",
+  "model": "phi3:mini",
+  "server_identity": "http://localhost:11434",
+  "batch_size": 4,
+  "iterations": 1,
+  "timeout_ms": 60000,
+  "samples": [
+    {
+      "iteration": 1,
+      "elapsed_ms": 6491.103,
+      "input_readings": 4,
+      "mapped_readings": 1,
+      "safely_unmapped_readings": 3,
+      "output_received_readings": 4,
+      "readings_per_second": 0.6162,
+      "validation_failures": [
+        {
+          "reading_name": "voltage_v",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "deterministic_property_validation_failed"
+        }
+      ]
+    }
+  ],
+  "average_readings_per_second": 0.6162,
+  "note": "Direct provider benchmark only; this is not an end-to-end device-capacity validation."
+}

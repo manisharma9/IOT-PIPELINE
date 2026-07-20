@@ -10,7 +10,7 @@ const {
   safeInsertSecurityGatewayAudit
 } = require("./db");
 const { createKafka, publishSecurityGatewayAudit } = require("./kafka");
-const { buildPlatformStatus } = require("./platform-status");
+const { buildPlatformStatus, listScalabilityDevices } = require("./platform-status");
 const { findRoute, proxyRequest, resolveRoute } = require("./proxy");
 const {
   buildCorsHeaders,
@@ -350,6 +350,31 @@ function createApp(options = {}) {
       return response.status(503).json({
         error: "platform_status_unavailable",
         message: "Platform status could not be read safely.",
+        correlation_id: request.correlationId
+      });
+    }
+  });
+
+  app.get("/platform/devices", async (request, response) => {
+    try {
+      const deviceReader = options.platformDevicesReader || listScalabilityDevices;
+      const result = await deviceReader(options.auditPool || config.auditPool, {
+        limit: request.query.limit,
+        offset: request.query.offset
+      });
+      await auditRecorder.record(buildAuditEvent({
+        request,
+        decision: "accepted",
+        reason: "platform_devices_read",
+        statusCode: 200,
+        targetService: "security-gateway",
+        auditPayload: { limit: result.limit, offset: result.offset, count: result.devices.length }
+      }));
+      return response.json({ status: "ok", ...result });
+    } catch (error) {
+      return response.status(503).json({
+        error: "platform_devices_unavailable",
+        message: error.message,
         correlation_id: request.correlationId
       });
     }

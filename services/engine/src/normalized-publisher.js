@@ -1,5 +1,7 @@
 "use strict";
 
+const crypto = require("node:crypto");
+
 function buildCorrelationId(metadata) {
   if (
     metadata.topic &&
@@ -12,8 +14,37 @@ function buildCorrelationId(metadata) {
   return null;
 }
 
+function buildReadingId(row, correlationId) {
+  const identity = [
+    correlationId || "no-correlation",
+    row.event_time,
+    row.community_id,
+    row.household_id,
+    row.device_id,
+    row.reading_name
+  ].join(":");
+  return `reading_${crypto.createHash("sha256").update(identity).digest("hex")}`;
+}
+
+function assignReadingIds(normalizedTelemetry, correlationId) {
+  const normalizedRows = normalizedTelemetry.normalizedRows.map((row) => {
+    const readingId = row.reading_id || buildReadingId(row, correlationId);
+    return {
+      ...row,
+      reading_id: readingId,
+      normalized_payload: {
+        ...row.normalized_payload,
+        reading_id: readingId,
+        correlation_id: correlationId
+      }
+    };
+  });
+  return { ...normalizedTelemetry, normalizedRows };
+}
+
 function buildNormalizedTelemetryEvent(row, correlationId) {
   return {
+    reading_id: row.reading_id || buildReadingId(row, correlationId),
     event_time: row.event_time,
     household_id: row.household_id,
     community_id: row.community_id,
@@ -33,7 +64,7 @@ function buildNormalizedTelemetryMessages(normalizedRows, correlationId) {
     const event = buildNormalizedTelemetryEvent(row, correlationId);
 
     return {
-      key: [row.community_id, row.household_id, row.device_id, row.reading_name].join("/"),
+      key: [row.community_id, row.household_id, row.device_id].join("/"),
       value: JSON.stringify(event),
       headers: correlationId ? { correlation_id: correlationId } : undefined
     };
@@ -52,7 +83,9 @@ async function publishNormalizedTelemetry(producer, topic, normalizedRows, corre
 }
 
 module.exports = {
+  assignReadingIds,
   buildCorrelationId,
+  buildReadingId,
   buildNormalizedTelemetryEvent,
   buildNormalizedTelemetryMessages,
   publishNormalizedTelemetry

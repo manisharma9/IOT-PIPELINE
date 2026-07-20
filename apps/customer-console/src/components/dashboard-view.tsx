@@ -33,6 +33,7 @@ import { Badge, Card, CopyJsonButton, EmptyState, JsonViewer, LoadingButton, Pag
 
 type ViewName =
   | "overview"
+  | "scalability"
   | "architecture"
   | "security"
   | "telemetry"
@@ -103,9 +104,9 @@ function formatDateTime(value: unknown) {
 
 function toneForStatus(status: unknown): "emerald" | "blue" | "amber" | "rose" | "neutral" {
   const value = String(status || "").toLowerCase();
-  if (["ok", "online", "operational", "available", "stored", "slm_primary", "ready_to_dispatch"].includes(value)) return "emerald";
+  if (["ok", "online", "operational", "available", "stored", "slm_primary", "mapped", "ready_to_dispatch"].includes(value)) return "emerald";
   if (["active", "enabled", "prepared", "reviewed", "approved"].includes(value)) return "blue";
-  if (["degraded", "waiting_for_exports", "deterministic_fallback", "unmapped"].includes(value)) return "amber";
+  if (["degraded", "waiting_for_exports", "deterministic_fallback", "unmapped", "safely_unmapped"].includes(value)) return "amber";
   if (["unavailable", "error", "failed", "blocked", "rejected"].includes(value)) return "rose";
   return "neutral";
 }
@@ -192,6 +193,7 @@ function SelectInput({
 
 export function DashboardView({ view }: DashboardViewProps) {
   if (view === "overview") return <OverviewPage />;
+  if (view === "scalability") return <ScalabilityPage />;
   if (view === "architecture") return <ArchitecturePage />;
   if (view === "security") return <SecurityPage />;
   if (view === "telemetry") return <TelemetryPage />;
@@ -301,7 +303,7 @@ function OverviewPage() {
         <Card title="Pipeline status" value={String(platform.pipeline_status || "Checking")} description="Overall live status from the security gateway." tone={toneForStatus(platform.pipeline_status)} />
         <Card title="Services healthy" value={`${downstream.filter((service) => service.status === "ok").length}/${downstream.length || 7}`} description="Downstream service health through the gateway." tone="blue" />
         <Card title="Telemetry processed" value={formatNumber(tableCounts.raw_telemetry)} description="Raw telemetry rows stored in TimescaleDB." tone="emerald" />
-        <Card title="SLM primary status" value={ollama.phi3_mini_available ? "Phi-3 Mini active" : "Fallback ready"} description="Phi-3 Mini is primary; deterministic mapping validates and falls back." tone={ollama.phi3_mini_available ? "emerald" : "amber"} />
+        <Card title="SLM mandatory status" value={ollama.phi3_mini_available ? "Phi-3 Mini active" : "Inference unavailable"} description="Every reading enters the SLM. Failed results are retried, then marked safely unmapped." tone={ollama.phi3_mini_available ? "emerald" : "amber"} />
         <Card title="Kafka status" value={String(kafka.status || "Checking")} description={`${formatNumber(kafka.topic_count || topics.length)} topics visible`} tone={toneForStatus(kafka.status)} />
         <Card title="TimescaleDB status" value={String(storage.status || "Checking")} description={`${formatNumber(tableCounts.semantic_events)} semantic events stored`} tone={toneForStatus(storage.status)} />
         <Card title="Security gateway" value={String(asRecord(services.gateway).status || "Checking")} description={`${formatNumber(security.accepted_requests)} accepted, ${formatNumber(security.rejected_requests)} rejected`} tone={toneForStatus(asRecord(services.gateway).status)} />
@@ -348,16 +350,16 @@ function OverviewPage() {
             )) : <EmptyState title="No device telemetry yet" message="Run the full demo or send telemetry from the console." />}
           </div>
         </Card>
-        <Card title="SLM semantic intelligence" description="Phi-3 Mini is the primary semantic mapper. Deterministic SAREF4ENER mapping validates known readings and provides fallback only.">
+        <Card title="SLM semantic intelligence" description="Phi-3 Mini is the mandatory primary semantic mapper. Deterministic SAREF4ENER logic validates model output and never creates a replacement mapping.">
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <MetricTile label="Ollama" value={String(ollama.status || "checking")} tone={toneForStatus(ollama.status)} />
             <MetricTile label="Phi-3 Mini" value={ollama.phi3_mini_available ? "Available" : "Unavailable"} tone={ollama.phi3_mini_available ? "emerald" : "amber"} />
             <MetricTile label="SLM calls" value={formatNumber(semanticCounts.slm_call_count)} />
             <MetricTile label="SLM mappings" value={formatNumber(semanticCounts.successful_slm_mappings)} tone="emerald" />
-            <MetricTile label="Fallback count" value={formatNumber(semanticCounts.deterministic_fallback_count)} tone={Number(semanticCounts.deterministic_fallback_count || 0) ? "amber" : "emerald"} />
-            <MetricTile label="Unmapped" value={formatNumber(semanticCounts.unmapped_count)} tone={Number(semanticCounts.unmapped_count || 0) ? "amber" : "emerald"} />
+            <MetricTile label="Safely unmapped" value={formatNumber(semanticCounts.unmapped_count)} tone={Number(semanticCounts.unmapped_count || 0) ? "amber" : "emerald"} />
+            <MetricTile label="Validation role" value="Guardrail only" tone="blue" />
             <MetricTile label="Model" value={String(ollama.model || "phi3:mini")} tone="blue" />
-            <MetricTile label="Role" value="Primary" detail="Deterministic mapping is validation/fallback." tone="emerald" />
+            <MetricTile label="Role" value="Mandatory SLM" detail="No deterministic replacement mappings." tone="emerald" />
           </div>
           <div className="mt-4 space-y-3">
             {latestMappings.slice(0, 5).map((row, index) => (
@@ -454,7 +456,7 @@ function OverviewPage() {
           </div>
           <div id="slm-primary-panel" className="mt-4">
             <StateLine ok label="SLM-primary proof" detail={`Latest mapping source: ${String(latestMappings[0]?.mapping_source || "not available")}; model: ${String(ollama.model || "phi3:mini")}`} />
-            <div className="mt-3"><StateLine ok={Number(semanticCounts.deterministic_fallback_count || 0) >= 0} label="Fallback example" detail={`Deterministic fallback count: ${formatNumber(semanticCounts.deterministic_fallback_count)}. Fallback remains active for invalid, unavailable, or low-confidence SLM outputs.`} /></div>
+            <div className="mt-3"><StateLine ok label="Safe failure example" detail={`Safely unmapped count: ${formatNumber(semanticCounts.unmapped_count)}. Invalid, unavailable, or low-confidence SLM outputs are retried and never replaced by deterministic mappings.`} /></div>
           </div>
         </Card>
         <Card title="Demo action output">
@@ -512,6 +514,126 @@ function OverviewPage() {
             <StateLine ok label="Govern load management" detail="DSO requests become proposals, then require review before ready status." />
             <StateLine ok label="Keep execution safe" detail="Mock dispatch and simulated device APIs show the workflow without real control." />
             <StateLine ok label="Share responsibly" detail="Dataspace export provides minimized, pseudonymized summaries." />
+          </div>
+        </Card>
+      </div>
+    </>
+  );
+}
+
+function ScalabilityPage() {
+  const [status, setStatus] = useState<ApiEnvelope | null>(null);
+  const [devicePage, setDevicePage] = useState<ApiEnvelope | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const limit = 25;
+
+  async function refresh(nextOffset = offset) {
+    setLoading(true);
+    const [platform, devices] = await Promise.all([
+      fetchJson("/api/platform/status"),
+      fetchJson(`/api/platform/devices?limit=${limit}&offset=${nextOffset}`)
+    ]);
+    setStatus(platform);
+    setDevicePage(devices);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      fetchJson("/api/platform/status"),
+      fetchJson(`/api/platform/devices?limit=${limit}&offset=0`)
+    ]).then(([platform, devices]) => {
+      if (!active) return;
+      setStatus(platform);
+      setDevicePage(devices);
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const platform = getPlatform(status);
+  const scalability = asRecord(platform.scalability);
+  const latency = asRecord(scalability.slm_latency_ms);
+  const batches = asRecord(scalability.batches);
+  const lag = asRecord(scalability.kafka_lag);
+  const payload = asRecord(getData(devicePage));
+  const devices = Array.isArray(payload.devices) ? payload.devices as Record<string, unknown>[] : [];
+  const total = Number(payload.total || 0);
+  const invocation = Number(scalability.slm_invocation_percentage || 0);
+
+  const rateData = [
+    { name: "Normalized", value: Number(scalability.normalized_reading_rate_per_second || 0) },
+    { name: "SLM accepted", value: Number(scalability.slm_primary_acceptance_rate || 0) },
+    { name: "Safely unmapped", value: Number(scalability.safely_unmapped_rate || 0) },
+    { name: "Retry", value: Number(scalability.retry_rate || 0) }
+  ];
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="Scalability operations"
+        title="SLM-First Capacity Visibility"
+        description="Aggregate operational metrics for staged device simulations. This view does not claim 10,000-device support until the measured validation gates pass."
+      />
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <LoadingButton loading={loading} onClick={() => refresh()}><RefreshCw className="h-4 w-4" />Refresh metrics</LoadingButton>
+        <Badge tone={invocation === 100 ? "emerald" : "amber"}>{invocation.toFixed(2)}% readings sent to SLM</Badge>
+        <Badge tone="emerald">No real execution</Badge>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card title="Simulated devices" value={formatNumber(scalability.total_simulated_devices)} description="Unique devices in the bounded metrics window." tone="blue" />
+        <Card title="Active households" value={formatNumber(scalability.active_households)} description="Unique households represented." tone="blue" />
+        <Card title="Reading rate" value={`${Number(scalability.normalized_reading_rate_per_second || 0).toFixed(2)}/s`} description="Normalized readings observed per second." tone="emerald" />
+        <Card title="Kafka lag" value={lag.total === null || lag.total === undefined ? "Unavailable" : formatNumber(lag.total)} description="Semantic consumer-group lag." tone={Number(lag.total || 0) === 0 ? "emerald" : "amber"} />
+        <Card title="SLM invocation" value={`${invocation.toFixed(2)}%`} description="Must equal 100% for a passing stage." tone={invocation === 100 ? "emerald" : "amber"} />
+        <Card title="SLM acceptance" value={`${Number(scalability.slm_primary_acceptance_rate || 0).toFixed(2)}%`} description="Validated SLM mappings." tone="emerald" />
+        <Card title="Safely unmapped" value={`${Number(scalability.safely_unmapped_rate || 0).toFixed(2)}%`} description="Explicit terminal outcomes after retries." tone={Number(scalability.safely_unmapped_rate || 0) ? "amber" : "emerald"} />
+        <Card title="Missing outcomes" value={formatNumber(scalability.missing_final_outcomes)} description="Normalized readings without durable SLM audit evidence." tone={Number(scalability.missing_final_outcomes || 0) ? "rose" : "emerald"} />
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-2">
+        <Card title="Inference and batch latency" description="Measured percentiles from durable semantic batch records.">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <MetricTile label="SLM p50" value={`${Number(latency.p50 || 0).toFixed(1)} ms`} />
+            <MetricTile label="SLM p95" value={`${Number(latency.p95 || 0).toFixed(1)} ms`} tone="amber" />
+            <MetricTile label="SLM p99" value={`${Number(latency.p99 || 0).toFixed(1)} ms`} tone="amber" />
+            <MetricTile label="Average batch" value={Number(batches.average_size || 0).toFixed(1)} />
+            <MetricTile label="Maximum batch" value={formatNumber(batches.maximum_size)} />
+            <MetricTile label="Retry count" value={formatNumber(scalability.retry_count)} tone={Number(scalability.retry_count || 0) ? "amber" : "emerald"} />
+          </div>
+        </Card>
+        <Card title="Mapping outcomes" description="Rates are aggregated; the browser does not load every device.">
+          <ClientChartFrame>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={rateData} margin={{ top: 12, right: 12, left: 0, bottom: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.12)" />
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} />
+                <Tooltip contentStyle={{ background: "#10141b", border: "1px solid rgba(255,255,255,.1)" }} />
+                <Bar dataKey="value" fill="#34d399" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ClientChartFrame>
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <Card title="Paginated device evidence" description={`Showing ${offset + 1}-${Math.min(offset + devices.length, total)} of ${formatNumber(total)} durable device summaries.`}>
+          {devices.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="text-xs text-slate-500"><tr><th className="p-2">Device</th><th className="p-2">Household</th><th className="p-2">Type</th><th className="p-2">Latest reading</th><th className="p-2">Source</th><th className="p-2">Status</th></tr></thead>
+                <tbody>{devices.map((device) => <tr key={String(device.device_id)} className="border-t border-white/10 text-slate-300"><td className="p-2 font-medium text-white">{String(device.device_id)}</td><td className="p-2">{String(device.household_id)}</td><td className="p-2">{String(device.device_type)}</td><td className="p-2">{String(device.reading_name)} = {String(device.reading_value)} {String(device.reading_unit || "")}</td><td className="p-2">{String(device.mapping_source)}</td><td className="p-2"><Badge tone={toneForStatus(device.final_status)}>{String(device.final_status)}</Badge></td></tr>)}</tbody>
+              </table>
+            </div>
+          ) : <EmptyState title="No scale evidence yet" message="Run a staged validation, then refresh this page." />}
+          <div className="mt-4 flex gap-2">
+            <LoadingButton variant="secondary" disabled={offset === 0} onClick={() => { const next = Math.max(0, offset - limit); setOffset(next); refresh(next); }}>Previous</LoadingButton>
+            <LoadingButton variant="secondary" disabled={offset + limit >= total} onClick={() => { const next = offset + limit; setOffset(next); refresh(next); }}>Next</LoadingButton>
           </div>
         </Card>
       </div>

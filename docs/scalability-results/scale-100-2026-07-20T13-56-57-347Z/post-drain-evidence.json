@@ -1,0 +1,18 @@
+﻿{
+    "run_id":  "scale-100-2026-07-20T13-56-57-347Z",
+    "captured_at":  "2026-07-20T14:24:05.583829+00:00",
+    "normalized_readings":  400,
+    "audited_readings":  400,
+    "slm_called_readings":  400,
+    "slm_output_received_readings":  320,
+    "mapped_readings":  138,
+    "safely_unmapped_readings":  262,
+    "semantic_rows":  138,
+    "ieee_rows":  138,
+    "last_processed_at":  "2026-07-20T14:22:43.171+00:00",
+    "queue_clearance_seconds":  1544.835634,
+    "duplicate_audit_ids":  0,
+    "duplicate_semantic_ids":  0,
+    "duplicate_ieee_ids":  0,
+    "final_kafka_lag":  0
+}

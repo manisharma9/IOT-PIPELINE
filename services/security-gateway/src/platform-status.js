@@ -6,7 +6,7 @@ const PIPELINE_BLOCKS = Object.freeze([
   ["ingestion", "Ingestion API", "HTTP and compatibility ingestion into raw.telemetry."],
   ["kafka", "Kafka Digital Spine", "Event topics connecting every pipeline stage."],
   ["engine", "Engine", "Raw telemetry normalization into normalized.telemetry."],
-  ["semantic", "Semantic Connector", "Phi-3 Mini primary semantic mapping with SAREF4ENER validation and fallback."],
+  ["semantic", "Semantic Connector", "Mandatory SLM mapping with SAREF4ENER validation, retry, and safe rejection."],
   ["storage", "TimescaleDB", "Historical telemetry, semantic events, command history, and audit records."],
   ["ieee20305", "IEEE 2030.5", "MirrorMeterReading, DERStatus, and GridSignal-style translation foundation."],
   ["aggregator", "Aggregator", "DSO grid signals become safe dispatch proposals."],
@@ -21,6 +21,8 @@ const TABLES = Object.freeze([
   "raw_telemetry",
   "normalized_telemetry",
   "semantic_events",
+  "semantic_slm_audit",
+  "semantic_batch_metrics",
   "ieee20305_events",
   "dispatch_commands",
   "dispatch_approval_audit",
@@ -120,12 +122,12 @@ async function getSemanticSummary(pool) {
     pool,
     `
       SELECT
-        count(*) FILTER (WHERE semantic_payload->'slm_audit'->>'slm_called' = 'true')::bigint AS slm_call_count,
-        count(*) FILTER (WHERE mapping_source = 'slm_primary')::bigint AS successful_slm_mappings,
-        count(*) FILTER (WHERE mapping_source = 'deterministic_fallback')::bigint AS deterministic_fallback_count,
-        count(*) FILTER (WHERE mapping_source = 'unmapped')::bigint AS unmapped_count,
+        count(*) FILTER (WHERE slm_called)::bigint AS slm_call_count,
+        count(*) FILTER (WHERE final_status = 'mapped')::bigint AS successful_slm_mappings,
+        0::bigint AS deterministic_fallback_count,
+        count(*) FILTER (WHERE safely_unmapped)::bigint AS unmapped_count,
         count(*)::bigint AS total_semantic_events
-      FROM semantic_events
+      FROM semantic_slm_audit
     `,
     [],
     [{}]
@@ -154,6 +156,178 @@ async function getSemanticSummary(pool) {
       count: toInt(row.count)
     })),
     latest_mappings: latestRows.map(semanticRow)
+  };
+}
+
+async function getScalabilitySummary(pool, kafka, windowMinutes = 60) {
+  const window = Math.max(1, Math.min(1440, Number(windowMinutes) || 60));
+  const population = await safeQuery(pool, `
+    SELECT
+      count(*)::bigint AS normalized_readings,
+      count(DISTINCT device_id)::bigint AS total_devices,
+      count(DISTINCT household_id)::bigint AS active_households,
+      min(event_time) AS first_event_time,
+      max(event_time) AS last_event_time
+    FROM normalized_telemetry
+    WHERE event_time >= now() - ($1::text || ' minutes')::interval
+  `, [window], [{}]);
+  const rawPopulation = await safeQuery(pool, `
+    SELECT count(*)::bigint AS raw_messages
+    FROM raw_telemetry
+    WHERE event_time >= now() - ($1::text || ' minutes')::interval
+  `, [window], [{}]);
+  const slm = await safeQuery(pool, `
+    SELECT
+      count(*)::bigint AS audited_readings,
+      count(*) FILTER (WHERE slm_called)::bigint AS slm_called_readings,
+      count(*) FILTER (WHERE final_status = 'mapped')::bigint AS mapped_readings,
+      count(*) FILTER (WHERE safely_unmapped)::bigint AS safely_unmapped_readings,
+      count(*) FILTER (WHERE slm_attempt_count > 1)::bigint AS retried_readings,
+      coalesce(sum(GREATEST(slm_attempt_count - 1, 0)), 0)::bigint AS retry_count,
+      percentile_cont(0.50) WITHIN GROUP (ORDER BY slm_inference_latency_ms) AS slm_p50_ms,
+      percentile_cont(0.95) WITHIN GROUP (ORDER BY slm_inference_latency_ms) AS slm_p95_ms,
+      percentile_cont(0.99) WITHIN GROUP (ORDER BY slm_inference_latency_ms) AS slm_p99_ms,
+      avg(slm_confidence) FILTER (WHERE slm_confidence IS NOT NULL) AS average_confidence,
+      min(processed_at) AS first_processed_at,
+      max(processed_at) AS last_processed_at
+    FROM semantic_slm_audit
+    WHERE event_time >= now() - ($1::text || ' minutes')::interval
+  `, [window], [{}]);
+  const batches = await safeQuery(pool, `
+    SELECT
+      count(*)::bigint AS batch_count,
+      avg(input_readings) AS average_batch_size,
+      max(input_readings)::bigint AS maximum_batch_size,
+      percentile_cont(0.50) WITHIN GROUP (ORDER BY total_latency_ms) AS batch_p50_ms,
+      percentile_cont(0.95) WITHIN GROUP (ORDER BY total_latency_ms) AS batch_p95_ms,
+      percentile_cont(0.99) WITHIN GROUP (ORDER BY total_latency_ms) AS batch_p99_ms,
+      avg(queue_time_ms) AS average_queue_time_ms,
+      avg(database_latency_ms) AS average_database_latency_ms
+    FROM semantic_batch_metrics
+    WHERE event_time >= now() - ($1::text || ' minutes')::interval
+  `, [window], [{}]);
+  const duplicates = await safeQuery(pool, `
+    SELECT
+      (SELECT count(*) FROM (
+        SELECT reading_id FROM semantic_events WHERE reading_id IS NOT NULL
+        GROUP BY reading_id HAVING count(*) > 1
+      ) duplicate_semantic) AS duplicate_semantic_rows,
+      (SELECT count(*) FROM (
+        SELECT reading_id FROM ieee20305_events WHERE reading_id IS NOT NULL
+        GROUP BY reading_id HAVING count(*) > 1
+      ) duplicate_ieee_rows,
+      (SELECT count(*) FROM processing_errors
+        WHERE occurred_at >= now() - ($1::text || ' minutes')::interval) AS processing_errors
+  `, [window], [{}]);
+
+  const normalized = toInt(population[0]?.normalized_readings);
+  const rawMessages = toInt(rawPopulation[0]?.raw_messages);
+  const audited = toInt(slm[0]?.audited_readings);
+  const slmCalled = toInt(slm[0]?.slm_called_readings);
+  const first = population[0]?.first_event_time ? Date.parse(population[0].first_event_time) : NaN;
+  const last = population[0]?.last_event_time ? Date.parse(population[0].last_event_time) : NaN;
+  const durationSeconds = Number.isFinite(first) && Number.isFinite(last)
+    ? Math.max(1, (last - first) / 1000)
+    : window * 60;
+
+  const kafkaLag = await getSemanticConsumerLag(kafka);
+  return {
+    window_minutes: window,
+    total_simulated_devices: toInt(population[0]?.total_devices),
+    active_households: toInt(population[0]?.active_households),
+    raw_messages: rawMessages,
+    normalized_readings: normalized,
+    audited_readings: audited,
+    telemetry_rate_per_second: Number((rawMessages / durationSeconds).toFixed(3)),
+    normalized_reading_rate_per_second: Number((normalized / durationSeconds).toFixed(3)),
+    slm_invocation_percentage: normalized ? Number(((slmCalled / normalized) * 100).toFixed(4)) : 0,
+    slm_primary_acceptance_rate: audited
+      ? Number(((toInt(slm[0]?.mapped_readings) / audited) * 100).toFixed(4))
+      : 0,
+    safely_unmapped_rate: audited
+      ? Number(((toInt(slm[0]?.safely_unmapped_readings) / audited) * 100).toFixed(4))
+      : 0,
+    retry_rate: audited
+      ? Number(((toInt(slm[0]?.retried_readings) / audited) * 100).toFixed(4))
+      : 0,
+    retry_count: toInt(slm[0]?.retry_count),
+    missing_final_outcomes: Math.max(0, normalized - audited),
+    average_confidence: Number(slm[0]?.average_confidence || 0),
+    slm_latency_ms: {
+      p50: Number(slm[0]?.slm_p50_ms || 0),
+      p95: Number(slm[0]?.slm_p95_ms || 0),
+      p99: Number(slm[0]?.slm_p99_ms || 0)
+    },
+    batches: {
+      count: toInt(batches[0]?.batch_count),
+      average_size: Number(batches[0]?.average_batch_size || 0),
+      maximum_size: toInt(batches[0]?.maximum_batch_size),
+      p50_ms: Number(batches[0]?.batch_p50_ms || 0),
+      p95_ms: Number(batches[0]?.batch_p95_ms || 0),
+      p99_ms: Number(batches[0]?.batch_p99_ms || 0),
+      average_queue_time_ms: Number(batches[0]?.average_queue_time_ms || 0),
+      average_database_latency_ms: Number(batches[0]?.average_database_latency_ms || 0)
+    },
+    kafka_lag: kafkaLag,
+    duplicate_semantic_rows: toInt(duplicates[0]?.duplicate_semantic_rows),
+    duplicate_ieee_rows: toInt(duplicates[0]?.duplicate_ieee_rows),
+    processing_errors: toInt(duplicates[0]?.processing_errors),
+    current_test_stage: "operator_selected",
+    no_real_execution: true
+  };
+}
+
+async function getSemanticConsumerLag(kafka) {
+  if (!kafka || typeof kafka.admin !== "function") return { status: "unavailable", total: null };
+  const admin = kafka.admin();
+  try {
+    await admin.connect();
+    const offsets = await admin.fetchOffsets({
+      groupId: process.env.SEMANTIC_CONNECTOR_GROUP_ID || "saref4ener-semantic-connector",
+      topics: ["normalized.telemetry"],
+      resolveOffsets: true
+    });
+    const partitions = offsets.flatMap((topic) => (topic.partitions || []).map((partition) => ({
+      topic: topic.topic,
+      partition: partition.partition,
+      offset: partition.offset,
+      high: partition.high,
+      lag: Math.max(0, Number(partition.high || 0) - Number(partition.offset || 0))
+    })));
+    return {
+      status: "ok",
+      total: partitions.reduce((sum, partition) => sum + partition.lag, 0),
+      partitions
+    };
+  } catch (error) {
+    return { status: "unavailable", total: null, message: error.message };
+  } finally {
+    await admin.disconnect().catch(() => {});
+  }
+}
+
+async function listScalabilityDevices(pool, options = {}) {
+  const limit = Math.max(1, Math.min(100, Number(options.limit) || 25));
+  const offset = Math.max(0, Number(options.offset) || 0);
+  const rows = await safeQuery(pool, `
+    WITH latest AS (
+      SELECT DISTINCT ON (device_id)
+        device_id, household_id, community_id, device_type, reading_name,
+        reading_value, reading_unit, event_time, processed_at,
+        mapping_source, mapping_confidence, final_status, safely_unmapped
+      FROM semantic_events
+      ORDER BY device_id, processed_at DESC
+    )
+    SELECT *, count(*) OVER()::bigint AS total_count
+    FROM latest
+    ORDER BY device_id
+    LIMIT $1 OFFSET $2
+  `, [limit, offset]);
+  return {
+    limit,
+    offset,
+    total: toInt(rows[0]?.total_count),
+    devices: rows.map(({ total_count: _total, ...row }) => row)
   };
 }
 
@@ -536,7 +710,8 @@ async function buildPlatformStatus({
     storage_latest,
     dataspace,
     ollama,
-    kafkaStatus
+    kafkaStatus,
+    scalability
   ] = await Promise.all([
     getTableCounts(pool),
     getSemanticSummary(pool),
@@ -546,7 +721,8 @@ async function buildPlatformStatus({
     getStorageLatest(pool),
     getDataspaceSummary(pool),
     getOllamaStatus(config, ollamaFetch),
-    getKafkaTopics(kafka)
+    getKafkaTopics(kafka),
+    getScalabilitySummary(pool, kafka)
   ]);
 
   const downstream = await require("./index").readDownstreamHealth(config, healthFetch);
@@ -574,12 +750,13 @@ async function buildPlatformStatus({
       ...semantic,
       ollama,
       primary_semantic_mapper: "Phi-3 Mini via local Ollama",
-      deterministic_mapping_role: "validation_and_fallback_only"
+      deterministic_mapping_role: "validation_guardrail_only"
     },
     devices,
     security,
     load_management,
     dataspace,
+    scalability,
     pipeline_blocks: buildPipelineBlocks(downstream, storage_latest, kafkaStatus, semantic),
     safety: {
       no_real_device_control: true,
@@ -599,5 +776,8 @@ module.exports = {
   getOllamaStatus,
   getSecuritySummary,
   getSemanticSummary,
+  getScalabilitySummary,
+  getSemanticConsumerLag,
+  listScalabilityDevices,
   getTableCounts
 };

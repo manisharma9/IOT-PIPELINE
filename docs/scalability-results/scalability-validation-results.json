@@ -1,0 +1,150 @@
+{
+  "generated_at": "2026-07-20T19:58:04.485090+05:30",
+  "selected_evidence_run": "docs\\scalability-results\\scale-100-2026-07-20T13-56-57-347Z\\stage-result.json",
+  "stages": [
+    {
+      "run_id": "scale-100-2026-07-20T13-56-57-347Z",
+      "status": "failed",
+      "configured_devices": 100,
+      "represented_devices": 100,
+      "households": 34,
+      "telemetry_messages": 100,
+      "normalized_readings": 400,
+      "slm_called_readings": 344,
+      "slm_invocation_percentage": 86,
+      "mapped_readings": 123,
+      "safely_unmapped_readings": 221,
+      "arrival_readings_per_second": 6.664,
+      "completion_readings_per_second": 0.276,
+      "maximum_kafka_lag": 397,
+      "final_kafka_lag": 112,
+      "slm_p50_ms": 21632.07753200014,
+      "slm_p95_ms": 77128,
+      "slm_p99_ms": 88899,
+      "end_to_end_p50_ms": 631933.5,
+      "end_to_end_p95_ms": 1131163.3,
+      "end_to_end_p99_ms": 1213723.64,
+      "duplicate_semantic_ids": 0,
+      "duplicate_ieee_ids": 0,
+      "processing_errors": 0
+    },
+    {
+      "configured_devices": 1000,
+      "status": "not_run_due_to_prior_gate"
+    },
+    {
+      "configured_devices": 5000,
+      "status": "not_run_due_to_prior_gate"
+    },
+    {
+      "configured_devices": 10000,
+      "status": "not_run_due_to_prior_gate"
+    }
+  ],
+  "provider_benchmarks": [
+    {
+      "recorded_at": "2026-07-20T13:52:39.178Z",
+      "provider": "ollama",
+      "model": "phi3:mini",
+      "server_identity": "http://localhost:11434",
+      "batch_size": 1,
+      "iterations": 1,
+      "timeout_ms": 60000,
+      "samples": [
+        {
+          "iteration": 1,
+          "elapsed_ms": 3403.031,
+          "input_readings": 1,
+          "mapped_readings": 1,
+          "safely_unmapped_readings": 0,
+          "output_received_readings": 1,
+          "readings_per_second": 0.2939,
+          "validation_failures": []
+        }
+      ],
+      "average_readings_per_second": 0.2939,
+      "note": "Direct provider benchmark only; this is not an end-to-end device-capacity validation."
+    },
+    {
+      "recorded_at": "2026-07-20T13:53:16.781Z",
+      "provider": "ollama",
+      "model": "phi3:mini",
+      "server_identity": "http://localhost:11434",
+      "batch_size": 4,
+      "iterations": 1,
+      "timeout_ms": 60000,
+      "samples": [
+        {
+          "iteration": 1,
+          "elapsed_ms": 6491.103,
+          "input_readings": 4,
+          "mapped_readings": 1,
+          "safely_unmapped_readings": 3,
+          "output_received_readings": 4,
+          "readings_per_second": 0.6162,
+          "validation_failures": [
+            {
+              "reading_name": "voltage_v",
+              "reason": "deterministic_property_validation_failed"
+            },
+            {
+              "reading_name": "current_a",
+              "reason": "deterministic_property_validation_failed"
+            },
+            {
+              "reading_name": "energy_import_kwh",
+              "reason": "deterministic_property_validation_failed"
+            }
+          ]
+        }
+      ],
+      "average_readings_per_second": 0.6162,
+      "note": "Direct provider benchmark only; this is not an end-to-end device-capacity validation."
+    },
+    {
+      "recorded_at": "2026-07-20T13:53:48.411Z",
+      "provider": "ollama",
+      "model": "phi3:mini",
+      "server_identity": "http://localhost:11434",
+      "batch_size": 8,
+      "iterations": 1,
+      "timeout_ms": 60000,
+      "samples": [
+        {
+          "iteration": 1,
+          "elapsed_ms": 13313.65,
+          "input_readings": 8,
+          "mapped_readings": 4,
+          "safely_unmapped_readings": 4,
+          "output_received_readings": 8,
+          "readings_per_second": 0.6009,
+          "validation_failures": [
+            {
+              "reading_name": "voltage_v",
+              "reason": "deterministic_property_validation_failed"
+            },
+            {
+              "reading_name": "current_a",
+              "reason": "deterministic_property_validation_failed"
+            },
+            {
+              "reading_name": "energy_import_kwh",
+              "reason": "deterministic_property_validation_failed"
+            },
+            {
+              "reading_name": "ev_charging_power_kw",
+              "reason": "deterministic_property_validation_failed"
+            }
+          ]
+        }
+      ],
+      "average_readings_per_second": 0.6009,
+      "note": "Direct provider benchmark only; this is not an end-to-end device-capacity validation."
+    }
+  ],
+  "claim_boundary": {
+    "generator_population_represented": 10000,
+    "end_to_end_10000_validated": false,
+    "million_device_validated": false
+  }
+}
