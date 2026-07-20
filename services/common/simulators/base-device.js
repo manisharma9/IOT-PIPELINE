@@ -15,7 +15,8 @@ class BaseDevice {
     areaId = "dublin-north",
     controllableLoadKw = 0,
     supportedActions = [],
-    initialState = {}
+    initialState = {},
+    random = Math.random
   }) {
     this.deviceId = deviceId;
     this.deviceType = deviceType;
@@ -25,6 +26,7 @@ class BaseDevice {
     this.areaId = areaId;
     this.controllableLoadKw = Number(controllableLoadKw || 0);
     this.supportedActions = [...supportedActions];
+    this.random = typeof random === "function" ? random : Math.random;
     this.state = {
       online: true,
       simulated: true,
@@ -33,6 +35,20 @@ class BaseDevice {
       last_command_at: null,
       ...initialState
     };
+  }
+
+  randomBetween(minimum, maximum) {
+    return Number(minimum) + this.random() * (Number(maximum) - Number(minimum));
+  }
+
+  elapsedHours(timestamp, fallbackSeconds = 5) {
+    const current = Date.parse(timestamp);
+    const previous = this.state.last_tick_at ? Date.parse(this.state.last_tick_at) : NaN;
+    const elapsedSeconds = Number.isFinite(current) && Number.isFinite(previous)
+      ? Math.max(0.25, Math.min(3600, (current - previous) / 1000))
+      : fallbackSeconds;
+
+    return elapsedSeconds / 3600;
   }
 
   tick(timestamp = new Date().toISOString()) {

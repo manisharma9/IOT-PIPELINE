@@ -3,6 +3,7 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 const {
+  getSemanticConsumerConfig,
   processNormalizedTelemetryMessage,
   resolveSemanticMapping
 } = require("../src/index");
@@ -58,6 +59,27 @@ function kafkaMessage(event) {
     value: Buffer.from(JSON.stringify(event))
   };
 }
+
+test("semantic consumer session remains longer than the local SLM timeout", () => {
+  const config = getSemanticConsumerConfig({
+    SEMANTIC_CONNECTOR_GROUP_ID: "test-semantic-group",
+    SLM_TIMEOUT_MS: "30000",
+    SEMANTIC_KAFKA_SESSION_TIMEOUT_MS: "120000"
+  });
+
+  assert.equal(config.groupId, "test-semantic-group");
+  assert.equal(config.sessionTimeout, 120000);
+  assert.equal(config.heartbeatInterval, 3000);
+});
+
+test("semantic consumer protects against an undersized session timeout", () => {
+  const config = getSemanticConsumerConfig({
+    SLM_TIMEOUT_MS: "45000",
+    SEMANTIC_KAFKA_SESSION_TIMEOUT_MS: "10000"
+  });
+
+  assert.equal(config.sessionTimeout, 75000);
+});
 
 test("known reading uses SLM primary path and deterministic validation", async () => {
   let slmCalled = false;

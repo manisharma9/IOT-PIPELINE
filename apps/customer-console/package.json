@@ -8,6 +8,7 @@
     "start": "next start --port 3000",
     "lint": "eslint .",
     "check:client-boundary": "node scripts/check-client-boundary.mjs",
+    "smoke:multi-household": "node scripts/smoke-multi-household-dashboard.js",
     "record:demo": "node scripts/record-dashboard-demo-mp4.js"
   },
   "dependencies": {

@@ -20,27 +20,44 @@ class HeatPumpDevice extends BaseDevice {
       areaId: options.areaId,
       controllableLoadKw: options.controllableLoadKw || 3.2,
       supportedActions: HEAT_PUMP_ACTIONS,
+      random: options.random,
       initialState: {
         operating_state: "heating",
-        heating_power_kw: 2.4,
-        indoor_temperature_c: 20.8,
-        target_temperature_c: 21,
-        flow_temperature_c: 38
+        heating_power_kw: Number(options.initialPowerKw ?? 2.4),
+        indoor_temperature_c: Number(options.initialIndoorTemperatureC ?? 20.8),
+        target_temperature_c: Number(options.targetTemperatureC ?? 21),
+        flow_temperature_c: Number(options.initialFlowTemperatureC ?? 38),
+        operating_mode_code: 1
       }
     });
   }
 
   tick(timestamp = new Date().toISOString()) {
     if (this.state.operating_state === "reduced") {
-      this.state.heating_power_kw = round(this.controllableLoadKw * 0.38);
-      this.state.flow_temperature_c = 34;
+      this.state.heating_power_kw = round(
+        this.controllableLoadKw * this.randomBetween(0.3, 0.42)
+      );
+      this.state.flow_temperature_c = round(this.randomBetween(33, 35), 1);
+      this.state.operating_mode_code = 2;
     } else if (this.state.operating_state === "boost") {
-      this.state.heating_power_kw = round(this.controllableLoadKw);
-      this.state.flow_temperature_c = 42;
+      this.state.heating_power_kw = round(
+        this.controllableLoadKw * this.randomBetween(0.94, 1)
+      );
+      this.state.flow_temperature_c = round(this.randomBetween(41, 43), 1);
+      this.state.operating_mode_code = 3;
     } else {
-      this.state.heating_power_kw = round(this.controllableLoadKw * 0.75);
-      this.state.flow_temperature_c = 38;
+      this.state.heating_power_kw = round(
+        this.controllableLoadKw * this.randomBetween(0.62, 0.82)
+      );
+      this.state.flow_temperature_c = round(this.randomBetween(37, 39.5), 1);
+      this.state.operating_mode_code = 1;
     }
+
+    const temperatureDelta = this.state.target_temperature_c - this.state.indoor_temperature_c;
+    this.state.indoor_temperature_c = round(
+      this.state.indoor_temperature_c + temperatureDelta * this.randomBetween(0.015, 0.045),
+      1
+    );
 
     return super.tick(timestamp);
   }
@@ -55,9 +72,17 @@ class HeatPumpDevice extends BaseDevice {
         value: round(this.state.indoor_temperature_c, 1),
         unit: "C"
       },
+      target_temperature_c: {
+        value: round(this.state.target_temperature_c, 1),
+        unit: "C"
+      },
       flow_temperature_c: {
         value: round(this.state.flow_temperature_c, 1),
         unit: "C"
+      },
+      operating_mode_code: {
+        value: this.state.operating_mode_code,
+        unit: "state_code"
       }
     };
   }

@@ -202,6 +202,18 @@ Stop the demo without deleting local data:
 powershell -ExecutionPolicy Bypass -File .\scripts\stop-demo.ps1
 ```
 
+### Multi-Household Validation
+
+Run the reusable production-style scenario with five households, fifteen independent devices, and two telemetry updates per device:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run-multi-household-validation.ps1 -Households 5 -Cycles 2
+```
+
+The runner sends telemetry through the security gateway, waits for semantic and IEEE 2030.5-style persistence, completes the safe DSO approval/mock dispatch/device translation path, requests a minimized dataspace export, and writes machine-readable evidence to `docs/demo-assets/multi-household-validation-results.json`.
+
+The measured implementation report is available at [docs/multi-household-scalability-validation-report.md](docs/multi-household-scalability-validation-report.md). The stakeholder Word report is available at [docs/multi-household-pipeline-validation-report.docx](docs/multi-household-pipeline-validation-report.docx).
+
 ## Validate The Demo Manually
 
 Production-style local calls should go through the gateway:

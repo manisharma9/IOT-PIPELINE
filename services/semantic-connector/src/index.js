@@ -22,6 +22,25 @@ const NORMALIZED_TELEMETRY_TOPIC =
   process.env.NORMALIZED_TELEMETRY_TOPIC || "normalized.telemetry";
 const SEMANTIC_ENRICHED_TOPIC = process.env.SEMANTIC_ENRICHED_TOPIC || "semantic.enriched";
 
+function positiveInteger(value, fallback) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function getSemanticConsumerConfig(env = process.env) {
+  const slmTimeoutMs = positiveInteger(env.SLM_TIMEOUT_MS, 30000);
+  const configuredSessionTimeoutMs = positiveInteger(
+    env.SEMANTIC_KAFKA_SESSION_TIMEOUT_MS,
+    120000
+  );
+
+  return {
+    groupId: env.SEMANTIC_CONNECTOR_GROUP_ID || SEMANTIC_CONNECTOR_GROUP_ID,
+    sessionTimeout: Math.max(configuredSessionTimeoutMs, slmTimeoutMs + 30000),
+    heartbeatInterval: 3000
+  };
+}
+
 function buildKafkaMetadata(topic, partition, message) {
   return {
     topic,
@@ -203,7 +222,7 @@ async function start() {
     clientId: KAFKA_CLIENT_ID,
     brokers: KAFKA_BROKERS
   });
-  const consumer = kafka.consumer({ groupId: SEMANTIC_CONNECTOR_GROUP_ID });
+  const consumer = kafka.consumer(getSemanticConsumerConfig());
   const producer = kafka.producer();
   const pool = createPool();
 
@@ -254,6 +273,7 @@ if (require.main === module) {
 module.exports = {
   buildKafkaMetadata,
   buildSemanticMessageKey,
+  getSemanticConsumerConfig,
   resolveSemanticMapping,
   processNormalizedTelemetryMessage
 };

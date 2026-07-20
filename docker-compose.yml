@@ -50,7 +50,7 @@ services:
     ports:
       - "1883:1883"
     volumes:
-      - ./services/mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./services/mqtt-broker/mosquitto.conf/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     restart: unless-stopped
 
   timescaledb:
@@ -157,6 +157,7 @@ services:
       OLLAMA_MODEL: ${OLLAMA_MODEL:-phi3:mini}
       SLM_TIMEOUT_MS: ${SLM_TIMEOUT_MS:-30000}
       SLM_MIN_CONFIDENCE: ${SLM_MIN_CONFIDENCE:-medium}
+      SEMANTIC_KAFKA_SESSION_TIMEOUT_MS: ${SEMANTIC_KAFKA_SESSION_TIMEOUT_MS:-120000}
       TIMESCALE_HOST: timescaledb
       TIMESCALE_PORT: 5432
       TIMESCALE_DB: ${TIMESCALE_DB:-energy_flex}

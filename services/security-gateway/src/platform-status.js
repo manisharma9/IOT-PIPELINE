@@ -161,22 +161,26 @@ async function getDeviceInsights(pool) {
   const rows = await safeQuery(
     pool,
     `
-      SELECT DISTINCT ON (device_id)
-        event_time,
-        processed_at,
-        device_id,
-        device_type,
-        reading_name,
-        reading_value,
-        reading_unit,
-        mapping_source,
-        mapping_confidence,
-        saref4ener_concept
-      FROM semantic_events
-      WHERE device_id IN ('shelly-plug-001', 'easee-core-001', 'heat-pump-001')
-         OR device_type IN ('shelly_plug', 'ev_charger', 'heat_pump', 'unknown_sensor', 'grid_sensor')
-      ORDER BY device_id, processed_at DESC
-      LIMIT 8
+      SELECT *
+      FROM (
+        SELECT DISTINCT ON (device_id)
+          event_time,
+          processed_at,
+          device_id,
+          device_type,
+          reading_name,
+          reading_value,
+          reading_unit,
+          mapping_source,
+          mapping_confidence,
+          saref4ener_concept
+        FROM semantic_events
+        WHERE device_id IN ('shelly-plug-001', 'easee-core-001', 'heat-pump-001')
+           OR device_type IN ('shelly_plug', 'ev_charger', 'heat_pump', 'unknown_sensor', 'grid_sensor')
+        ORDER BY device_id, processed_at DESC
+      ) latest_devices
+      ORDER BY processed_at DESC
+      LIMIT 20
     `
   );
 
