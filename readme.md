@@ -78,9 +78,9 @@ The simulator layer follows a small BaseDevice-style contract. Simulated devices
 
 The ingestion path normalizes this shape into the existing pipeline schema before publishing to Kafka, so existing topics and TimescaleDB inserts continue to work.
 
-## Customer Operator Console
+## EnerShare Household Energy Intelligence
 
-The customer-facing web application lives in `apps/customer-console`. It is a Next.js and TypeScript dashboard designed for local operation now and later deployment to Vercel.
+The customer-facing product lives in `apps/customer-console`. It is a Next.js and TypeScript experience for household energy, connected devices, flexibility opportunities, validated AI-powered insights, anonymized community information, and customer reports. The existing engineering dashboard is preserved for technical administrators at `/admin/operations`.
 
 The console follows the production-style access boundary:
 
@@ -91,20 +91,24 @@ Browser
 -> internal AD-FLEX services
 ```
 
-The browser does not call internal service ports directly. The gateway API key stays server-side in Next.js API routes and is not exposed to client components.
+The browser does not call internal service ports directly. The gateway API key and customer scope stay server-side in Next.js API routes and are not exposed to client components.
 
 Local setup:
 
 ```powershell
 cd C:\Users\Mani\Desktop\Github\IOT-PIPELINE\apps\customer-console
 copy .env.example .env.local
-npm install
-npm run dev
+npm.cmd install
+npm.cmd run dev
 ```
 
-Open `http://localhost:3000` and sign in with the configured local demo operator credentials. The console includes local demo authentication, gateway health, telemetry simulation, DSO load request submission, proposal review actions, safe mock dispatch audit, simulated Shelly Plug, Heat Pump, and Enode / Easee Core device translation audit, dataspace export views, AWS readiness, and runbook guidance.
+Open `http://localhost:3000/dashboard` and sign in with the configured local account. Customer routes show only authorized product data. Technical pipeline health, validation, raw audit, protocol payload, and infrastructure diagnostics remain under `/admin/operations` for `technical_admin`.
 
-Production authentication can later be connected to Cognito, Auth0, or another JWT issuer. Real device control must not be enabled without real credentials, consent, operator approval, and safety controls.
+Roles include household user, EnerShare operator, and technical administrator. Operators select stable household pseudonyms within an authorized community; household accounts cannot read another household. Production authentication can later be connected to Cognito, Auth0, or another JWT issuer.
+
+The current product uses real local pipeline records from simulated Shelly Plug, Enode/Easee EV charger, and Heat Pump devices. Measured, estimated, and simulated values are labelled separately. Financial savings, carbon reduction, physical energy shifted, and other unsupported metrics are not fabricated.
+
+Safety remains explicit: real device control must not be enabled without real credentials, customer consent, operator authorization, and production safety controls.
 
 ## System Capabilities
 

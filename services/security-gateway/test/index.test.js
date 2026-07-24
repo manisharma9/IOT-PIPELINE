@@ -52,6 +52,8 @@ function createTestGateway(options = {}) {
     auditPool: options.auditPool,
     platformStatusReader: options.platformStatusReader,
     platformDevicesReader: options.platformDevicesReader,
+    customerReadModel: options.customerReadModel,
+    customerInsights: options.customerInsights,
     rateLimitStore: new Map()
   });
 
@@ -101,6 +103,16 @@ function edgeHeaders(extra = {}) {
     "content-type": "application/json",
     ...extra
   };
+}
+
+function customerHeaders(extra = {}) {
+  return edgeHeaders({
+    "x-customer-role": "household_user",
+    "x-customer-username": "household-a-user",
+    "x-customer-household-id": "household-a",
+    "x-customer-community-id": "community-one",
+    ...extra
+  });
 }
 
 test("gateway health works without API key", async () => {
@@ -484,4 +496,93 @@ test("platform devices endpoint returns a bounded paginated summary", async () =
   assert.equal(response.body.total, 10000);
   assert.equal(response.body.devices.length, 1);
   assert.equal(audits.at(-1).reason, "platform_devices_read");
+});
+
+test("household customer cannot request another household", async () => {
+  const { app, audits } = createTestGateway({
+    auditPool: {
+      query: async () => ({ rows: [] })
+    }
+  });
+
+  const response = await request(
+    app,
+    "GET",
+    "/customer/summary?household_id=household-b",
+    { headers: customerHeaders() }
+  );
+
+  assert.equal(response.status, 403);
+  assert.equal(response.body.error, "household_access_denied");
+  assert.equal(audits.at(-1).reason, "household_access_denied");
+});
+
+test("authorized customer summary returns minimized product data", async () => {
+  const customerReadModel = {
+    getCustomerSummary: async (_pool, context, householdId) => ({
+      household: {
+        display_name: "Your household",
+        community_id: context.communityId
+      },
+      connection: { status: "live", last_updated: "2026-07-24T10:00:00.000Z" },
+      live_consumption_kw: 2.4,
+      energy_used_today_kwh: 8.2,
+      active_devices: 3,
+      total_devices: 3,
+      flexible_load_available_kw: 1.7,
+      current_grid_event: null,
+      simulation: {
+        enabled: true,
+        no_real_execution: true
+      },
+      unavailable_metrics: ["financial_savings"],
+      resolved_household_for_test: householdId
+    })
+  };
+  const { app, audits } = createTestGateway({
+    auditPool: { query: async () => ({ rows: [] }) },
+    customerReadModel
+  });
+
+  const response = await request(app, "GET", "/customer/summary", {
+    headers: customerHeaders()
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.live_consumption_kw, 2.4);
+  assert.equal(response.body.simulation.no_real_execution, true);
+  assert.equal(response.body.resolved_household_for_test, "household-a");
+  assert.equal(JSON.stringify(response.body).includes("raw_telemetry"), false);
+  assert.equal(JSON.stringify(response.body).includes("kafka"), false);
+  assert.equal(audits.at(-1).reason, "customer_summary_read");
+});
+
+test("customer insight endpoint returns validated product copy only", async () => {
+  const customerInsights = {
+    getOrGenerateCustomerInsights: async () => ({
+      status: "cached",
+      insights: [{
+        insight_id: "insight-1",
+        category: "peak_period",
+        title: "Peak energy period",
+        text: "Household power peaked at 2.4 kW during the selected period.",
+        confidence: 0.91,
+        validation_status: "validated",
+        label: "AI-powered energy insight"
+      }]
+    })
+  };
+  const { app } = createTestGateway({
+    auditPool: { query: async () => ({ rows: [] }) },
+    customerInsights
+  });
+
+  const response = await request(app, "GET", "/customer/insights", {
+    headers: customerHeaders()
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.insights[0].label, "AI-powered energy insight");
+  assert.equal("model_identifier" in response.body.insights[0], false);
+  assert.equal("prompt" in response.body.insights[0], false);
 });

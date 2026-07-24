@@ -1,108 +1,136 @@
-# Customer Operator Console
+# EnerShare Household Energy Intelligence
 
-The Customer Operator Console is the front-facing web application for the Smart Grid Communication Pipeline. It is a Next.js and TypeScript dashboard for local operation today, with a structure suitable for later Vercel deployment and connection to an AWS-hosted backend.
+The customer console is a Next.js and TypeScript product experience for
+household energy, connected simulated devices, flexibility participation,
+validated AI-powered insights, anonymized community comparison, and reports.
 
-## Purpose
+The engineering dashboard remains available to technical administrators at
+`/admin/operations`. Customer routes do not expose streaming, database,
+inference, container, port, or raw-audit diagnostics.
 
-- Give operators a polished view of telemetry, semantic mapping, DSO load management, dispatch proposals, safe mock dispatch, simulated device API translation, dataspace export, and AWS readiness.
-- Keep browser traffic away from internal backend ports.
-- Prove the production-style access pattern: browser -> Next.js API routes -> security gateway -> internal AD-FLEX services.
-- Keep all real execution disabled. Shelly Plug, Enode / Easee Core, and Heat Pump integrations remain simulated.
+## Product Routes
 
-## Pages
-
-- Login
-- Executive Overview
-- Architecture Flow
-- Security Gateway
-- Telemetry Simulator
-- Semantic Mapping
-- IEEE 2030.5 Translation
-- DSO Load Management
-- Dispatch Proposals
-- Mock Dispatch
-- Device Command Translation
-- Dataspace Export
-- AWS Readiness
-- Documentation / Runbook
+| Route | Purpose |
+| --- | --- |
+| `/login` | Local protected sign-in |
+| `/dashboard` | Household energy and flexibility overview |
+| `/dashboard/analytics` | Bounded 24-hour, 7-day, 30-day, or custom trends |
+| `/dashboard/devices` | Paginated smart plug, EV charger, and heat-pump state |
+| `/dashboard/flexibility` | Customer-friendly event timeline and authorized actions |
+| `/dashboard/community` | Aggregated, anonymized community information |
+| `/dashboard/reports` | Daily, weekly, and monthly printable/CSV reports |
+| `/dashboard/settings` | Account, privacy, safety, and display preferences |
+| `/admin/operations` | Technical dashboard for `technical_admin` only |
 
 ## Local Setup
+
+Start the backend:
 
 ```powershell
 cd C:\Users\Mani\Desktop\Github\IOT-PIPELINE
 copy .env.example .env
 powershell -ExecutionPolicy Bypass -File .\scripts\start-demo.ps1 -Build
+```
 
-cd .\apps\customer-console
+Start the product:
+
+```powershell
+cd C:\Users\Mani\Desktop\Github\IOT-PIPELINE\apps\customer-console
 copy .env.example .env.local
-npm install
-npm run dev
+npm.cmd install
+npm.cmd run dev
 ```
 
-Open:
+Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard).
 
-```text
-http://localhost:3000
-```
-
-Default local credentials:
+Default local operator access:
 
 ```text
 operator / operator123
 ```
 
-## Environment Variables
+## Environment
 
 ```text
-NEXT_PUBLIC_APP_NAME=Smart Grid Communication Console
+NEXT_PUBLIC_APP_NAME=EnerShare Household Energy Intelligence
 GATEWAY_BASE_URL=http://localhost:3010
 EDGE_API_KEY=local-dev-edge-key
+SESSION_SIGNING_SECRET=local-dev-session-secret-change-me
 DEMO_AUTH_USERNAME=operator
 DEMO_AUTH_PASSWORD=operator123
+DEMO_AUTH_ROLE=enershare_operator
+DEMO_AUTH_COMMUNITY_ID=community-dublin-north
+DEMO_HOUSEHOLD_USERNAME=household
+DEMO_HOUSEHOLD_PASSWORD=household123
+DEMO_HOUSEHOLD_ID=household-001
+DEMO_ADMIN_USERNAME=admin
+DEMO_ADMIN_PASSWORD=admin123
 NEXT_PUBLIC_DEPLOYMENT_MODE=local
 ```
 
-`EDGE_API_KEY` is used only by Next.js server API routes. It must not be referenced by browser components.
+`EDGE_API_KEY` and the session-signing fallback remain server-side. They are
+never referenced by customer browser components.
 
-## Local Authentication
+## Access Model
 
-The console uses demo operator credentials from environment variables and stores a signed HttpOnly session cookie. This is suitable for local testing only.
+- `household_user`: one household, its devices and events, plus anonymized
+  community comparisons.
+- `enershare_operator`: pseudonymized household selection inside one
+  authorized community and approval-workflow actions.
+- `technical_admin`: product access plus the preserved operations dashboard.
 
-Production authentication can later be connected to Cognito, Auth0, or another JWT issuer. The security gateway already has JWT-ready structure for that future connection.
+Local credentials are a demonstration foundation. A deployed environment
+should use Cognito, Auth0, or another managed OIDC/JWT identity provider.
 
-## Gateway Proxy Model
+## Request Boundary
 
-Browser code calls only `/api/*` routes inside this Next.js app. Those server-side routes call `GATEWAY_BASE_URL` and attach `x-edge-api-key` from `EDGE_API_KEY`.
+```text
+Browser
+-> Next.js /api/customer/* routes
+-> security-gateway /customer/* routes
+-> authorized customer read model
+-> bounded TimescaleDB aggregate queries
+```
 
-The browser must not call internal service ports directly:
+The browser never connects directly to an internal service, data store,
+streaming broker, message broker, or local inference server.
 
-- 3001 ingestion API
-- 3002 IEEE 2030.5 translator
-- 3003 aggregator
-- 3004 approval workflow
-- 3005 mock dispatch adapter
-- 3006 dataspace export
-- 3009 device command translator
+## Product Data
 
-## Vercel Deployment Notes
+The product uses actual pipeline records generated by the simulated devices.
+Direct cumulative-meter deltas are labelled measured. Heat-pump and other
+power-integrated energy values are labelled estimated. Dispatch outcomes are
+labelled simulated.
 
-For Vercel, configure environment variables in the project settings:
+Unsupported financial, tariff, carbon, physical-export, and real-device
+claims are omitted.
 
-- `GATEWAY_BASE_URL` should point to the AWS API Gateway or security gateway URL.
-- `EDGE_API_KEY` should be stored as a server-side secret.
-- `DEMO_AUTH_USERNAME` and `DEMO_AUTH_PASSWORD` should be replaced by production identity integration.
-- `NEXT_PUBLIC_DEPLOYMENT_MODE` can become `staging` or `production`.
+## Validation
 
-## AWS Connection Notes
+```powershell
+npm.cmd run lint
+npm.cmd run build
+npm.cmd run test:product
+npm.cmd run check:client-boundary
+npm.cmd run test:responsive
+```
 
-The local security gateway maps to a future AWS API Gateway and WAF edge. The console should continue calling its own Next.js API routes. Those routes can later call the AWS-hosted gateway without changing browser code.
+The responsive test exercises desktop, tablet, and 320 px mobile layouts and
+writes screenshots to `docs/demo-assets`.
 
-## Safety Boundaries
+## Deployment Notes
 
-- No real household command execution.
-- No real Shelly credentials.
-- No real Enode or Easee credentials.
-- No real heat pump credentials.
+The Next.js application can later be deployed to Vercel. Configure
+`GATEWAY_BASE_URL` as the deployed gateway URL and store all non-public values
+as server-side environment variables. Production identity, consent, device
+credentials, and a hardened trust relationship between the BFF and gateway
+remain deployment inputs.
+
+## Safety
+
+- Simulated Shelly Plug, Enode/Easee EV charger, and Heat Pump only.
+- No physical household device control.
+- No real device credentials.
 - No certified IEEE 2030.5 claim.
-- No certified ENERSHARE claim.
-- Safe mock dispatch and simulated device API translation only.
+- No certified ENERSHARE or IDS connector claim.
+- No savings or carbon claim without supporting external data.
