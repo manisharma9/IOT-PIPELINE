@@ -1,5 +1,7 @@
 "use strict";
 
+const fs = require("node:fs/promises");
+const path = require("node:path");
 const { Pool } = require("pg");
 
 function createPool() {
@@ -52,6 +54,15 @@ async function ensureSecurityGatewayAuditTable(pool) {
     CREATE INDEX IF NOT EXISTS security_gateway_audit_correlation_id_idx
       ON security_gateway_audit (correlation_id)
   `);
+}
+
+async function ensureCustomerDashboardReadModel(pool) {
+  const migrationPath = path.resolve(
+    __dirname,
+    "../../../database/timescale/011_customer_dashboard_read_model.sql"
+  );
+  const sql = await fs.readFile(migrationPath, "utf8");
+  await pool.query(sql);
 }
 
 async function insertSecurityGatewayAudit(pool, event) {
@@ -189,6 +200,7 @@ async function listSecurityGatewayAudit(pool, filters = {}) {
 
 module.exports = {
   createPool,
+  ensureCustomerDashboardReadModel,
   ensureSecurityGatewayAuditTable,
   insertSecurityGatewayAudit,
   listSecurityGatewayAudit,

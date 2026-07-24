@@ -33,6 +33,18 @@ function loadConfig(env = process.env) {
     ollamaBaseUrl: env.OLLAMA_BASE_URL || "http://host.docker.internal:11434",
     slmModel: env.SLM_MODEL || env.OLLAMA_MODEL || "phi3:mini",
     slmPrimary: String(env.SLM_PRIMARY || "true").toLowerCase() === "true",
+    customerPseudonymizationSalt:
+      env.CUSTOMER_DASHBOARD_PSEUDONYMIZATION_SALT ||
+      env.DATASPACE_PSEUDONYMIZATION_SALT ||
+      "local-dashboard-salt",
+    customerInsightRefreshMinutes: parseInteger(
+      env.CUSTOMER_INSIGHT_REFRESH_MINUTES,
+      60
+    ),
+    customerInsightTimeoutMs: parseInteger(
+      env.CUSTOMER_INSIGHT_TIMEOUT_MS,
+      20000
+    ),
     targets: {
       ingestion: env.INGESTION_API_URL || "http://ingestion-api:3001",
       ieee20305: env.IEEE20305_TRANSLATOR_URL || "http://ieee20305-translator:3002",

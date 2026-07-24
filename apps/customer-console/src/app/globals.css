@@ -11,6 +11,10 @@
   --accent-2: #60a5fa;
   --warning: #f59e0b;
   --danger: #fb7185;
+  --product-background: #06101d;
+  --product-panel: rgba(13, 28, 45, 0.86);
+  --product-panel-strong: #0c1b2b;
+  --product-border: rgba(148, 163, 184, 0.14);
 }
 
 * {
@@ -24,12 +28,10 @@ body {
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at 20% 10%, rgba(52, 211, 153, 0.12), transparent 28rem),
-    radial-gradient(circle at 90% 0%, rgba(96, 165, 250, 0.11), transparent 26rem),
-    linear-gradient(135deg, #090b0f 0%, #10131a 45%, #0b0f14 100%);
+  background: #07111f;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
 }
 
 a {
@@ -56,4 +58,161 @@ textarea {
 .json-viewer {
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+button,
+a,
+input,
+select {
+  outline-offset: 3px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #67e8f9;
+}
+
+.product-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 40;
+  width: 264px;
+  flex-direction: column;
+  border-right: 1px solid rgba(148, 163, 184, 0.12);
+  background: #07111f;
+  padding: 24px 18px;
+}
+
+.product-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  min-height: 68px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(6, 16, 29, 0.94);
+  padding: 12px 16px;
+  backdrop-filter: blur(14px);
+}
+
+@media (min-width: 640px) {
+  .product-header {
+    padding-inline: 24px;
+  }
+}
+
+.product-nav-link {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 12px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #94a3b8;
+  font-size: 14px;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.product-nav-link:hover {
+  background: rgba(255, 255, 255, 0.045);
+  color: #f8fafc;
+}
+
+.product-nav-link-active {
+  border: 1px solid rgba(103, 232, 249, 0.16);
+  background: rgba(103, 232, 249, 0.08);
+  color: #cffafe;
+}
+
+.product-panel {
+  min-width: 0;
+  border: 1px solid var(--product-border);
+  border-radius: 8px;
+  background: var(--product-panel);
+  padding: 18px;
+  box-shadow: 0 16px 34px rgba(1, 7, 17, 0.18);
+}
+
+.product-icon-button {
+  display: inline-grid;
+  height: 38px;
+  width: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #cbd5e1;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.product-icon-button:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.product-select {
+  min-height: 38px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 8px;
+  background: #0b1929;
+  padding: 8px 12px;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+.product-primary-button,
+.product-secondary-button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.product-primary-button {
+  border: 1px solid rgba(103, 232, 249, 0.32);
+  background: rgba(103, 232, 249, 0.13);
+  color: #cffafe;
+}
+
+.product-primary-button:hover {
+  background: rgba(103, 232, 249, 0.2);
+}
+
+.product-secondary-button {
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  background: rgba(255, 255, 255, 0.045);
+  color: #e2e8f0;
+}
+
+.product-secondary-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.product-primary-button:disabled,
+.product-secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSessionToken, getDemoCredentials, SESSION_COOKIE } from "@/lib/auth";
+import { authenticateDemoUser, createSessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
-  const credentials = getDemoCredentials();
+  const user = authenticateDemoUser(body.username, body.password);
 
-  if (body.username !== credentials.username || body.password !== credentials.password) {
+  if (!user) {
     return NextResponse.json(
       {
         error: "invalid_demo_credentials",
@@ -17,11 +17,17 @@ export async function POST(request: NextRequest) {
 
   const response = NextResponse.json({
     status: "ok",
-    username: credentials.username,
+    username: user.username,
+    role: user.role,
     deployment_mode: process.env.NEXT_PUBLIC_DEPLOYMENT_MODE || "local"
   });
 
-  response.cookies.set(SESSION_COOKIE, createSessionToken(credentials.username), {
+  response.cookies.set(SESSION_COOKIE, createSessionToken({
+    username: user.username,
+    role: user.role,
+    household_id: user.household_id,
+    community_id: user.community_id
+  }), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

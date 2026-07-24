@@ -10,6 +10,7 @@ RUN npm install --omit=dev
 
 WORKDIR /app
 COPY services/security-gateway/src ./services/security-gateway/src
+COPY database/timescale/011_customer_dashboard_read_model.sql ./database/timescale/011_customer_dashboard_read_model.sql
 
 WORKDIR /app/services/security-gateway
 

@@ -5,10 +5,18 @@ const { buildAuditEvent, createAuditRecorder } = require("./audit");
 const { loadConfig } = require("./config");
 const {
   createPool,
+  ensureCustomerDashboardReadModel,
   ensureSecurityGatewayAuditTable,
   listSecurityGatewayAudit,
   safeInsertSecurityGatewayAudit
 } = require("./db");
+const {
+  CustomerAccessError,
+  readCustomerContext,
+  resolveHouseholdScope
+} = require("./customer-auth");
+const customerReadModel = require("./customer-read-model");
+const customerInsights = require("./customer-insights");
 const { createKafka, publishSecurityGatewayAudit } = require("./kafka");
 const { buildPlatformStatus, listScalabilityDevices } = require("./platform-status");
 const { findRoute, proxyRequest, resolveRoute } = require("./proxy");
@@ -103,7 +111,59 @@ function createApp(options = {}) {
   const proxyFetch = options.proxyFetch || fetch;
   const healthFetch = options.healthFetch || proxyFetch;
   const rateLimitStore = options.rateLimitStore || new Map();
+  const customerPool = options.auditPool || config.auditPool;
+  const customerReader = options.customerReadModel || customerReadModel;
+  const insightReader = options.customerInsights || customerInsights;
   const app = express();
+
+  async function auditCustomerRead(request, reason, statusCode, extra = {}) {
+    await auditRecorder.record(buildAuditEvent({
+      request,
+      decision: statusCode < 400 ? "accepted" : "blocked",
+      reason,
+      statusCode,
+      targetService: "customer-read-model",
+      auditPayload: {
+        customer_role: extra.role || null,
+        response_kind: extra.responseKind || null,
+        no_raw_payload: true
+      }
+    }));
+  }
+
+  async function customerScope(request) {
+    if (!customerPool) {
+      throw new CustomerAccessError("customer_read_model_unavailable", 503);
+    }
+    const context = readCustomerContext(request);
+    const householdId = await resolveHouseholdScope(
+      customerPool,
+      context,
+      request.query.household_id,
+      config.customerPseudonymizationSalt
+    );
+    if (!householdId) {
+      throw new CustomerAccessError("customer_household_data_not_found", 404);
+    }
+    return { context, householdId };
+  }
+
+  async function sendCustomerError(request, response, error) {
+    const statusCode = error instanceof CustomerAccessError
+      ? error.statusCode
+      : 503;
+    const code = error instanceof CustomerAccessError
+      ? error.code
+      : "customer_read_model_unavailable";
+    await auditCustomerRead(request, code, statusCode);
+    return response.status(statusCode).json({
+      error: code,
+      message: statusCode === 503
+        ? "Customer energy data is temporarily unavailable."
+        : "The requested customer data is not available for this account.",
+      correlation_id: request.correlationId
+    });
+  }
 
   app.set("trust proxy", true);
 
@@ -380,6 +440,210 @@ function createApp(options = {}) {
     }
   });
 
+  app.get("/customer/households", async (request, response) => {
+    try {
+      if (!customerPool) {
+        throw new CustomerAccessError("customer_read_model_unavailable", 503);
+      }
+      const context = readCustomerContext(request);
+      const result = await customerReader.listHouseholds(customerPool, context, config);
+      await auditCustomerRead(request, "customer_households_read", 200, {
+        role: context.role,
+        responseKind: "household_selector"
+      });
+      return response.json(result);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
+  app.get("/customer/summary", async (request, response) => {
+    try {
+      const { context, householdId } = await customerScope(request);
+      const result = await customerReader.getCustomerSummary(
+        customerPool,
+        context,
+        householdId,
+        config
+      );
+      await auditCustomerRead(request, "customer_summary_read", 200, {
+        role: context.role,
+        responseKind: "household_summary"
+      });
+      return response.json(result);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
+  app.get("/customer/analytics", async (request, response) => {
+    try {
+      const { context, householdId } = await customerScope(request);
+      const result = await customerReader.getCustomerAnalytics(
+        customerPool,
+        context,
+        householdId,
+        {
+          range: request.query.range,
+          start: request.query.start,
+          end: request.query.end
+        }
+      );
+      await auditCustomerRead(request, "customer_analytics_read", 200, {
+        role: context.role,
+        responseKind: "bounded_energy_series"
+      });
+      return response.json(result);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
+  app.get("/customer/devices", async (request, response) => {
+    try {
+      const { context, householdId } = await customerScope(request);
+      const result = await customerReader.getCustomerDevices(
+        customerPool,
+        context,
+        householdId,
+        {
+          limit: request.query.limit,
+          offset: request.query.offset
+        }
+      );
+      await auditCustomerRead(request, "customer_devices_read", 200, {
+        role: context.role,
+        responseKind: "paginated_devices"
+      });
+      return response.json(result);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
+  app.get("/customer/flexibility", async (request, response) => {
+    try {
+      const { context, householdId } = await customerScope(request);
+      const result = await customerReader.getCustomerFlexibility(
+        customerPool,
+        context,
+        householdId
+      );
+      await auditCustomerRead(request, "customer_flexibility_read", 200, {
+        role: context.role,
+        responseKind: "flexibility_history"
+      });
+      return response.json(result);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
+  app.get("/customer/community", async (request, response) => {
+    try {
+      const { context, householdId } = await customerScope(request);
+      const result = await customerReader.getCustomerCommunity(
+        customerPool,
+        context,
+        householdId,
+        config
+      );
+      await auditCustomerRead(request, "customer_community_read", 200, {
+        role: context.role,
+        responseKind: "anonymized_community_summary"
+      });
+      return response.json(result);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
+  app.get("/customer/reports", async (request, response) => {
+    try {
+      const { context, householdId } = await customerScope(request);
+      const result = await customerReader.getCustomerReports(
+        customerPool,
+        context,
+        householdId,
+        { period: request.query.period }
+      );
+      await auditCustomerRead(request, "customer_report_read", 200, {
+        role: context.role,
+        responseKind: "customer_report"
+      });
+      return response.json(result);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
+  app.get("/customer/reports.csv", async (request, response) => {
+    try {
+      const { context, householdId } = await customerScope(request);
+      const report = await customerReader.getCustomerReports(
+        customerPool,
+        context,
+        householdId,
+        { period: request.query.period }
+      );
+      const csv = customerReader.buildCustomerReportCsv(report);
+      await auditCustomerRead(request, "customer_report_exported", 200, {
+        role: context.role,
+        responseKind: "customer_csv"
+      });
+      response.set("content-type", "text/csv; charset=utf-8");
+      response.set(
+        "content-disposition",
+        `attachment; filename="adflex-${report.period}-energy-report.csv"`
+      );
+      return response.send(csv);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
+  app.get("/customer/insights", async (request, response) => {
+    try {
+      const { context, householdId } = await customerScope(request);
+      const result = await insightReader.getOrGenerateCustomerInsights({
+        pool: customerPool,
+        context,
+        householdId,
+        config,
+        inferenceFetch: options.customerInsightFetch || fetch
+      });
+      await auditCustomerRead(request, "customer_insights_read", 200, {
+        role: context.role,
+        responseKind: "validated_insights"
+      });
+      return response.json(result);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
+  app.post("/customer/insights/refresh", async (request, response) => {
+    try {
+      const { context, householdId } = await customerScope(request);
+      const result = await insightReader.getOrGenerateCustomerInsights({
+        pool: customerPool,
+        context,
+        householdId,
+        config,
+        inferenceFetch: options.customerInsightFetch || fetch,
+        force: true,
+        trigger: "authorized_refresh"
+      });
+      await auditCustomerRead(request, "customer_insights_refreshed", 202, {
+        role: context.role,
+        responseKind: "validated_insights"
+      });
+      return response.status(202).json(result);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
   app.use(async (request, response) => {
     const route = resolveRoute(request.method, request.path);
     if (!route) {
@@ -434,6 +698,7 @@ async function start() {
   const producer = kafka.producer();
 
   await ensureSecurityGatewayAuditTable(pool);
+  await ensureCustomerDashboardReadModel(pool);
   await producer.connect();
 
   const auditRecorder = createAuditRecorder({
@@ -444,6 +709,10 @@ async function start() {
     topic: config.auditTopic
   });
   const app = createApp({ config, auditRecorder, auditPool: pool, kafka });
+  const insightScheduler = customerInsights.startCustomerInsightScheduler({
+    pool,
+    config
+  });
   const server = app.listen(config.port, () => {
     console.log(`Security gateway listening on http://0.0.0.0:${config.port}`);
     console.log(`Publishing security audit events to ${config.auditTopic}`);
@@ -452,6 +721,7 @@ async function start() {
   const shutdown = async () => {
     console.log("Shutting down security gateway...");
     server.close();
+    clearInterval(insightScheduler);
     await producer.disconnect();
     await pool.end();
     process.exit(0);
