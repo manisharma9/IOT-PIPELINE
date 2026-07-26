@@ -34,9 +34,10 @@ Expected console values for local demo:
 ```text
 NEXT_PUBLIC_APP_NAME=Smart Grid Communication Console
 GATEWAY_BASE_URL=http://localhost:3010
-EDGE_API_KEY=local-dev-edge-key
-DEMO_AUTH_USERNAME=operator
-DEMO_AUTH_PASSWORD=operator123
+EDGE_API_KEY=<local gateway key>
+DEMO_USERNAME=<demo operator username>
+DEMO_PASSWORD=<strong temporary password>
+DEMO_SESSION_SECRET=<at least 32 random characters>
 NEXT_PUBLIC_DEPLOYMENT_MODE=local
 ```
 
@@ -119,10 +120,7 @@ http://localhost:3000
 
 Login:
 
-```text
-Username: operator
-Password: operator123
-```
+Use the account configured in the ignored dashboard environment file.
 
 ## Run Full Demo
 
@@ -228,7 +226,7 @@ Confirm `apps/customer-console\.env.local` contains:
 
 ```text
 GATEWAY_BASE_URL=http://localhost:3010
-EDGE_API_KEY=local-dev-edge-key
+EDGE_API_KEY=<local gateway key>
 ```
 
 ### Port already in use
@@ -259,4 +257,3 @@ powershell -ExecutionPolicy Bypass -File .\scripts\stop-demo.ps1
 ```
 
 If a clean reset is needed, use Docker Desktop carefully. Do not remove volumes unless you intentionally want to delete local TimescaleDB and Kafka data.
-

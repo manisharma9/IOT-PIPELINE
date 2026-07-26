@@ -502,18 +502,64 @@ function createApp(options = {}) {
   app.get("/customer/devices", async (request, response) => {
     try {
       const { context, householdId } = await customerScope(request);
+      const category = /^[a-z0-9_]{2,40}$/.test(String(request.query.category || ""))
+        ? String(request.query.category)
+        : undefined;
+      const online = request.query.online === "true"
+        ? true
+        : request.query.online === "false"
+          ? false
+          : undefined;
+      const flexible = request.query.flexible === "true"
+        ? true
+        : request.query.flexible === "false"
+          ? false
+          : undefined;
+      const state = ["active", "idle", "offline"].includes(request.query.state)
+        ? request.query.state
+        : undefined;
       const result = await customerReader.getCustomerDevices(
         customerPool,
         context,
         householdId,
         {
           limit: request.query.limit,
-          offset: request.query.offset
+          offset: request.query.offset,
+          category,
+          online,
+          flexible,
+          state
         }
       );
       await auditCustomerRead(request, "customer_devices_read", 200, {
         role: context.role,
         responseKind: "paginated_devices"
+      });
+      return response.json(result);
+    } catch (error) {
+      return sendCustomerError(request, response, error);
+    }
+  });
+
+  app.get("/customer/devices/:deviceId", async (request, response) => {
+    try {
+      const { context, householdId } = await customerScope(request);
+      const deviceId = String(request.params.deviceId || "");
+      if (!/^[a-zA-Z0-9_-]{3,160}$/.test(deviceId)) {
+        throw new CustomerAccessError("customer_device_not_found", 404);
+      }
+      const result = await customerReader.getCustomerDeviceDetail(
+        customerPool,
+        context,
+        householdId,
+        deviceId
+      );
+      if (!result) {
+        throw new CustomerAccessError("customer_device_not_found", 404);
+      }
+      await auditCustomerRead(request, "customer_device_detail_read", 200, {
+        role: context.role,
+        responseKind: "bounded_device_detail"
       });
       return response.json(result);
     } catch (error) {

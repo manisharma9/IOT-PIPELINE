@@ -52,9 +52,8 @@ http://localhost:3000
 
 The recording script uses the local demo login:
 
-```text
-operator / operator123
-```
+Use the demo username and password configured in the dashboard's ignored
+environment file. The recording script does not contain fallback credentials.
 
 ## 4. Record the MP4
 

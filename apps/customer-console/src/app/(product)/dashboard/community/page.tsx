@@ -27,7 +27,7 @@ import type { CommunitySummary } from "@/lib/customer-types";
 export default function CommunityPage() {
   const { selectedHousehold } = useCustomerPortal();
   const community = useCustomerResource<CommunitySummary>(
-    withHousehold("/api/customer/community", selectedHousehold)
+    withHousehold("/api/dashboard/community", selectedHousehold)
   );
   const totalDevices = community.data?.device_type_distribution.reduce(
     (sum, item) => sum + item.count,
@@ -201,4 +201,3 @@ function PrivacyPoint({
     </div>
   );
 }
-

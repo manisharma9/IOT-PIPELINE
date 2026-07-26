@@ -28,10 +28,10 @@ export default function ReportsPage() {
   const { selectedHousehold, householdLabel } = useCustomerPortal();
   const [period, setPeriod] = useState<ReportPeriod>("weekly");
   const report = useCustomerResource<CustomerReports>(
-    withHousehold(`/api/customer/reports?period=${period}`, selectedHousehold)
+    withHousehold(`/api/dashboard/reports?period=${period}`, selectedHousehold)
   );
   const csvPath = withHousehold(
-    `/api/customer/reports/csv?period=${period}`,
+    `/api/dashboard/reports/csv?period=${period}`,
     selectedHousehold
   );
   const totals = useMemo(() => {

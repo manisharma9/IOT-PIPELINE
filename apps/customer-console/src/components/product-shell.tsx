@@ -17,7 +17,7 @@ import {
   X
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   createContext,
   useContext,
@@ -71,10 +71,12 @@ export function ProductShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedHousehold = searchParams.get("household");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [households, setHouseholds] = useState<HouseholdOption[]>([]);
   const [selectedHousehold, setSelectedHousehold] = useState<string | null>(
-    session.role === "household_user" ? session.household_id : null
+    session.role === "household_user" ? session.household_id : requestedHousehold
   );
   const [selectorLoading, setSelectorLoading] = useState(true);
 
@@ -82,7 +84,7 @@ export function ProductShell({
     let active = true;
     async function loadHouseholds() {
       try {
-        const response = await fetch("/api/customer/households", {
+        const response = await fetch("/api/dashboard/households", {
           cache: "no-store"
         });
         const payload = (await response.json()) as ApiEnvelope<{
@@ -91,7 +93,13 @@ export function ProductShell({
         if (!active || !response.ok) return;
         const options = payload.data.households || [];
         setHouseholds(options);
-        if (!selectedHousehold) {
+        if (
+          session.role !== "household_user" &&
+          requestedHousehold &&
+          options.some((item) => item.selector_id === requestedHousehold)
+        ) {
+          setSelectedHousehold(requestedHousehold);
+        } else if (!selectedHousehold) {
           setSelectedHousehold(
             options.find((item) => item.selected_by_default)?.selector_id ||
               options[0]?.selector_id ||
@@ -108,7 +116,7 @@ export function ProductShell({
     return () => {
       active = false;
     };
-  }, [selectedHousehold]);
+  }, [requestedHousehold, selectedHousehold, session.role]);
 
   const householdLabel = useMemo(() => {
     const selected = households.find(

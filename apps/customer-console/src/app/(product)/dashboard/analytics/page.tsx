@@ -28,7 +28,7 @@ export default function EnergyAnalyticsPage() {
   const [customEnd, setCustomEnd] = useState("");
 
   const resourcePath = useMemo(() => {
-    let path = `/api/customer/analytics?range=${range}`;
+    let path = `/api/dashboard/analytics?range=${range}`;
     if (range === "custom" && customStart && customEnd) {
       path += `&start=${encodeURIComponent(new Date(customStart).toISOString())}`;
       path += `&end=${encodeURIComponent(new Date(customEnd).toISOString())}`;
@@ -259,4 +259,3 @@ export default function EnergyAnalyticsPage() {
     </>
   );
 }
-

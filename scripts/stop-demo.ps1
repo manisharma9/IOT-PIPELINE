@@ -13,6 +13,7 @@ $Services = @(
   "device-command-translator",
   "enode-simulator",
   "shelly-simulator",
+  "household-fleet-simulator",
   "mock-dispatch-adapter",
   "approval-workflow",
   "aggregator",

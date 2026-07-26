@@ -12,3 +12,5 @@ Thumbs.db
 node_modules/
 .next/
 out/
+.runtime/
+apps/customer-console/.env.public-demo

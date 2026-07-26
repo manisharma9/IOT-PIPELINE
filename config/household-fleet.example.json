@@ -1,0 +1,13 @@
+{
+  "household_count": 20,
+  "random_seed": 20260724,
+  "reporting_interval_ms": 180000,
+  "community_id": "community-dublin-north",
+  "household_prefix": "demo-household",
+  "area_prefix": "dublin-north",
+  "profile_mix": {
+    "apartment": 6,
+    "standard_home": 8,
+    "prosumer_home": 6
+  }
+}

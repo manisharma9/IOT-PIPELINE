@@ -7,6 +7,8 @@ const { chromium } = require("playwright");
 const appRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(appRoot, "..", "..");
 const dashboardUrl = process.env.DASHBOARD_URL || "http://localhost:3000";
+const demoUsername = process.env.DEMO_USERNAME || process.env.DEMO_AUTH_USERNAME;
+const demoPassword = process.env.DEMO_PASSWORD || process.env.DEMO_AUTH_PASSWORD;
 const evidencePath = path.join(
   repoRoot,
   "docs",
@@ -29,6 +31,9 @@ async function launchBrowser() {
 }
 
 async function main() {
+  if (!demoUsername || !demoPassword) {
+    throw new Error("Set DEMO_USERNAME and DEMO_PASSWORD before running the dashboard smoke test.");
+  }
   const evidence = JSON.parse(fs.readFileSync(evidencePath, "utf8"));
   const browser = await launchBrowser();
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
@@ -48,8 +53,8 @@ async function main() {
 
   try {
     await page.goto(`${dashboardUrl}/login`, { waitUntil: "networkidle" });
-    await page.locator("input").nth(0).fill(process.env.DEMO_AUTH_USERNAME || "operator");
-    await page.locator("input").nth(1).fill(process.env.DEMO_AUTH_PASSWORD || "operator123");
+    await page.locator("input").nth(0).fill(demoUsername);
+    await page.locator("input").nth(1).fill(demoPassword);
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForURL("**/overview", { timeout: 15000 });
     await page.getByRole("heading", { name: /Live Smart Grid Communication Pipeline/i }).waitFor();

@@ -103,7 +103,12 @@ SELECT
     max(reading_value) FILTER (WHERE reading_name = 'target_temperature_c') AS target_temperature_c,
     max(reading_value) FILTER (WHERE reading_name = 'flow_temperature_c') AS flow_temperature_c,
     max(reading_value) FILTER (WHERE reading_name = 'charging_state_code') AS charging_state_code,
-    max(reading_value) FILTER (WHERE reading_name = 'operating_mode_code') AS operating_mode_code
+    max(reading_value) FILTER (WHERE reading_name = 'operating_mode_code') AS operating_mode_code,
+    max(reading_value) FILTER (WHERE reading_name = 'operating_state_code') AS operating_state_code,
+    max(reading_value) FILTER (WHERE reading_name = 'water_temperature_c') AS water_temperature_c,
+    max(reading_value) FILTER (WHERE reading_name = 'battery_soc_percent') AS battery_soc_percent,
+    max(reading_value) FILTER (WHERE reading_name = 'pv_generation_kw') AS pv_generation_kw,
+    max(reading_value) FILTER (WHERE reading_name = 'battery_power_kw') AS battery_power_kw
 FROM latest_readings
 GROUP BY household_id, device_id;
 

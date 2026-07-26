@@ -6,8 +6,8 @@ const { chromium } = require("playwright");
 const appRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(appRoot, "..", "..");
 const dashboardUrl = process.env.DASHBOARD_URL || "http://localhost:3000";
-const demoUsername = process.env.DEMO_AUTH_USERNAME || "operator";
-const demoPassword = process.env.DEMO_AUTH_PASSWORD || "operator123";
+const demoUsername = process.env.DEMO_USERNAME || process.env.DEMO_AUTH_USERNAME;
+const demoPassword = process.env.DEMO_PASSWORD || process.env.DEMO_AUTH_PASSWORD;
 const outputDir = path.join(repoRoot, "docs", "demo-assets");
 const outputMp4 = path.join(outputDir, "customer-dashboard-demo.mp4");
 const tempDir = path.join(appRoot, ".demo-recordings");
@@ -16,6 +16,9 @@ const viewport = { width: 1440, height: 1000 };
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function assertDashboardIsRunning() {
+  if (!demoUsername || !demoPassword) {
+    throw new Error("Set DEMO_USERNAME and DEMO_PASSWORD before recording the dashboard.");
+  }
   try {
     const response = await fetch(`${dashboardUrl}/login`, { method: "GET" });
     if (!response.ok) {

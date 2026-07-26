@@ -10,7 +10,18 @@ const baseUrl = process.env.CUSTOMER_CONSOLE_URL || "http://127.0.0.1:3000";
 const outputDirectory = path.resolve(__dirname, "../../../docs/demo-assets");
 const appDirectory = path.resolve(__dirname, "..");
 const useLiveData = process.env.PRODUCT_TEST_LIVE_DATA === "true";
+const demoUsername = process.env.DEMO_USERNAME || process.env.DEMO_AUTH_USERNAME;
+const demoPassword = process.env.DEMO_PASSWORD || process.env.DEMO_AUTH_PASSWORD;
+const edgeApiKey = process.env.EDGE_API_KEY;
+const demoAdminUsername = process.env.DEMO_ADMIN_USERNAME;
+const demoAdminPassword = process.env.DEMO_ADMIN_PASSWORD;
 let serverProcess = null;
+
+function requireDemoCredentials() {
+  if (!demoUsername || !demoPassword || !edgeApiKey) {
+    throw new Error("Set EDGE_API_KEY, DEMO_USERNAME and DEMO_PASSWORD before running responsive dashboard tests.");
+  }
+}
 
 function stopServer() {
   if (!serverProcess?.pid) return;
@@ -52,9 +63,9 @@ async function startServerIfNeeded() {
       cwd: appDirectory,
       env: {
         ...process.env,
-        EDGE_API_KEY: process.env.EDGE_API_KEY || "local-dev-edge-key",
-        DEMO_AUTH_USERNAME: process.env.DEMO_AUTH_USERNAME || "operator",
-        DEMO_AUTH_PASSWORD: process.env.DEMO_AUTH_PASSWORD || "operator123",
+        EDGE_API_KEY: edgeApiKey,
+        DEMO_USERNAME: demoUsername,
+        DEMO_PASSWORD: demoPassword,
         DEMO_AUTH_ROLE: "enershare_operator",
         DEMO_AUTH_COMMUNITY_ID: "community-dublin-north"
       },
@@ -342,11 +353,12 @@ fixtureByPath["/api/customer/flexibility"].events = [
 ];
 
 async function installFixtures(page, overrides = {}) {
-  await page.route("**/api/customer/**", async (route) => {
+  await page.route("**/api/dashboard/**", async (route) => {
     const pathname = new URL(route.request().url()).pathname;
-    const data = Object.hasOwn(overrides, pathname)
-      ? overrides[pathname]
-      : fixtureByPath[pathname];
+    const fixturePath = pathname.replace("/api/dashboard/", "/api/customer/");
+    const data = Object.hasOwn(overrides, fixturePath)
+      ? overrides[fixturePath]
+      : fixtureByPath[fixturePath];
     if (!data) {
       return route.fulfill({
         status: 404,
@@ -383,13 +395,10 @@ async function installFixtures(page, overrides = {}) {
 }
 
 async function login(page) {
+  requireDemoCredentials();
   await page.goto(`${baseUrl}/login`, { waitUntil: "networkidle" });
-  await page.getByLabel("Username").fill(
-    process.env.DEMO_AUTH_USERNAME || "operator"
-  );
-  await page.getByLabel("Password").fill(
-    process.env.DEMO_AUTH_PASSWORD || "operator123"
-  );
+  await page.getByLabel("Username").fill(demoUsername);
+  await page.getByLabel("Password").fill(demoPassword);
   await page.getByRole("button", { name: "Sign in" }).click();
   await page.waitForURL("**/dashboard");
 }
@@ -517,14 +526,15 @@ async function main() {
         viewport: { width: 1280, height: 900 },
         deviceScaleFactor: 1
       });
+      if (!demoAdminUsername || !demoAdminPassword) {
+        throw new Error(
+          "Set DEMO_ADMIN_USERNAME and DEMO_ADMIN_PASSWORD before running role-access responsive tests."
+        );
+      }
       const adminPage = await adminAccess.newPage();
       await adminPage.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded" });
-      await adminPage.getByLabel("Username").fill(
-        process.env.DEMO_ADMIN_USERNAME || "admin"
-      );
-      await adminPage.getByLabel("Password").fill(
-        process.env.DEMO_ADMIN_PASSWORD || "admin123"
-      );
+      await adminPage.getByLabel("Username").fill(demoAdminUsername);
+      await adminPage.getByLabel("Password").fill(demoAdminPassword);
       await adminPage.getByRole("button", { name: "Sign in" }).click();
       await adminPage.waitForURL("**/dashboard");
       await adminPage.goto(`${baseUrl}/admin/operations`, {

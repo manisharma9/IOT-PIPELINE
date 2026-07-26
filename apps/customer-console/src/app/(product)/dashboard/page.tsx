@@ -43,19 +43,19 @@ import type {
 export default function CustomerDashboardPage() {
   const { selectedHousehold, householdLabel } = useCustomerPortal();
   const summary = useCustomerResource<CustomerSummary>(
-    withHousehold("/api/customer/summary", selectedHousehold),
+    withHousehold("/api/dashboard/summary", selectedHousehold),
     { refreshIntervalMs: 30000 }
   );
   const analytics = useCustomerResource<CustomerAnalytics>(
-    withHousehold("/api/customer/analytics?range=24h", selectedHousehold),
+    withHousehold("/api/dashboard/analytics?range=24h", selectedHousehold),
     { refreshIntervalMs: 60000 }
   );
   const devices = useCustomerResource<CustomerDevices>(
-    withHousehold("/api/customer/devices?limit=12&offset=0", selectedHousehold),
+    withHousehold("/api/dashboard/devices?limit=12&offset=0", selectedHousehold),
     { refreshIntervalMs: 30000 }
   );
   const insights = useCustomerResource<CustomerInsights>(
-    withHousehold("/api/customer/insights", selectedHousehold)
+    withHousehold("/api/dashboard/insights", selectedHousehold)
   );
 
   async function refreshAll() {

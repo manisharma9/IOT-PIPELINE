@@ -37,7 +37,7 @@ import type {
 export default function FlexibilityPage() {
   const { selectedHousehold, session } = useCustomerPortal();
   const flexibility = useCustomerResource<CustomerFlexibility>(
-    withHousehold("/api/customer/flexibility", selectedHousehold)
+    withHousehold("/api/dashboard/flexibility", selectedHousehold)
   );
   const [expanded, setExpanded] = useState<string | null>(null);
   const [actionState, setActionState] = useState<{
@@ -56,7 +56,7 @@ export default function FlexibilityPage() {
       error: null
     });
     try {
-      await fetchCustomerData(`/api/approvals/${action}`, {
+      await fetchCustomerData(`/api/dashboard/approvals/${action}`, {
         method: "POST",
         body: JSON.stringify({
           id: event.proposal_id,

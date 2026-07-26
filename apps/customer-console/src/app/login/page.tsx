@@ -16,8 +16,8 @@ export default function LoginPage() {
 function LoginPanel() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [username, setUsername] = useState("operator");
-  const [password, setPassword] = useState("operator123");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -115,9 +115,11 @@ function LoginPanel() {
           </form>
           <div className="mt-6 rounded-lg border border-white/10 bg-white/[0.03] p-4">
             <p className="text-xs font-semibold text-slate-500">Local demonstration access</p>
-            <p className="mt-2 font-mono text-sm text-slate-200">operator / operator123</p>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              Use the account supplied by the demonstration administrator.
+            </p>
             <p className="mt-2 text-xs leading-5 text-slate-500">
-              Production deployment will use a managed identity provider.
+              Credentials are configured server-side. Production deployment will use a managed identity provider.
             </p>
           </div>
         </section>
