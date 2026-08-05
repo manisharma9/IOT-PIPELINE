@@ -505,6 +505,13 @@ function createApp(options = {}) {
       const category = /^[a-z0-9_]{2,40}$/.test(String(request.query.category || ""))
         ? String(request.query.category)
         : undefined;
+      const profile = ["apartment", "standard_home", "prosumer_home"]
+        .includes(String(request.query.profile || ""))
+        ? String(request.query.profile)
+        : undefined;
+      const search = /^[a-zA-Z0-9 _-]{1,80}$/.test(String(request.query.search || ""))
+        ? String(request.query.search)
+        : undefined;
       const online = request.query.online === "true"
         ? true
         : request.query.online === "false"
@@ -526,6 +533,8 @@ function createApp(options = {}) {
           limit: request.query.limit,
           offset: request.query.offset,
           category,
+          profile,
+          search,
           online,
           flexible,
           state

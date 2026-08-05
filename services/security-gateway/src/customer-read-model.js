@@ -308,7 +308,15 @@ async function getCustomerDevices(pool, context, householdId, options = {}) {
     clauses.push(expression.replace("?", `$${parameters.length}`));
   }
   addFilter(options.category, "inventory.device_category = ?");
+  addFilter(options.profile, "inventory.household_profile = ?");
   addFilter(options.deviceId, "inventory.device_id = ?");
+  if (options.search) {
+    parameters.push(`%${String(options.search).toLowerCase()}%`);
+    clauses.push(
+      `(lower(inventory.display_name) LIKE $${parameters.length} OR ` +
+      `lower(inventory.device_id) LIKE $${parameters.length})`
+    );
+  }
   if (options.online === true || options.online === false) {
     addFilter(options.online, "(inventory.last_seen >= now() - interval '10 minutes') = ?");
   }
@@ -524,6 +532,8 @@ async function getCustomerDevices(pool, context, householdId, options = {}) {
     },
     filters: {
       category: options.category || null,
+      profile: options.profile || null,
+      search: options.search || null,
       online: options.online ?? null,
       flexible: options.flexible ?? null,
       state: options.state || null
@@ -733,7 +743,9 @@ async function getCustomerCommunity(pool, context, householdId, config) {
       WITH household_load AS (
         SELECT
           household_id,
-          sum(coalesce(current_power_kw, 0)) AS demand_kw,
+          coalesce(sum(coalesce(current_power_kw, 0)) FILTER (
+            WHERE last_seen >= now() - interval '10 minutes'
+          ), 0) AS demand_kw,
           sum(coalesce(current_power_kw, 0)) FILTER (
             WHERE device_type IN ('shelly_plug', 'ev_charger', 'heat_pump')
               AND last_seen >= now() - interval '10 minutes'
@@ -748,7 +760,9 @@ async function getCustomerCommunity(pool, context, householdId, config) {
         count(*) FILTER (WHERE last_seen >= now() - interval '10 minutes')::integer AS active_households,
         coalesce(sum(demand_kw), 0) AS total_demand_kw,
         coalesce(sum(flexible_kw), 0) AS flexible_load_kw,
-        avg(demand_kw) AS average_household_load_kw
+        avg(demand_kw) FILTER (
+          WHERE last_seen >= now() - interval '10 minutes'
+        ) AS average_household_load_kw
       FROM household_load
     `,
     [context.communityId]
@@ -797,10 +811,90 @@ async function getCustomerCommunity(pool, context, householdId, config) {
     `,
     [context.communityId]
   );
+  const cohortPrefix = String(config.customerScaleCohortPrefix || "scale1000-");
+  const cohortResult = await pool.query(
+    `
+      SELECT
+        count(DISTINCT registry.household_id)::integer AS household_count,
+        count(*)::integer AS asset_count,
+        count(*) FILTER (
+          WHERE coalesce(state.last_seen, registry.last_seen) >= now() - interval '20 minutes'
+        )::integer AS online_assets,
+        count(*) FILTER (
+          WHERE coalesce(state.last_seen, registry.last_seen) >= now() - interval '20 minutes'
+            AND abs(coalesce(state.current_power_kw, 0)) > 0.05
+        )::integer AS active_assets,
+        count(*) FILTER (WHERE registry.flexibility_capable)::integer AS flexible_assets,
+        coalesce(sum(greatest(coalesce(state.current_power_kw, 0), 0)) FILTER (
+          WHERE registry.device_category NOT IN ('smart_meter', 'solar_inverter')
+            AND coalesce(state.last_seen, registry.last_seen) >= now() - interval '20 minutes'
+        ), 0) AS total_demand_kw,
+        coalesce(sum(registry.maximum_flexible_power_kw) FILTER (
+          WHERE registry.flexibility_capable
+            AND coalesce(state.last_seen, registry.last_seen) >= now() - interval '20 minutes'
+        ), 0) AS available_flexibility_kw
+      FROM simulated_device_registry registry
+      LEFT JOIN customer_device_latest_state state
+        ON state.household_id = registry.household_id
+       AND state.device_id = registry.device_id
+      WHERE registry.community_id = $1
+        AND registry.household_id LIKE $2
+    `,
+    [context.communityId, `${cohortPrefix}%`]
+  );
+  const cohortProfileResult = await pool.query(
+    `
+      SELECT household_profile, count(DISTINCT household_id)::integer AS households,
+        count(*)::integer AS assets
+      FROM simulated_device_registry
+      WHERE community_id = $1 AND household_id LIKE $2
+      GROUP BY household_profile
+      ORDER BY household_profile
+    `,
+    [context.communityId, `${cohortPrefix}%`]
+  );
+  const cohortCategoryResult = await pool.query(
+    `
+      SELECT device_category, count(*)::integer AS count
+      FROM simulated_device_registry
+      WHERE community_id = $1 AND household_id LIKE $2
+      GROUP BY device_category
+      ORDER BY device_category
+    `,
+    [context.communityId, `${cohortPrefix}%`]
+  );
+  const semanticProgressResult = await pool.query(
+    `
+      WITH latest AS (
+        SELECT DISTINCT ON (n.device_id)
+          n.device_id, n.reading_id
+        FROM normalized_telemetry n
+        WHERE n.community_id = $1 AND n.household_id LIKE $2
+        ORDER BY n.device_id, n.event_time DESC, n.processed_at DESC
+      )
+      SELECT
+        count(*)::integer AS normalized_assets,
+        count(*) FILTER (WHERE audit.reading_id IS NOT NULL)::integer AS terminal_slm_assets,
+        count(*) FILTER (WHERE audit.final_status = 'mapped')::integer AS mapped_assets,
+        count(*) FILTER (WHERE audit.safely_unmapped)::integer AS safely_unmapped_assets
+      FROM latest
+      LEFT JOIN LATERAL (
+        SELECT reading_id, final_status, safely_unmapped
+        FROM semantic_slm_audit
+        WHERE reading_id = latest.reading_id
+        ORDER BY processed_at DESC
+        LIMIT 1
+      ) audit ON true
+    `,
+    [context.communityId, `${cohortPrefix}%`]
+  );
   const summary = summaryResult.rows[0] || {};
   const percentile = percentileResult.rows[0] || {};
   const comparisonAvailable = toNumber(percentile.comparison_households) >= 5
     && percentile.selected_percentile !== null;
+
+  const cohort = cohortResult.rows[0] || {};
+  const semanticProgress = semanticProgressResult.rows[0] || {};
 
   return {
     community_id: context.communityId,
@@ -821,6 +915,43 @@ async function getCustomerCommunity(pool, context, householdId, config) {
       device_type: row.device_type,
       count: toNumber(row.count)
     })),
+    validation_population: {
+      cohort:
+        toNumber(cohort.household_count) === 100 && toNumber(cohort.asset_count) === 1000
+          ? "validated_1000_asset_local_cohort"
+          : "controlled_scale_validation_cohort",
+      household_count: toNumber(cohort.household_count),
+      asset_count: toNumber(cohort.asset_count),
+      online_assets: toNumber(cohort.online_assets),
+      active_assets: toNumber(cohort.active_assets),
+      flexible_assets: toNumber(cohort.flexible_assets),
+      total_simulated_demand_kw: round(cohort.total_demand_kw),
+      available_flexibility_kw: round(cohort.available_flexibility_kw),
+      by_profile: cohortProfileResult.rows.map((row) => ({
+        profile: row.household_profile,
+        households: toNumber(row.households),
+        assets: toNumber(row.assets)
+      })),
+      by_category: cohortCategoryResult.rows.map((row) => ({
+        category: row.device_category,
+        count: toNumber(row.count)
+      })),
+      semantic_progress: {
+        normalized_assets: toNumber(semanticProgress.normalized_assets),
+        terminal_slm_assets: toNumber(semanticProgress.terminal_slm_assets),
+        mapped_assets: toNumber(semanticProgress.mapped_assets),
+        safely_unmapped_assets: toNumber(semanticProgress.safely_unmapped_assets),
+        completion_percent: toNumber(semanticProgress.normalized_assets)
+          ? round(
+            100 * toNumber(semanticProgress.terminal_slm_assets) /
+            toNumber(semanticProgress.normalized_assets),
+            1
+          )
+          : 0
+      },
+      simulated: true,
+      no_real_execution: true
+    },
     comparison_available: comparisonAvailable,
     selected_household_percentile: comparisonAvailable
       ? round(percentile.selected_percentile, 0)

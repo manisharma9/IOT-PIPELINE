@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-08-05T07:53:18.172Z",
+  "status": "modeled_not_validated",
+  "source_run_id": "scale-1000-2026-07-27T09-32-08-317Z",
+  "measured_completion_readings_per_second": 0.424,
+  "reporting_interval_seconds": 900,
+  "planning_margin": 1.3,
+  "formula": "ceil((assets * readings_per_update / reporting_interval_seconds) / measured_completion_readings_per_second * planning_margin)",
+  "scenarios": [
+    {
+      "assets": 10000,
+      "readings_per_update": 1,
+      "telemetry_messages_per_second": 11.1111,
+      "semantic_readings_per_second": 11.1111,
+      "local_worker_capacity_equivalents": 35
+    },
+    {
+      "assets": 10000,
+      "readings_per_update": 3,
+      "telemetry_messages_per_second": 11.1111,
+      "semantic_readings_per_second": 33.3333,
+      "local_worker_capacity_equivalents": 103
+    },
+    {
+      "assets": 100000,
+      "readings_per_update": 1,
+      "telemetry_messages_per_second": 111.1111,
+      "semantic_readings_per_second": 111.1111,
+      "local_worker_capacity_equivalents": 341
+    },
+    {
+      "assets": 100000,
+      "readings_per_update": 3,
+      "telemetry_messages_per_second": 111.1111,
+      "semantic_readings_per_second": 333.3333,
+      "local_worker_capacity_equivalents": 1023
+    },
+    {
+      "assets": 1000000,
+      "readings_per_update": 1,
+      "telemetry_messages_per_second": 1111.1111,
+      "semantic_readings_per_second": 1111.1111,
+      "local_worker_capacity_equivalents": 3407
+    },
+    {
+      "assets": 1000000,
+      "readings_per_update": 3,
+      "telemetry_messages_per_second": 1111.1111,
+      "semantic_readings_per_second": 3333.3333,
+      "local_worker_capacity_equivalents": 10221
+    }
+  ],
+  "warning": "Local-worker capacity equivalents are not production GPU replica recommendations. Candidate vLLM hardware must be benchmarked."
+}

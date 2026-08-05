@@ -1,0 +1,100 @@
+{
+  "scenario_id": "scale-100-2026-07-27T10-17-54-353Z",
+  "population_model": "exact_household_profiles",
+  "device_count": 100,
+  "household_count": 10,
+  "profile_mix": {
+    "apartment": 3,
+    "standard_home": 5,
+    "prosumer_home": 2
+  },
+  "stage_populations": {
+    "100": {
+      "household_count": 10,
+      "profile_mix": {
+        "apartment": 3,
+        "standard_home": 5,
+        "prosumer_home": 2
+      }
+    },
+    "250": {
+      "household_count": 25,
+      "profile_mix": {
+        "apartment": 6,
+        "standard_home": 15,
+        "prosumer_home": 4
+      }
+    },
+    "500": {
+      "household_count": 50,
+      "profile_mix": {
+        "apartment": 12,
+        "standard_home": 30,
+        "prosumer_home": 8
+      }
+    },
+    "1000": {
+      "household_count": 100,
+      "profile_mix": {
+        "apartment": 30,
+        "standard_home": 50,
+        "prosumer_home": 20
+      }
+    }
+  },
+  "community_id": "community-dublin-north",
+  "area_prefix": "dublin-north",
+  "household_prefix": "scale1000",
+  "household_prefix_from_scenario": false,
+  "time_zone": "Europe/Dublin",
+  "random_seed": 1000100,
+  "reporting_interval_seconds": 900,
+  "reporting_window_seconds": 600,
+  "test_duration_minutes": 15,
+  "cycles": 1,
+  "primary_reading_mode": false,
+  "ramp_up_seconds": 600,
+  "burst_percentage": 0,
+  "burst_asset_count": 0,
+  "supported_burst_asset_counts": [
+    50,
+    100,
+    200
+  ],
+  "target_telemetry_rate_per_second": 0.166666666666667,
+  "maximum_permitted_backlog_readings": 1500,
+  "mode": "staggered",
+  "gateway": {
+    "base_url": "http://127.0.0.1:3010",
+    "telemetry_path": "/telemetry",
+    "api_key_env": "EDGE_API_KEY",
+    "concurrency": 8,
+    "request_timeout_ms": 30000,
+    "max_retries": 3,
+    "retry_backoff_ms": 250
+  },
+  "semantic_validation": {
+    "provider": "ollama",
+    "model": "phi3:mini",
+    "batch_sizes_to_benchmark": [
+      8,
+      16,
+      32,
+      64
+    ],
+    "recommended_initial_workers": 1,
+    "recommended_topic_partitions": 6
+  },
+  "evidence": {
+    "output_location": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results",
+    "stream_events": true,
+    "sample_success_every": 100,
+    "resource_sample_interval_ms": 5000
+  },
+  "safety": {
+    "real_device_control": false,
+    "no_real_execution": true
+  },
+  "dry_run": false,
+  "max_messages": 100
+}

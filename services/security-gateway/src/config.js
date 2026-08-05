@@ -45,6 +45,8 @@ function loadConfig(env = process.env) {
       env.CUSTOMER_INSIGHT_TIMEOUT_MS,
       20000
     ),
+    customerScaleCohortPrefix:
+      env.CUSTOMER_SCALE_COHORT_PREFIX || "scale1000-",
     targets: {
       ingestion: env.INGESTION_API_URL || "http://ingestion-api:3001",
       ieee20305: env.IEEE20305_TRANSLATOR_URL || "http://ieee20305-translator:3002",

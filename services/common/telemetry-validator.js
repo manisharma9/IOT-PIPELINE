@@ -2,6 +2,9 @@
 
 const VALID_PROTOCOLS = new Set(["http", "mqtt"]);
 const ALLOWED_FIELDS = new Set([
+  "message_id",
+  "correlation_id",
+  "reading_ids",
   "household_id",
   "community_id",
   "device_id",
@@ -9,7 +12,29 @@ const ALLOWED_FIELDS = new Set([
   "timestamp",
   "readings",
   "protocol",
-  "source"
+  "source",
+  "metadata"
+]);
+const ALLOWED_METADATA_FIELDS = new Set([
+  "area_id",
+  "household_profile",
+  "device_category",
+  "time_zone",
+  "occupancy_pattern",
+  "base_load_profile",
+  "display_name",
+  "manufacturer",
+  "online",
+  "operating_state",
+  "flexibility_capable",
+  "maximum_flexible_power_kw",
+  "measurement_capabilities",
+  "selected_primary_field",
+  "current_primary_measurement",
+  "cumulative_energy_kwh",
+  "reporting_offset_ms",
+  "simulated",
+  "no_real_execution"
 ]);
 
 function isPlainObject(value) {
@@ -56,6 +81,109 @@ function validateReading(readingName, reading, errors) {
 
   if ("unit" in reading && !isNonEmptyString(reading.unit)) {
     addError(errors, `${path}.unit`, "reading unit must be a non-empty string when provided");
+  }
+}
+
+function validateMetadata(metadata, errors) {
+  if (metadata === undefined) return;
+  if (!isPlainObject(metadata)) {
+    addError(errors, "metadata", "metadata must be an object when provided");
+    return;
+  }
+
+  for (const field of Object.keys(metadata)) {
+    if (!ALLOWED_METADATA_FIELDS.has(field)) {
+      addError(errors, `metadata.${field}`, "field is not allowed in telemetry metadata");
+    }
+  }
+  for (const field of [
+    "area_id",
+    "household_profile",
+    "device_category",
+    "time_zone",
+    "occupancy_pattern",
+    "base_load_profile",
+    "display_name",
+    "manufacturer",
+    "operating_state",
+    "selected_primary_field"
+  ]) {
+    if (
+      metadata[field] !== undefined &&
+      metadata[field] !== null &&
+      !isNonEmptyString(metadata[field])
+    ) {
+      addError(errors, `metadata.${field}`, "field must be null or a non-empty string");
+    }
+  }
+  for (const field of ["online", "flexibility_capable"]) {
+    if (metadata[field] !== undefined && typeof metadata[field] !== "boolean") {
+      addError(errors, `metadata.${field}`, "field must be a boolean");
+    }
+  }
+  for (const field of ["maximum_flexible_power_kw", "reporting_offset_ms"]) {
+    if (
+      metadata[field] !== undefined &&
+      (!isFiniteNumber(metadata[field]) || metadata[field] < 0)
+    ) {
+      addError(errors, `metadata.${field}`, "field must be a non-negative finite number");
+    }
+  }
+  if (
+    metadata.cumulative_energy_kwh !== undefined &&
+    metadata.cumulative_energy_kwh !== null &&
+    (!isFiniteNumber(metadata.cumulative_energy_kwh) || metadata.cumulative_energy_kwh < 0)
+  ) {
+    addError(
+      errors,
+      "metadata.cumulative_energy_kwh",
+      "field must be null or a non-negative finite number"
+    );
+  }
+  if (
+    metadata.current_primary_measurement !== undefined &&
+    metadata.current_primary_measurement !== null
+  ) {
+    const measurement = metadata.current_primary_measurement;
+    if (
+      !isPlainObject(measurement) ||
+      !isNonEmptyString(measurement.field) ||
+      !isFiniteNumber(measurement.value) ||
+      (
+        measurement.unit !== null &&
+        measurement.unit !== undefined &&
+        !isNonEmptyString(measurement.unit)
+      )
+    ) {
+      addError(
+        errors,
+        "metadata.current_primary_measurement",
+        "field must contain field, finite value, and an optional unit"
+      );
+    }
+  }
+  if (
+    metadata.measurement_capabilities !== undefined &&
+    (
+      !Array.isArray(metadata.measurement_capabilities) ||
+      metadata.measurement_capabilities.some((value) => !isNonEmptyString(value))
+    )
+  ) {
+    addError(
+      errors,
+      "metadata.measurement_capabilities",
+      "field must be an array of non-empty reading names"
+    );
+  }
+  if (metadata.simulated !== undefined && metadata.simulated !== true) {
+    addError(errors, "metadata.simulated", "simulated telemetry must remain true");
+  }
+  if (metadata.no_real_execution !== undefined && metadata.no_real_execution !== true) {
+    addError(
+      errors,
+      "metadata.no_real_execution",
+      "no_real_execution must remain true"
+    );
   }
 }
 
@@ -106,6 +234,36 @@ function validateTelemetry(payload) {
     }
   }
 
+  for (const field of ["message_id", "correlation_id"]) {
+    if (payload[field] !== undefined && !isNonEmptyString(payload[field])) {
+      addError(errors, field, "field must be a non-empty string when provided");
+    }
+  }
+
+  if (payload.reading_ids !== undefined) {
+    if (!isPlainObject(payload.reading_ids)) {
+      addError(errors, "reading_ids", "field must be an object when provided");
+    } else {
+      for (const [readingName, readingId] of Object.entries(payload.reading_ids)) {
+        if (!isNonEmptyString(readingName) || !isNonEmptyString(readingId)) {
+          addError(
+            errors,
+            `reading_ids.${readingName}`,
+            "reading names and identifiers must be non-empty strings"
+          );
+        } else if (!payload.readings || !(readingName in payload.readings)) {
+          addError(
+            errors,
+            `reading_ids.${readingName}`,
+            "reading identifier must correspond to a supplied reading"
+          );
+        }
+      }
+    }
+  }
+
+  validateMetadata(payload.metadata, errors);
+
   return {
     valid: errors.length === 0,
     errors
@@ -149,6 +307,15 @@ function normalizeTelemetryPayload(payload, options = {}) {
   }
 
   return {
+    ...(payload.message_id === undefined
+      ? {}
+      : { message_id: payload.message_id }),
+    ...(payload.correlation_id === undefined
+      ? {}
+      : { correlation_id: payload.correlation_id }),
+    ...(payload.reading_ids === undefined
+      ? {}
+      : { reading_ids: payload.reading_ids }),
     household_id: payload.household_id || payload.householdId || options.defaultHouseholdId,
     community_id: payload.community_id || payload.communityId || options.defaultCommunityId,
     device_id: payload.device_id || payload.deviceId,
@@ -156,14 +323,17 @@ function normalizeTelemetryPayload(payload, options = {}) {
     timestamp: payload.timestamp,
     readings: payload.readings || normalizeReadingData(payload.data),
     protocol: payload.protocol || options.defaultProtocol || "http",
-    source: payload.source || options.defaultSource || "api-ingest"
+    source: payload.source || options.defaultSource || "api-ingest",
+    ...(payload.metadata === undefined ? {} : { metadata: payload.metadata })
   };
 }
 
 module.exports = {
+  ALLOWED_METADATA_FIELDS,
   VALID_PROTOCOLS,
   isPlainObject,
   isFiniteNumber,
   normalizeTelemetryPayload,
+  validateMetadata,
   validateTelemetry
 };

@@ -1,0 +1,276 @@
+{
+  "generated_at": "2026-08-05T07:53:18.159Z",
+  "runs": [
+    {
+      "run_id": "scale-100-2026-07-27T08-25-08-820Z",
+      "assets": 100,
+      "generator_maximum_rss_bytes": 62599168,
+      "generator_maximum_rss_mib": 59.699,
+      "generator_maximum_cpu_percent": null,
+      "generator_rss_bytes_per_virtual_asset": 625991.68,
+      "gpu_maximum_utilization_percent": null,
+      "gpu_maximum_memory_mib": null,
+      "wall_clock_seconds": 282.601,
+      "backlog_clearance_seconds": 211.691,
+      "containers": {}
+    },
+    {
+      "run_id": "scale-250-2026-07-27T08-57-50-463Z",
+      "assets": 250,
+      "generator_maximum_rss_bytes": 71237632,
+      "generator_maximum_rss_mib": 67.938,
+      "generator_maximum_cpu_percent": null,
+      "generator_rss_bytes_per_virtual_asset": 284950.528,
+      "gpu_maximum_utilization_percent": 97,
+      "gpu_maximum_memory_mib": 3786,
+      "wall_clock_seconds": 661.475,
+      "backlog_clearance_seconds": 498.652,
+      "containers": {
+        "adflex-ingestion-api": {
+          "maximum_cpu_percent": 7.38,
+          "maximum_memory_mib": 20.99
+        },
+        "adflex-engine": {
+          "maximum_cpu_percent": 6.28,
+          "maximum_memory_mib": 27.29
+        },
+        "adflex-security-gateway": {
+          "maximum_cpu_percent": 8.54,
+          "maximum_memory_mib": 33.24
+        },
+        "iot-pipeline-semantic-connector-1": {
+          "maximum_cpu_percent": 17.28,
+          "maximum_memory_mib": 34.79
+        },
+        "adflex-device-command-translator": {
+          "maximum_cpu_percent": 5.5,
+          "maximum_memory_mib": 28.48
+        },
+        "adflex-mock-dispatch-adapter": {
+          "maximum_cpu_percent": 5.4,
+          "maximum_memory_mib": 27.85
+        },
+        "adflex-shelly-simulator": {
+          "maximum_cpu_percent": 0.19,
+          "maximum_memory_mib": 14.38
+        },
+        "adflex-dataspace-export": {
+          "maximum_cpu_percent": 0,
+          "maximum_memory_mib": 20.11
+        },
+        "adflex-heat-pump-simulator": {
+          "maximum_cpu_percent": 0.2,
+          "maximum_memory_mib": 14.51
+        },
+        "adflex-enode-simulator": {
+          "maximum_cpu_percent": 0.03,
+          "maximum_memory_mib": 20.42
+        },
+        "adflex-ieee20305-translator": {
+          "maximum_cpu_percent": 15.3,
+          "maximum_memory_mib": 31.28
+        },
+        "adflex-aggregator": {
+          "maximum_cpu_percent": 5.42,
+          "maximum_memory_mib": 27.54
+        },
+        "adflex-approval-workflow": {
+          "maximum_cpu_percent": 5.39,
+          "maximum_memory_mib": 27.63
+        },
+        "adflex-mqtt-subscriber": {
+          "maximum_cpu_percent": 0.2,
+          "maximum_memory_mib": 23.29
+        },
+        "adflex-kafka": {
+          "maximum_cpu_percent": 357.86,
+          "maximum_memory_mib": 732.9
+        },
+        "adflex-timescaledb": {
+          "maximum_cpu_percent": 20.53,
+          "maximum_memory_mib": 188.8
+        },
+        "adflex-mqtt-broker": {
+          "maximum_cpu_percent": 0.05,
+          "maximum_memory_mib": 1.625
+        },
+        "adflex-zookeeper": {
+          "maximum_cpu_percent": 5.87,
+          "maximum_memory_mib": 166
+        }
+      }
+    },
+    {
+      "run_id": "scale-500-2026-07-27T09-09-02-916Z",
+      "assets": 500,
+      "generator_maximum_rss_bytes": 74080256,
+      "generator_maximum_rss_mib": 70.648,
+      "generator_maximum_cpu_percent": null,
+      "generator_rss_bytes_per_virtual_asset": 148160.512,
+      "gpu_maximum_utilization_percent": 98,
+      "gpu_maximum_memory_mib": 3786,
+      "wall_clock_seconds": 1176.859,
+      "backlog_clearance_seconds": 864.908,
+      "containers": {
+        "adflex-ingestion-api": {
+          "maximum_cpu_percent": 44.72,
+          "maximum_memory_mib": 24.72
+        },
+        "adflex-engine": {
+          "maximum_cpu_percent": 4.73,
+          "maximum_memory_mib": 37.1
+        },
+        "adflex-security-gateway": {
+          "maximum_cpu_percent": 49.19,
+          "maximum_memory_mib": 34.77
+        },
+        "iot-pipeline-semantic-connector-1": {
+          "maximum_cpu_percent": 8.54,
+          "maximum_memory_mib": 32.55
+        },
+        "adflex-device-command-translator": {
+          "maximum_cpu_percent": 4.38,
+          "maximum_memory_mib": 29.91
+        },
+        "adflex-mock-dispatch-adapter": {
+          "maximum_cpu_percent": 4.27,
+          "maximum_memory_mib": 28.53
+        },
+        "adflex-shelly-simulator": {
+          "maximum_cpu_percent": 0.12,
+          "maximum_memory_mib": 14.23
+        },
+        "adflex-dataspace-export": {
+          "maximum_cpu_percent": 3.92,
+          "maximum_memory_mib": 21.66
+        },
+        "adflex-heat-pump-simulator": {
+          "maximum_cpu_percent": 0.08,
+          "maximum_memory_mib": 14.36
+        },
+        "adflex-enode-simulator": {
+          "maximum_cpu_percent": 0.02,
+          "maximum_memory_mib": 20.76
+        },
+        "adflex-ieee20305-translator": {
+          "maximum_cpu_percent": 9.04,
+          "maximum_memory_mib": 32.74
+        },
+        "adflex-aggregator": {
+          "maximum_cpu_percent": 5.61,
+          "maximum_memory_mib": 30.21
+        },
+        "adflex-approval-workflow": {
+          "maximum_cpu_percent": 50.89,
+          "maximum_memory_mib": 29.62
+        },
+        "adflex-mqtt-subscriber": {
+          "maximum_cpu_percent": 0.2,
+          "maximum_memory_mib": 23.68
+        },
+        "adflex-kafka": {
+          "maximum_cpu_percent": 508.63,
+          "maximum_memory_mib": 752.3
+        },
+        "adflex-timescaledb": {
+          "maximum_cpu_percent": 109.31,
+          "maximum_memory_mib": 313.1
+        },
+        "adflex-mqtt-broker": {
+          "maximum_cpu_percent": 0.05,
+          "maximum_memory_mib": 1.633
+        },
+        "adflex-zookeeper": {
+          "maximum_cpu_percent": 10.08,
+          "maximum_memory_mib": 166.5
+        }
+      }
+    },
+    {
+      "run_id": "scale-1000-2026-07-27T09-32-08-317Z",
+      "assets": 1000,
+      "generator_maximum_rss_bytes": 78192640,
+      "generator_maximum_rss_mib": 74.57,
+      "generator_maximum_cpu_percent": null,
+      "generator_rss_bytes_per_virtual_asset": 78192.64,
+      "gpu_maximum_utilization_percent": 98,
+      "gpu_maximum_memory_mib": 3788,
+      "wall_clock_seconds": 2382.6,
+      "backlog_clearance_seconds": 1757.366,
+      "containers": {
+        "adflex-security-gateway": {
+          "maximum_cpu_percent": 7.23,
+          "maximum_memory_mib": 33.59
+        },
+        "adflex-device-command-translator": {
+          "maximum_cpu_percent": 4.14,
+          "maximum_memory_mib": 24.32
+        },
+        "adflex-ieee20305-translator": {
+          "maximum_cpu_percent": 6.12,
+          "maximum_memory_mib": 31.42
+        },
+        "adflex-shelly-simulator": {
+          "maximum_cpu_percent": 0.02,
+          "maximum_memory_mib": 12.17
+        },
+        "adflex-enode-simulator": {
+          "maximum_cpu_percent": 0.05,
+          "maximum_memory_mib": 12.15
+        },
+        "adflex-aggregator": {
+          "maximum_cpu_percent": 4.4,
+          "maximum_memory_mib": 24.12
+        },
+        "adflex-ingestion-api": {
+          "maximum_cpu_percent": 41.48,
+          "maximum_memory_mib": 24.89
+        },
+        "adflex-dataspace-export": {
+          "maximum_cpu_percent": 3.69,
+          "maximum_memory_mib": 18.25
+        },
+        "adflex-approval-workflow": {
+          "maximum_cpu_percent": 4.73,
+          "maximum_memory_mib": 23.79
+        },
+        "adflex-mock-dispatch-adapter": {
+          "maximum_cpu_percent": 4.98,
+          "maximum_memory_mib": 24.12
+        },
+        "adflex-heat-pump-simulator": {
+          "maximum_cpu_percent": 0.02,
+          "maximum_memory_mib": 12.21
+        },
+        "adflex-engine": {
+          "maximum_cpu_percent": 7.93,
+          "maximum_memory_mib": 40.14
+        },
+        "iot-pipeline-semantic-connector-1": {
+          "maximum_cpu_percent": 6.13,
+          "maximum_memory_mib": 43.58
+        },
+        "adflex-mqtt-subscriber": {
+          "maximum_cpu_percent": 0.13,
+          "maximum_memory_mib": 23.04
+        },
+        "adflex-kafka": {
+          "maximum_cpu_percent": 253.14,
+          "maximum_memory_mib": 747.9
+        },
+        "adflex-timescaledb": {
+          "maximum_cpu_percent": 118.14,
+          "maximum_memory_mib": 287.8
+        },
+        "adflex-mqtt-broker": {
+          "maximum_cpu_percent": 0.08,
+          "maximum_memory_mib": 1.656
+        },
+        "adflex-zookeeper": {
+          "maximum_cpu_percent": 16.71,
+          "maximum_memory_mib": 166.4
+        }
+      }
+    }
+  ]
+}

@@ -16,6 +16,24 @@
     "source"
   ],
   "properties": {
+    "message_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional producer-assigned idempotency identifier for the telemetry update."
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional end-to-end correlation identifier."
+    },
+    "reading_ids": {
+      "type": "object",
+      "description": "Optional stable reading identifiers keyed by reading name.",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
     "household_id": {
       "type": "string",
       "minLength": 1,
@@ -76,6 +94,45 @@
       "type": "string",
       "minLength": 1,
       "description": "Source system, gateway, simulator, or connector that sent the telemetry."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional non-semantic device and scheduling context. These fields are not converted into separate SLM readings.",
+      "additionalProperties": false,
+      "properties": {
+        "area_id": { "type": ["string", "null"] },
+        "household_profile": { "type": ["string", "null"] },
+        "device_category": { "type": ["string", "null"] },
+        "time_zone": { "type": ["string", "null"] },
+        "occupancy_pattern": { "type": ["string", "null"] },
+        "base_load_profile": { "type": ["string", "null"] },
+        "display_name": { "type": ["string", "null"] },
+        "manufacturer": { "type": ["string", "null"] },
+        "online": { "type": "boolean" },
+        "operating_state": { "type": ["string", "null"] },
+        "flexibility_capable": { "type": "boolean" },
+        "maximum_flexible_power_kw": { "type": "number", "minimum": 0 },
+        "measurement_capabilities": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "selected_primary_field": { "type": ["string", "null"] },
+        "current_primary_measurement": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["field", "value", "unit"],
+          "properties": {
+            "field": { "type": "string", "minLength": 1 },
+            "value": { "type": "number" },
+            "unit": { "type": ["string", "null"] }
+          }
+        },
+        "cumulative_energy_kwh": { "type": ["number", "null"], "minimum": 0 },
+        "reporting_offset_ms": { "type": "number", "minimum": 0 },
+        "simulated": { "const": true },
+        "no_real_execution": { "const": true }
+      }
     }
   }
 }

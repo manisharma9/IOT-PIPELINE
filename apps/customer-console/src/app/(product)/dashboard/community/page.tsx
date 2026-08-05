@@ -6,6 +6,7 @@ import {
   Gauge,
   RefreshCw,
   ShieldCheck,
+  Sparkles,
   Users,
   Waves
 } from "lucide-react";
@@ -29,10 +30,11 @@ export default function CommunityPage() {
   const community = useCustomerResource<CommunitySummary>(
     withHousehold("/api/dashboard/community", selectedHousehold)
   );
-  const totalDevices = community.data?.device_type_distribution.reduce(
+  const validationDeviceMix = community.data?.validation_population.by_category || [];
+  const totalDevices = validationDeviceMix.reduce(
     (sum, item) => sum + item.count,
     0
-  ) || 0;
+  );
 
   return (
     <>
@@ -64,6 +66,94 @@ export default function CommunityPage() {
         <ProductErrorState message={community.error} onRetry={community.refresh} />
       ) : community.data ? (
         <>
+          <ProductPanel
+            className="mb-4"
+            title={
+              community.data.validation_population.household_count === 100 &&
+              community.data.validation_population.asset_count === 1000
+                ? "Validated 1,000-asset local cohort"
+                : "Controlled scale-validation cohort"
+            }
+            description="A bounded, deterministic local population. Counts come from the registered simulator inventory and processed telemetry."
+          >
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <CohortMetric
+                label="Households"
+                value={community.data.validation_population.household_count}
+              />
+              <CohortMetric
+                label="Simulated assets"
+                value={community.data.validation_population.asset_count}
+              />
+              <CohortMetric
+                label="Online assets"
+                value={community.data.validation_population.online_assets}
+              />
+              <CohortMetric
+                label="Active assets"
+                value={community.data.validation_population.active_assets}
+              />
+              <CohortMetric
+                label="Flexible assets"
+                value={community.data.validation_population.flexible_assets}
+              />
+              <CohortMetric
+                label="Current demand"
+                value={`${formatNumber(
+                  community.data.validation_population.total_simulated_demand_kw
+                )} kW`}
+              />
+              <CohortMetric
+                label="Available flexibility"
+                value={`${formatNumber(
+                  community.data.validation_population.available_flexibility_kw
+                )} kW`}
+              />
+              <CohortMetric
+                label="Data ready"
+                value={`${formatNumber(
+                  community.data.validation_population.semantic_progress.completion_percent,
+                  1
+                )}%`}
+              />
+            </div>
+            <div className="mt-5 grid gap-5 lg:grid-cols-2">
+              <div>
+                <p className="text-xs font-medium uppercase text-slate-500">Household profiles</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  {community.data.validation_population.by_profile.map((item) => (
+                    <div key={item.profile} className="rounded-md border border-white/8 bg-white/[0.025] p-3">
+                      <p className="text-sm font-medium capitalize text-white">
+                        {item.profile.replaceAll("_", " ")}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {item.households} homes / {item.assets} assets
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase text-slate-500">Data interpretation</p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <CohortMetric
+                    label="Readings available"
+                    value={community.data.validation_population.semantic_progress.mapped_assets}
+                  />
+                  <CohortMetric
+                    label="Needs review"
+                    value={community.data.validation_population.semantic_progress.safely_unmapped_assets}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <StatusPill label="Energy data interpretation active" tone="cyan" />
+              <StatusPill label="Simulated assets only" tone="amber" />
+              <StatusPill label="No real execution" tone="green" />
+            </div>
+          </ProductPanel>
+
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Active households"
@@ -98,17 +188,17 @@ export default function CommunityPage() {
 
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             <ProductPanel
-              title="Connected device mix"
-              description="Counts by device type across the simulated community."
+              title="Validation asset mix"
+              description="Exact category totals in the controlled 1,000-asset cohort."
             >
-              {community.data.device_type_distribution.length ? (
+              {validationDeviceMix.length ? (
                 <div className="space-y-5">
-                  {community.data.device_type_distribution.map((item) => {
+                  {validationDeviceMix.map((item) => {
                     const share = totalDevices ? (item.count / totalDevices) * 100 : 0;
                     return (
-                      <div key={item.device_type}>
+                      <div key={item.category}>
                         <div className="mb-2 flex items-center justify-between gap-4 text-sm">
-                          <span className="text-slate-300">{customerDeviceType(item.device_type)}</span>
+                          <span className="text-slate-300">{customerDeviceType(item.category)}</span>
                           <span className="text-slate-500">{item.count} devices</span>
                         </div>
                         <div className="h-2 overflow-hidden rounded-full bg-white/8">
@@ -179,6 +269,22 @@ export default function CommunityPage() {
         </>
       ) : null}
     </>
+  );
+}
+
+function CohortMetric({
+  label,
+  value
+}: {
+  label: string;
+  value: number | string;
+}) {
+  return (
+    <div className="rounded-md border border-white/8 bg-white/[0.025] p-4">
+      <Sparkles className="h-4 w-4 text-cyan-300" />
+      <p className="mt-3 text-xl font-semibold text-white">{value}</p>
+      <p className="mt-1 text-xs text-slate-500">{label}</p>
+    </div>
   );
 }
 

@@ -140,6 +140,8 @@ export type CustomerDevices = {
   };
   filters: {
     category: string | null;
+    profile: string | null;
+    search: string | null;
     online: boolean | null;
     flexible: boolean | null;
     state: string | null;
@@ -237,6 +239,34 @@ export type CommunitySummary = {
     device_type: string;
     count: number;
   }>;
+  validation_population: {
+    cohort: string;
+    household_count: number;
+    asset_count: number;
+    online_assets: number;
+    active_assets: number;
+    flexible_assets: number;
+    total_simulated_demand_kw: number;
+    available_flexibility_kw: number;
+    by_profile: Array<{
+      profile: string;
+      households: number;
+      assets: number;
+    }>;
+    by_category: Array<{
+      category: string;
+      count: number;
+    }>;
+    semantic_progress: {
+      normalized_assets: number;
+      terminal_slm_assets: number;
+      mapped_assets: number;
+      safely_unmapped_assets: number;
+      completion_percent: number;
+    };
+    simulated: boolean;
+    no_real_execution: boolean;
+  };
   comparison_available: boolean;
   selected_household_percentile: number | null;
   privacy: {

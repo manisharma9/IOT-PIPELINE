@@ -2,8 +2,13 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildFleet, PROFILE_LIMITS } = require("../src/fleet");
+const {
+  EXACT_PROFILE_INVENTORIES,
+  buildFleet,
+  PROFILE_LIMITS
+} = require("../src/fleet");
 const { createRuntime } = require("../src/index");
+const { selectPrimaryReading } = require("../src/primary-reading");
 
 test("default fleet creates 20 mixed households and every requested category", () => {
   const fleet = buildFleet();
@@ -122,4 +127,94 @@ test("failed gateway delivery retains a bounded pending envelope for retry", asy
   assert.equal(runtime.stats.telemetry_retried, 1);
   assert.equal(runtime.stats.telemetry_accepted, 1);
   assert.equal(runtime.stats.telemetry_dropped, 0);
+});
+
+test("exact validation population contains 100 households and 1,000 assets", () => {
+  const fleet = buildFleet({
+    householdCount: 100,
+    seed: 1000100,
+    profileMix: {
+      apartment: 30,
+      standard_home: 50,
+      prosumer_home: 20
+    },
+    exactProfileInventories: true,
+    reportingWindowMs: 600000
+  });
+
+  assert.equal(fleet.summary.household_count, 100);
+  assert.equal(fleet.summary.device_count, 1000);
+  assert.deepEqual(fleet.summary.profiles, {
+    apartment: 30,
+    standard_home: 50,
+    prosumer_home: 20
+  });
+  assert.deepEqual(fleet.summary.categories, {
+    smart_meter: 100,
+    smart_plug: 220,
+    refrigerator: 100,
+    washing_machine: 100,
+    lighting_circuit: 100,
+    water_heater: 100,
+    thermostat_hvac: 30,
+    dishwasher: 70,
+    heat_pump: 70,
+    ev_charger: 70,
+    solar_inverter: 20,
+    home_battery: 20
+  });
+  assert.equal(new Set(fleet.households.map((item) => item.household_id)).size, 100);
+  assert.equal(
+    new Set(fleet.devices.map((item) => item.inventory.device_id)).size,
+    1000
+  );
+});
+
+test("exact profile inventories have the contractual asset counts", () => {
+  assert.equal(EXACT_PROFILE_INVENTORIES.apartment.length, 8);
+  assert.equal(EXACT_PROFILE_INVENTORIES.standard_home.length, 10);
+  assert.equal(EXACT_PROFILE_INVENTORIES.prosumer_home.length, 13);
+});
+
+test("exact assets carry identity, state, capability, schedule, and safety metadata", () => {
+  const fleet = buildFleet({
+    householdCount: 1,
+    profileMix: { apartment: 1 },
+    exactProfileInventories: true,
+    reportingWindowMs: 600000
+  });
+  for (const { inventory } of fleet.devices) {
+    assert.ok(inventory.device_id);
+    assert.ok(inventory.household_id);
+    assert.ok(inventory.device_category);
+    assert.ok(inventory.display_name);
+    assert.ok(inventory.manufacturer);
+    assert.ok(Array.isArray(inventory.measurement_capabilities));
+    assert.ok(inventory.measurement_capabilities.length > 0);
+    assert.equal(typeof inventory.online, "boolean");
+    assert.ok(inventory.current_operating_state);
+    assert.ok(inventory.last_seen_timestamp);
+    assert.ok(inventory.current_primary_measurement);
+    assert.ok(inventory.reporting_offset_ms >= 0);
+    assert.ok(inventory.reporting_offset_ms < 600000);
+    assert.equal(inventory.simulated, true);
+    assert.equal(inventory.no_real_execution, true);
+  }
+});
+
+test("primary selection emits one rotating semantic reading", () => {
+  const fleet = buildFleet({
+    householdCount: 1,
+    profileMix: { standard_home: 1 },
+    exactProfileInventories: true
+  });
+  const smartMeter = fleet.devices.find(
+    (entry) => entry.inventory.device_category === "smart_meter"
+  ).device;
+  const telemetry = smartMeter.getTelemetry("2026-07-27T10:00:00.000Z");
+  const first = selectPrimaryReading(telemetry, 0);
+  const second = selectPrimaryReading(telemetry, 1);
+
+  assert.deepEqual(Object.keys(first.readings), ["active_power_kw"]);
+  assert.deepEqual(Object.keys(second.readings), ["energy_import_kwh"]);
 });

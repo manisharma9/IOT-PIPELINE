@@ -48,6 +48,7 @@ async function main() {
   const batchSize = Math.max(1, Number(options["batch-size"]) || 4);
   const iterations = Math.max(1, Number(options.iterations) || 1);
   const timeoutMs = Math.max(1000, Number(options["timeout-ms"]) || 60000);
+  const maxRetries = Math.max(0, Number(options["max-retries"]) || 0);
   const providerName = options.provider || process.env.SLM_PROVIDER || "ollama";
   const provider = createInferenceProvider({
     provider: providerName,
@@ -68,7 +69,7 @@ async function main() {
     const readings = buildReadings(batchSize, iteration);
     const started = performance.now();
     const result = await mapReadingBatch(readings, provider, {
-      maxRetries: 0,
+      maxRetries,
       minConfidence: Number(options["min-confidence"]) || 0.7
     }, { workerId: "direct-benchmark-worker" });
     const elapsedMs = performance.now() - started;
@@ -93,6 +94,7 @@ async function main() {
     batch_size: batchSize,
     iterations,
     timeout_ms: timeoutMs,
+    max_retries: maxRetries,
     samples,
     average_readings_per_second: Number((samples.reduce((sum, item) => sum + item.readings_per_second, 0) / samples.length).toFixed(4)),
     note: "Direct provider benchmark only; this is not an end-to-end device-capacity validation."

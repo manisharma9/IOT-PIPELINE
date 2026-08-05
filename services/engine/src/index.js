@@ -61,12 +61,12 @@ async function processRawTelemetryMessage({
   normalizedTopic = NORMALIZED_TELEMETRY_TOPIC
 }) {
   const metadata = buildKafkaMetadata(topic, partition, message);
-  const correlationId = buildCorrelationId(metadata);
   const rawMessage = message.value ? message.value.toString("utf8") : "";
   let payload = null;
 
   try {
     payload = JSON.parse(rawMessage);
+    const correlationId = buildCorrelationId(metadata, payload);
 
     const validation = validateTelemetry(payload);
     if (!validation.valid) {
@@ -76,21 +76,21 @@ async function processRawTelemetryMessage({
     }
 
     const normalizedTelemetry = assignReadingIds(normalizeTelemetry(payload), correlationId);
-    await insertTelemetryBatch(pool, normalizedTelemetry, metadata);
+    const inserted = await insertTelemetryBatch(pool, normalizedTelemetry, metadata);
     await publishNormalizedTelemetry(
       producer,
       normalizedTopic,
-      normalizedTelemetry.normalizedRows,
+      inserted.insertedNormalizedRows,
       correlationId
     );
 
     console.log(
-      `Processed telemetry ${payload.community_id}/${payload.household_id}/${payload.device_id} at offset ${metadata.offset} and published ${normalizedTelemetry.normalizedRows.length} normalized event(s) to ${normalizedTopic}`
+      `Processed telemetry ${payload.community_id}/${payload.household_id}/${payload.device_id} at offset ${metadata.offset} and published ${inserted.insertedNormalizedRows.length} normalized event(s) to ${normalizedTopic}`
     );
 
     return {
-      status: "processed",
-      normalized_count: normalizedTelemetry.normalizedRows.length
+      status: inserted.insertedNormalizedRows.length ? "processed" : "duplicate",
+      normalized_count: inserted.insertedNormalizedRows.length
     };
   } catch (error) {
     await logProcessingError(pool, metadata, rawMessage, payload, error);

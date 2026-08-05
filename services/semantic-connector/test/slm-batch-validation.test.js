@@ -86,3 +86,25 @@ test("command-like or unsupported semantic output cannot pass", () => {
   assert.equal(result.rejected.get("r1").includes("unsupported_reason_code"), true);
   assert.equal(result.rejected.get("r1").includes("command_or_control_content_rejected"), true);
 });
+
+test("state-code output remains telemetry and passes unit validation", () => {
+  const stateReading = [{
+    reading_id: "state-1",
+    reading_name: "operating_state_code",
+    reading_value: 11,
+    reading_unit: "state_code",
+    device_type: "water_heater"
+  }];
+  const output = {
+    mappings: [{
+      reading_id: "state-1",
+      saref_concept: "saref4ener:Measurement",
+      saref_property: "saref:Property",
+      saref_unit: "unit:UNITLESS",
+      confidence: 0.91,
+      mapping_reason_code: "state_measurement"
+    }]
+  };
+  const result = validateBatchResponse(JSON.stringify(output), stateReading);
+  assert.equal(result.valid, true);
+});

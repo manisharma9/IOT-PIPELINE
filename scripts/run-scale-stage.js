@@ -11,6 +11,20 @@ const {
 
 const repoRoot = path.resolve(__dirname, "..");
 const defaultConfigPath = path.join(repoRoot, "config", "scalability-10000.example.json");
+const REQUIRED_SCALE_CATEGORIES = Object.freeze([
+  "smart_meter",
+  "smart_plug",
+  "refrigerator",
+  "washing_machine",
+  "dishwasher",
+  "lighting_circuit",
+  "water_heater",
+  "thermostat_hvac",
+  "heat_pump",
+  "ev_charger",
+  "solar_inverter",
+  "home_battery"
+]);
 
 function parseArgs(argv = process.argv.slice(2)) {
   const args = {};
@@ -61,12 +75,12 @@ function psqlJson(sql) {
   return line ? JSON.parse(line) : {};
 }
 
-function readKafkaLag() {
+function readKafkaLag(groupId = process.env.SEMANTIC_CONNECTOR_GROUP_ID || "saref4ener-semantic-connector") {
   try {
     const output = docker([
       "compose", "exec", "-T", "kafka", "kafka-consumer-groups",
       "--bootstrap-server", "kafka:29092", "--describe",
-      "--group", process.env.SEMANTIC_CONNECTOR_GROUP_ID || "saref4ener-semantic-connector"
+      "--group", groupId
     ], { quietErrors: true });
     const partitions = output.split(/\r?\n/)
       .map((line) => line.trim().split(/\s+/))
@@ -146,6 +160,18 @@ function readSemanticRuntime() {
   }
 }
 
+function isComposeServiceRunning(service) {
+  try {
+    return docker([
+      "compose", "ps", "--status", "running", "--services"
+    ], { quietErrors: true })
+      .split(/\r?\n/)
+      .some((item) => item.trim() === service);
+  } catch (_error) {
+    return false;
+  }
+}
+
 function readHardware() {
   return {
     platform: `${os.type()} ${os.release()} ${os.arch()}`,
@@ -187,6 +213,7 @@ function queryRunMetrics(startedAt) {
       'semantic_rows', (SELECT count(*) FROM semantic_events s JOIN run_readings r USING (reading_id)),
       'ieee_rows', (SELECT count(*) FROM ieee20305_events i JOIN run_readings r USING (reading_id)),
       'duplicate_audit_ids', (SELECT count(*) FROM (SELECT reading_id FROM run_audit GROUP BY reading_id HAVING count(*) > 1) d),
+      'duplicate_normalized_ids', (SELECT count(*) FROM (SELECT reading_id FROM run_readings GROUP BY reading_id HAVING count(*) > 1) d),
       'duplicate_semantic_ids', (SELECT count(*) FROM (SELECT s.reading_id FROM semantic_events s JOIN run_readings r USING (reading_id) GROUP BY s.reading_id HAVING count(*) > 1) d),
       'duplicate_ieee_ids', (SELECT count(*) FROM (SELECT i.reading_id FROM ieee20305_events i JOIN run_readings r USING (reading_id) GROUP BY i.reading_id HAVING count(*) > 1) d),
       'processing_errors', (SELECT count(*) FROM processing_errors WHERE occurred_at >= ${start}::timestamptz),
@@ -209,6 +236,43 @@ function queryRunMetrics(startedAt) {
   `);
 }
 
+function querySlmOutcomeSamples(startedAt, limit = 30) {
+  const start = sqlLiteral(startedAt);
+  const boundedLimit = Math.min(Math.max(Math.floor(number(limit, 30)), 1), 100);
+  return psqlJson(`
+    SELECT json_build_object(
+      'samples',
+      coalesce(json_agg(row_to_json(sample)), '[]'::json)
+    )::text
+    FROM (
+      SELECT
+        audit.reading_id,
+        audit.device_id,
+        readings.household_id,
+        readings.reading_name,
+        audit.slm_called,
+        audit.slm_provider,
+        audit.slm_model,
+        audit.slm_batch_id,
+        audit.slm_worker_id,
+        audit.slm_attempt_count,
+        audit.slm_inference_latency_ms,
+        audit.slm_confidence,
+        audit.deterministic_validation,
+        audit.validation_failure_reason,
+        audit.final_status,
+        audit.safely_unmapped,
+        audit.processed_at
+      FROM semantic_slm_audit audit
+      JOIN normalized_telemetry readings USING (reading_id)
+      WHERE readings.event_time >= ${start}::timestamptz
+        AND readings.source LIKE 'scale-%-simulator'
+      ORDER BY audit.processed_at DESC
+      LIMIT ${boundedLimit}
+    ) sample;
+  `);
+}
+
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, {
     ...options,
@@ -219,9 +283,9 @@ async function fetchJson(url, options = {}) {
   return body;
 }
 
-async function runSafeWorkflow(runId, gatewayUrl, edgeApiKey) {
+async function runSafeWorkflow(runId, gatewayUrl, edgeApiKey, options = {}) {
   const now = Date.now();
-  const signalId = `${runId}-signal`;
+  const signalId = options.signalId || `${runId}-signal`;
   const headers = {
     "content-type": "application/json",
     "x-edge-api-key": edgeApiKey,
@@ -235,11 +299,11 @@ async function runSafeWorkflow(runId, gatewayUrl, edgeApiKey) {
       dso_id: "dso-scale-validation",
       community_id: "community-dublin-north",
       signal_type: "curtailment_request",
-      severity: "medium",
-      requested_action: "reduce_load",
+      severity: options.severity || "medium",
+      requested_action: options.requestedAction || "reduce_load",
       start_time: new Date(now + 300000).toISOString(),
       end_time: new Date(now + 2100000).toISOString(),
-      reason: "Controlled SLM-first scalability validation"
+      reason: options.reason || "Controlled SLM-first scalability validation"
     })
   });
 
@@ -271,8 +335,16 @@ async function runSafeWorkflow(runId, gatewayUrl, edgeApiKey) {
       'proposal_id', ${sqlLiteral(proposal.id)},
       'dispatch_status', (SELECT status FROM dispatch_commands WHERE id=${number(proposal.id, 0)} ORDER BY created_at DESC LIMIT 1),
       'mock_rows', (SELECT count(*) FROM dispatch_execution_audit WHERE dispatch_command_id=${number(proposal.id, 0)}),
-      'device_command_rows', (SELECT count(*) FROM device_command_audit WHERE proposal_id=${sqlLiteral(String(proposal.id))}),
-      'unsafe_execution_rows', (SELECT count(*) FROM dispatch_execution_audit WHERE dispatch_command_id=${number(proposal.id, 0)} AND (no_real_execution IS DISTINCT FROM TRUE OR execution_mode <> 'mock'))
+      'device_command_rows', (SELECT count(*) FROM device_command_audit WHERE correlation_id=${sqlLiteral(signalId)}),
+      'unsafe_execution_rows', (
+        (SELECT count(*) FROM dispatch_execution_audit
+          WHERE dispatch_command_id=${number(proposal.id, 0)}
+            AND (no_real_execution IS DISTINCT FROM TRUE OR execution_mode <> 'mock'))
+        +
+        (SELECT count(*) FROM device_command_audit
+          WHERE correlation_id=${sqlLiteral(signalId)}
+            AND (no_real_execution IS DISTINCT FROM TRUE OR execution_mode <> 'simulated_device_api'))
+      )
     )::text;`);
     if (number(evidence.mock_rows) > 0 && number(evidence.device_command_rows) > 0) break;
     await sleep(2000);
@@ -287,6 +359,84 @@ async function runSafeWorkflow(runId, gatewayUrl, edgeApiKey) {
     dataspace_minimization_applied: dataspace.minimization_applied,
     dataspace_pseudonymization_applied: dataspace.pseudonymization_applied,
     no_raw_private_payloads: dataspace.no_raw_private_payloads
+  };
+}
+
+async function runRepresentativeFlexibilityWorkflow(runId, gatewayUrl, edgeApiKey) {
+  const profiles = ["apartment", "standard_home", "prosumer_home"];
+  const cohorts = [];
+
+  for (const profile of profiles) {
+    const selectedHouseholds = psqlJson(`
+      SELECT coalesce(json_agg(row_to_json(cohort)), '[]'::json)::text
+      FROM (
+        SELECT
+          household_id,
+          count(*)::integer AS asset_count,
+          count(*) FILTER (WHERE flexibility_capable)::integer AS flexible_asset_count,
+          coalesce(sum(maximum_flexible_power_kw) FILTER (
+            WHERE flexibility_capable
+          ), 0) AS maximum_flexible_power_kw
+        FROM simulated_device_registry
+        WHERE household_profile=${sqlLiteral(profile)}
+          AND device_id LIKE 'scale1000-%'
+        GROUP BY household_id
+        ORDER BY household_id
+        LIMIT 5
+      ) cohort;
+    `);
+    if (!Array.isArray(selectedHouseholds) || selectedHouseholds.length !== 5) {
+      throw new Error(`representative_${profile}_cohort_did_not_contain_five_households`);
+    }
+
+    const signalRunId = `${runId}-${profile.replaceAll("_", "-")}`;
+    const householdIds = selectedHouseholds.map((item) => item.household_id);
+    const workflow = await runSafeWorkflow(signalRunId, gatewayUrl, edgeApiKey, {
+      signalId: `${signalRunId}-signal`,
+      reason: `Controlled ${profile} cohort validation for ${householdIds.join(", ")}`
+    });
+    cohorts.push({
+      household_profile: profile,
+      selected_households: selectedHouseholds,
+      selected_household_count: selectedHouseholds.length,
+      ...workflow
+    });
+  }
+
+  return {
+    status: "completed",
+    targeting_mode: "community_signal_with_audited_representative_cohort",
+    cohort_dispatch_scope_enforced: false,
+    cohort_count: cohorts.length,
+    selected_household_count: cohorts.reduce(
+      (total, cohort) => total + cohort.selected_household_count,
+      0
+    ),
+    dispatch_status: cohorts.every(
+      (cohort) => cohort.dispatch_status === "ready_to_dispatch"
+    )
+      ? "ready_to_dispatch"
+      : "incomplete",
+    mock_rows: cohorts.reduce((total, cohort) => total + number(cohort.mock_rows), 0),
+    device_command_rows: cohorts.reduce(
+      (total, cohort) => total + number(cohort.device_command_rows),
+      0
+    ),
+    unsafe_execution_rows: cohorts.reduce(
+      (total, cohort) => total + number(cohort.unsafe_execution_rows),
+      0
+    ),
+    dataspace_export_type: cohorts.at(-1)?.dataspace_export_type || null,
+    dataspace_minimization_applied: cohorts.every(
+      (cohort) => cohort.dataspace_minimization_applied === true
+    ),
+    dataspace_pseudonymization_applied: cohorts.every(
+      (cohort) => cohort.dataspace_pseudonymization_applied === true
+    ),
+    no_raw_private_payloads: cohorts.every(
+      (cohort) => cohort.no_raw_private_payloads === true
+    ),
+    cohorts
   };
 }
 
@@ -306,20 +456,46 @@ async function runStage(args = parseArgs()) {
   fs.mkdirSync(runDirectory, { recursive: true });
   const config = resolveConfig({ ...baseConfig, scenario_id: runId }, {
     devices,
-    households: number(args.households, Math.ceil(devices / 3)),
-    intervalSeconds: number(args.intervalSeconds, 60),
-    durationMinutes: number(args.durationMinutes, 1),
-    cycles: number(args.cycles, 1),
-    seed: number(args.seed, baseConfig.random_seed),
-    rampUpSeconds: number(args.rampUpSeconds, 0),
-    burstPercentage: number(args.burstPercentage, 0),
-    targetRate: number(args.targetRate, devices / number(args.intervalSeconds, 60)),
-    maxBacklog: number(args.maxBacklog, baseConfig.maximum_permitted_backlog_readings),
-    concurrency: number(args.concurrency, baseConfig.gateway.concurrency),
-    mode: args.mode || "steady",
+    households: args.households === undefined ? undefined : number(args.households),
+    intervalSeconds: args.intervalSeconds === undefined ? undefined : number(args.intervalSeconds),
+    reportingWindowSeconds: args.reportingWindowSeconds === undefined
+      ? undefined
+      : number(args.reportingWindowSeconds),
+    durationMinutes: args.durationMinutes === undefined ? undefined : number(args.durationMinutes),
+    cycles: args.cycles === undefined ? undefined : number(args.cycles),
+    seed: args.seed === undefined ? undefined : number(args.seed),
+    rampUpSeconds: args.rampUpSeconds === undefined ? undefined : number(args.rampUpSeconds),
+    burstPercentage: args.burstPercentage === undefined ? undefined : number(args.burstPercentage),
+    burstAssets: args.burstAssets === undefined ? undefined : number(args.burstAssets),
+    targetRate: args.targetRate === undefined ? undefined : number(args.targetRate),
+    maxBacklog: args.maxBacklog === undefined ? undefined : number(args.maxBacklog),
+    concurrency: args.concurrency === undefined ? undefined : number(args.concurrency),
+    primaryReadingMode: args.primaryReadingMode,
+    maxMessages: args.maxMessages === undefined ? undefined : number(args.maxMessages),
+    mode: args.mode,
     output: outputRoot,
     dryRun: Boolean(args.dryRun)
   });
+  const consumerGroup = args.consumerGroup ||
+    process.env.SEMANTIC_CONNECTOR_GROUP_ID ||
+    "saref4ener-semantic-connector";
+  const semanticRuntimeAtStart = readSemanticRuntime();
+  const continuousFleetRunningAtStart =
+    isComposeServiceRunning("household-fleet-simulator");
+  if (
+    !config.dry_run &&
+    semanticRuntimeAtStart.SEMANTIC_CONNECTOR_GROUP_ID !== consumerGroup
+  ) {
+    throw new Error(
+      `Semantic runtime group '${semanticRuntimeAtStart.SEMANTIC_CONNECTOR_GROUP_ID || "unavailable"}' ` +
+      `does not match validation group '${consumerGroup}'.`
+    );
+  }
+  if (!config.dry_run && continuousFleetRunningAtStart) {
+    throw new Error(
+      "household-fleet-simulator must be stopped before a measured scale stage."
+    );
+  }
   const stageStartedAt = new Date(Date.now() - 1000).toISOString();
   const samplesPath = path.join(runDirectory, "pipeline-samples.jsonl");
   const sampleEveryMs = number(args.sampleEverySeconds, 5) * 1000;
@@ -327,21 +503,31 @@ async function runStage(args = parseArgs()) {
     path.join(__dirname, "scale-sampler.js"),
     "--started-at", stageStartedAt,
     "--output", samplesPath,
-    "--interval-ms", String(sampleEveryMs)
+    "--interval-ms", String(sampleEveryMs),
+    "--consumer-group", consumerGroup
   ], { cwd: repoRoot, stdio: ["ignore", "ignore", "pipe"] });
 
   const generator = await runScaleGenerator(config, { runDirectory });
   const deadline = Date.now() + number(args.maxClearanceSeconds, 900) * 1000;
   let metrics = queryRunMetrics(stageStartedAt);
-  let lag = readKafkaLag();
+  let lag = readKafkaLag(consumerGroup);
   while (Date.now() < deadline) {
     const terminal = number(metrics.audited_readings, 0);
     const acceptedReadings = number(generator.readings_gateway_accepted, generator.readings_generated);
-    if (terminal >= acceptedReadings && number(lag.total, 0) === 0) break;
-    process.stdout.write(`[scale-stage] normalized=${metrics.normalized_readings || 0} audited=${terminal}/${acceptedReadings} accepted readings (${generator.readings_generated} generated) lag=${lag.total ?? "unavailable"}\n`);
+    const mappedOrUnmapped =
+      number(metrics.semantic_rows, 0) + number(metrics.safely_unmapped_readings, 0);
+    const translatedOrUnmapped =
+      number(metrics.ieee_rows, 0) + number(metrics.safely_unmapped_readings, 0);
+    if (
+      terminal >= acceptedReadings &&
+      mappedOrUnmapped >= acceptedReadings &&
+      translatedOrUnmapped >= acceptedReadings &&
+      number(lag.total, 0) === 0
+    ) break;
+    process.stdout.write(`[scale-stage] normalized=${metrics.normalized_readings || 0} audited=${terminal}/${acceptedReadings} semantic_or_unmapped=${mappedOrUnmapped} ieee_or_unmapped=${translatedOrUnmapped} lag=${lag.total ?? "unavailable"}\n`);
     await sleep(sampleEveryMs);
     metrics = queryRunMetrics(stageStartedAt);
-    lag = readKafkaLag();
+    lag = readKafkaLag(consumerGroup);
   }
   sampler.kill();
   await Promise.race([
@@ -349,7 +535,7 @@ async function runStage(args = parseArgs()) {
     sleep(5000)
   ]);
   metrics = queryRunMetrics(stageStartedAt);
-  lag = readKafkaLag();
+  lag = readKafkaLag(consumerGroup);
   const samples = fs.existsSync(samplesPath)
     ? fs.readFileSync(samplesPath, "utf8").split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line))
     : [];
@@ -357,17 +543,55 @@ async function runStage(args = parseArgs()) {
     (maximum, sample) => Math.max(maximum, number(sample.kafka_lag?.total, 0)),
     0
   );
+  fs.writeFileSync(
+    path.join(runDirectory, "kafka-lag-samples.jsonl"),
+    samples.map((sample) => JSON.stringify({
+      recorded_at: sample.recorded_at,
+      consumer_group: consumerGroup,
+      ...sample.kafka_lag
+    })).join("\n") + (samples.length ? "\n" : "")
+  );
+  fs.writeFileSync(
+    path.join(runDirectory, "throughput-samples.jsonl"),
+    samples.map((sample) => JSON.stringify({
+      recorded_at: sample.recorded_at,
+      normalized_readings: sample.metrics?.normalized_readings || 0,
+      audited_readings: sample.metrics?.audited_readings || 0,
+      semantic_rows: sample.metrics?.semantic_rows || 0,
+      ieee_rows: sample.metrics?.ieee_rows || 0
+    })).join("\n") + (samples.length ? "\n" : "")
+  );
+  fs.writeFileSync(
+    path.join(runDirectory, "resource-samples.jsonl"),
+    samples.map((sample) => JSON.stringify({
+      recorded_at: sample.recorded_at,
+      ...sample.resources
+    })).join("\n") + (samples.length ? "\n" : "")
+  );
+  fs.writeFileSync(
+    path.join(runDirectory, "slm-outcome-samples.json"),
+    `${JSON.stringify(querySlmOutcomeSamples(stageStartedAt), null, 2)}\n`
+  );
 
+  const testMode = String(args.testMode || "functional").toLowerCase();
   let workflow = { status: "not_run" };
   if (!args.skipWorkflow && !config.dry_run) {
     try {
+      const workflowEvidence =
+        config.device_count === 1000 && testMode === "functional"
+          ? await runRepresentativeFlexibilityWorkflow(
+            runId,
+            config.gateway.base_url.replace(/\/$/, ""),
+            process.env.EDGE_API_KEY || "local-dev-edge-key"
+          )
+          : await runSafeWorkflow(
+            runId,
+            config.gateway.base_url.replace(/\/$/, ""),
+            process.env.EDGE_API_KEY || "local-dev-edge-key"
+          );
       workflow = {
         status: "completed",
-        ...(await runSafeWorkflow(
-          runId,
-          config.gateway.base_url.replace(/\/$/, ""),
-          process.env.EDGE_API_KEY || "local-dev-edge-key"
-        ))
+        ...workflowEvidence
       };
     } catch (error) {
       workflow = { status: "failed", error: error.message };
@@ -381,30 +605,74 @@ async function runStage(args = parseArgs()) {
     : 0;
   const sustainedArrivalRps = generator.readings_generated / Math.max(generator.elapsed_seconds, 0.001);
   const completionRps = number(metrics.audited_readings, 0) / Math.max(processingSeconds, 0.001);
+  const semanticRuntimeAtCompletion = readSemanticRuntime();
+  const continuousFleetRunningAtCompletion =
+    isComposeServiceRunning("household-fleet-simulator");
   const criteria = {
+    semantic_runtime_remained_isolated:
+      semanticRuntimeAtStart.SEMANTIC_CONNECTOR_GROUP_ID === consumerGroup &&
+      semanticRuntimeAtCompletion.SEMANTIC_CONNECTOR_GROUP_ID === consumerGroup,
+    continuous_demo_fleet_remained_stopped:
+      !continuousFleetRunningAtStart && !continuousFleetRunningAtCompletion,
     all_devices_represented: generator.represented_devices === config.device_count,
+    all_households_represented: generator.represented_households === config.household_count,
+    coverage_includes_every_device_category: testMode !== "coverage" ||
+      REQUIRED_SCALE_CATEGORIES.every((category) =>
+        number(generator.population?.categories?.[category], 0) > 0
+      ),
     all_gateway_messages_accepted: generator.telemetry_gateway_accepted === generator.telemetry_planned,
+    no_generator_drops: generator.telemetry_gateway_failed === 0,
     all_readings_normalized: number(metrics.normalized_readings, 0) === generator.readings_generated,
     all_readings_have_terminal_audit: number(metrics.audited_readings, 0) === generator.readings_generated,
     slm_called_for_all_readings: number(metrics.slm_called_readings, 0) === generator.readings_generated,
+    all_readings_semantic_or_safely_unmapped:
+      number(metrics.semantic_rows, 0) + number(metrics.safely_unmapped_readings, 0) ===
+      generator.readings_generated,
+    all_readings_ieee_or_safely_unmapped:
+      number(metrics.ieee_rows, 0) + number(metrics.safely_unmapped_readings, 0) ===
+      generator.readings_generated,
+    no_duplicate_normalized_rows: number(metrics.duplicate_normalized_ids, 0) === 0,
     no_duplicate_audit_rows: number(metrics.duplicate_audit_ids, 0) === 0,
     no_duplicate_semantic_rows: number(metrics.duplicate_semantic_ids, 0) === 0,
     no_duplicate_ieee_rows: number(metrics.duplicate_ieee_ids, 0) === 0,
     no_processing_errors: number(metrics.processing_errors, 0) === 0,
     kafka_backlog_cleared: number(lag.total, -1) === 0,
     backlog_within_limit: maximumLag <= config.maximum_permitted_backlog_readings,
-    processing_kept_up_with_arrival: completionRps >= sustainedArrivalRps,
-    safe_control_flow_completed: config.dry_run || (workflow.status === "completed" && number(workflow.unsafe_execution_rows, 0) === 0),
+    safe_control_flow_completed: config.dry_run || (
+      workflow.status === "completed" &&
+      workflow.dispatch_status === "ready_to_dispatch" &&
+      number(workflow.mock_rows, 0) > 0 &&
+      number(workflow.device_command_rows, 0) > 0 &&
+      number(workflow.unsafe_execution_rows, 0) === 0
+    ),
     dataspace_export_completed: config.dry_run || workflow.dataspace_minimization_applied === true
   };
   const passed = !config.dry_run && Object.values(criteria).every(Boolean);
+  const processingKeptUp = completionRps >= sustainedArrivalRps;
+  const classification = config.dry_run
+    ? "generator_only"
+    : !passed
+      ? "failed"
+      : testMode === "sustained"
+        ? processingKeptUp ? "sustained_local_pass" : "functional_only"
+        : "functional_end_to_end_pass";
   const result = {
     run_id: runId,
     status: config.dry_run ? "generator_only" : passed ? "passed" : "failed",
     started_at: stageStartedAt,
     completed_at: new Date().toISOString(),
     configuration: config,
-    semantic_runtime: readSemanticRuntime(),
+    consumer_group: consumerGroup,
+    test_mode: testMode,
+    classification,
+    semantic_runtime: {
+      started: semanticRuntimeAtStart,
+      completed: semanticRuntimeAtCompletion
+    },
+    isolation: {
+      continuous_demo_fleet_running_at_start: continuousFleetRunningAtStart,
+      continuous_demo_fleet_running_at_completion: continuousFleetRunningAtCompletion
+    },
     hardware: readHardware(),
     generator,
     pipeline: {
@@ -413,6 +681,7 @@ async function runStage(args = parseArgs()) {
       maximum_observed_kafka_lag: maximumLag,
       sustained_arrival_readings_per_second: Number(sustainedArrivalRps.toFixed(3)),
       completion_readings_per_second: Number(completionRps.toFixed(3)),
+      processing_kept_up_with_arrival: processingKeptUp,
       required_improvement_factor: completionRps > 0
         ? Number((sustainedArrivalRps / completionRps).toFixed(3))
         : null,
@@ -479,7 +748,11 @@ if (require.main === module) {
 module.exports = {
   parseArgs,
   queryRunMetrics,
+  querySlmOutcomeSamples,
   readKafkaLag,
   readResources,
+  isComposeServiceRunning,
+  runRepresentativeFlexibilityWorkflow,
+  runSafeWorkflow,
   runStage
 };

@@ -586,7 +586,7 @@ test("customer devices endpoint forwards bounded inventory filters", async () =>
   const response = await request(
     app,
     "GET",
-    "/customer/devices?limit=12&offset=24&category=dishwasher&online=true&flexible=true&state=active",
+    "/customer/devices?limit=12&offset=24&category=dishwasher&profile=standard_home&search=kitchen&online=true&flexible=true&state=active",
     { headers: customerHeaders() }
   );
 
@@ -596,6 +596,8 @@ test("customer devices endpoint forwards bounded inventory filters", async () =>
     limit: "12",
     offset: "24",
     category: "dishwasher",
+    profile: "standard_home",
+    search: "kitchen",
     online: true,
     flexible: true,
     state: "active"

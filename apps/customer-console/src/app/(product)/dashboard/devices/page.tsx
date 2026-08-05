@@ -11,6 +11,7 @@ import {
   Gauge,
   PlugZap,
   RefreshCw,
+  Search,
   Thermometer,
   Wifi,
   Zap
@@ -60,6 +61,8 @@ export default function ConnectedDevicesPage() {
     offset: value
   });
   const [category, setCategory] = useState("");
+  const [profile, setProfile] = useState("");
+  const [search, setSearch] = useState("");
   const [online, setOnline] = useState("");
   const [flexible, setFlexible] = useState("");
   const [state, setState] = useState("");
@@ -70,11 +73,13 @@ export default function ConnectedDevicesPage() {
       offset: String(offset)
     });
     if (category) params.set("category", category);
+    if (profile) params.set("profile", profile);
+    if (search.trim()) params.set("search", search.trim());
     if (online) params.set("online", online);
     if (flexible) params.set("flexible", flexible);
     if (state) params.set("state", state);
     return `/api/dashboard/devices?${params}`;
-  }, [category, flexible, offset, online, state]);
+  }, [category, flexible, offset, online, profile, search, state]);
 
   const devices = useCustomerResource<CustomerDevices>(
     withHousehold(query, selectedHousehold),
@@ -105,15 +110,21 @@ export default function ConnectedDevicesPage() {
 
       <DeviceFilters
         category={category}
+        profile={profile}
+        search={search}
         online={online}
         flexible={flexible}
         state={state}
         onCategory={(value) => { setCategory(value); setOffset(0); }}
+        onProfile={(value) => { setProfile(value); setOffset(0); }}
+        onSearch={(value) => { setSearch(value); setOffset(0); }}
         onOnline={(value) => { setOnline(value); setOffset(0); }}
         onFlexible={(value) => { setFlexible(value); setOffset(0); }}
         onState={(value) => { setState(value); setOffset(0); }}
         onClear={() => {
           setCategory("");
+          setProfile("");
+          setSearch("");
           setOnline("");
           setFlexible("");
           setState("");
@@ -187,10 +198,14 @@ export default function ConnectedDevicesPage() {
 
 function DeviceFilters(props: {
   category: string;
+  profile: string;
+  search: string;
   online: string;
   flexible: string;
   state: string;
   onCategory: (value: string) => void;
+  onProfile: (value: string) => void;
+  onSearch: (value: string) => void;
   onOnline: (value: string) => void;
   onFlexible: (value: string) => void;
   onState: (value: string) => void;
@@ -207,12 +222,31 @@ function DeviceFilters(props: {
           Clear filters
         </button>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <label className="text-xs font-medium text-slate-400">
+          Search devices
+          <span className="relative mt-2 block">
+            <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-500" />
+            <input
+              value={props.search}
+              onChange={(event) => props.onSearch(event.target.value)}
+              maxLength={80}
+              placeholder="Name or device ID"
+              className="w-full rounded-md border border-white/10 bg-[#0b1722] py-2.5 pl-9 pr-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15"
+            />
+          </span>
+        </label>
         <FilterSelect label="Category" value={props.category} onChange={props.onCategory}>
           <option value="">All categories</option>
           {CATEGORIES.map((item) => (
             <option value={item} key={item}>{friendlyCategory(item)}</option>
           ))}
+        </FilterSelect>
+        <FilterSelect label="Household profile" value={props.profile} onChange={props.onProfile}>
+          <option value="">All profiles</option>
+          <option value="apartment">Apartment</option>
+          <option value="standard_home">Standard home</option>
+          <option value="prosumer_home">Prosumer home</option>
         </FilterSelect>
         <FilterSelect label="Connection" value={props.online} onChange={props.onOnline}>
           <option value="">Any connection</option>

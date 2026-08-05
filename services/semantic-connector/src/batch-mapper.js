@@ -103,7 +103,17 @@ async function mapReadingBatch(readings, provider, config, options = {}) {
 
     let providerResult;
     try {
-      providerResult = await provider.inferBatch(pending, { requestId, batchId, attempt });
+      providerResult = await provider.inferBatch(pending, {
+        requestId,
+        batchId,
+        attempt,
+        validationHints: Object.fromEntries(
+          pending.map((reading) => [
+            reading.reading_id,
+            [...new Set(states.get(reading.reading_id).validationFailures)]
+          ])
+        )
+      });
     } catch (error) {
       const completedAt = new Date().toISOString();
       const failedLatencyMs = Math.max(0, Date.parse(completedAt) - Date.parse(attemptStartedAt));

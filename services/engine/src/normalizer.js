@@ -33,19 +33,23 @@ function normalizeTelemetry(payload) {
   const protocol = normalizeProtocol(payload.protocol);
 
   const base = {
+    message_id: payload.message_id || null,
+    correlation_id: payload.correlation_id || null,
     event_time: eventTime,
     household_id: payload.household_id,
     community_id: payload.community_id,
     device_id: payload.device_id,
     device_type: payload.device_type,
     protocol,
-    source: payload.source
+    source: payload.source,
+    device_context: payload.metadata || null
   };
 
   const normalizedRows = Object.entries(payload.readings).map(([readingName, reading]) => {
     const normalizedReading = normalizeReading(readingName, reading);
     return {
       ...base,
+      reading_id: payload.reading_ids?.[readingName] || null,
       ...normalizedReading,
       normalized_payload: {
         ...base,

@@ -28,6 +28,16 @@ test("engine builds correlation id from Kafka metadata", () => {
   );
 });
 
+test("engine prefers a producer correlation id for idempotent retries", () => {
+  assert.equal(
+    buildCorrelationId(
+      { topic: "raw.telemetry", partition: 0, offset: 12 },
+      { correlation_id: "scale-correlation-001" }
+    ),
+    "scale-correlation-001"
+  );
+});
+
 test("engine builds normalized telemetry event for Kafka", () => {
   const event = buildNormalizedTelemetryEvent(normalizedRow, "raw.telemetry:0:12");
 

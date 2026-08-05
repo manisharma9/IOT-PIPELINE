@@ -68,6 +68,58 @@ const PROFILE_CATEGORIES = Object.freeze({
   }
 });
 
+const EXACT_PROFILE_INVENTORIES = Object.freeze({
+  apartment: Object.freeze([
+    "smart_meter",
+    "smart_plug",
+    "smart_plug",
+    "refrigerator",
+    "washing_machine",
+    "lighting_circuit",
+    "water_heater",
+    "thermostat_hvac"
+  ]),
+  standard_home: Object.freeze([
+    "smart_meter",
+    "smart_plug",
+    "smart_plug",
+    "refrigerator",
+    "washing_machine",
+    "dishwasher",
+    "lighting_circuit",
+    "water_heater",
+    "heat_pump",
+    "ev_charger"
+  ]),
+  prosumer_home: Object.freeze([
+    "smart_meter",
+    "smart_plug",
+    "smart_plug",
+    "refrigerator",
+    "washing_machine",
+    "dishwasher",
+    "lighting_circuit",
+    "water_heater",
+    "heat_pump",
+    "ev_charger",
+    "solar_inverter",
+    "home_battery",
+    "smart_plug"
+  ])
+});
+
+const OCCUPANCY_PATTERNS = Object.freeze({
+  apartment: Object.freeze(["weekday_commuter", "hybrid_worker", "evening_occupied"]),
+  standard_home: Object.freeze(["family_weekday", "hybrid_family", "daytime_occupied"]),
+  prosumer_home: Object.freeze(["prosumer_balanced", "solar_aligned", "storage_optimized"])
+});
+
+const BASE_LOAD_PROFILES = Object.freeze({
+  apartment: "compact_urban",
+  standard_home: "family_balanced",
+  prosumer_home: "generation_and_storage"
+});
+
 function seededRandom(seed) {
   let value = Number(seed) >>> 0;
   return () => {
@@ -90,7 +142,12 @@ function profileForIndex(index, configuredMix = {}) {
   return ["apartment", "standard_home", "prosumer_home"][index % 3];
 }
 
-function categoriesForProfile(profile, random) {
+function categoriesForProfile(profile, random, exact = false) {
+  if (exact) {
+    const exactInventory = EXACT_PROFILE_INVENTORIES[profile];
+    if (!exactInventory) throw new Error(`Unknown household profile: ${profile}`);
+    return [...exactInventory];
+  }
   const definition = PROFILE_CATEGORIES[profile];
   if (!definition) throw new Error(`Unknown household profile: ${profile}`);
   const [minimum, maximum] = PROFILE_LIMITS[profile];
@@ -108,6 +165,56 @@ function slug(value) {
   return String(value).replaceAll("_", "-");
 }
 
+function stableHash(value) {
+  let hash = 2166136261;
+  for (const character of String(value)) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function stableReportingOffset(deviceId, reportingWindowMs) {
+  const window = Math.max(1, Number(reportingWindowMs) || 1);
+  return stableHash(deviceId) % window;
+}
+
+function manufacturerFor(category, provider) {
+  if (category === "smart_plug") return "Shelly (simulated)";
+  if (category === "ev_charger") return "Enode / Easee (simulated)";
+  if (category === "heat_pump") return "AD-FLEX Heat Pump Simulator";
+  return `${String(provider || "AD-FLEX").replaceAll("_", " ")} (simulated)`;
+}
+
+function initialInventoryState(device, referenceTimestamp) {
+  const status = device.getStatus(referenceTimestamp);
+  const readings = device.getData();
+  const [primaryField, primaryReading] = Object.entries(readings)[0] || [null, null];
+  const energyEntry = Object.entries(readings).find(([field]) =>
+    /(energy|throughput).*kwh/i.test(field)
+  );
+
+  return {
+    manufacturer: manufacturerFor(device.deviceType, device.provider),
+    measurement_capabilities: Object.keys(readings),
+    online: status.online !== false,
+    current_operating_state:
+      status.operating_state ||
+      status.relay_state ||
+      status.charging_state ||
+      "available",
+    last_seen_timestamp: referenceTimestamp,
+    current_primary_measurement: primaryField ? {
+      field: primaryField,
+      value: Number(primaryReading?.value ?? primaryReading),
+      unit: primaryReading?.unit || null
+    } : null,
+    cumulative_energy_kwh: energyEntry
+      ? Number(energyEntry[1]?.value ?? energyEntry[1])
+      : null
+  };
+}
+
 function buildDevice({
   category,
   occurrence,
@@ -115,7 +222,9 @@ function buildDevice({
   communityId,
   areaId,
   profile,
-  random
+  random,
+  referenceTimestamp,
+  reportingWindowMs
 }) {
   const deviceId = `${householdId}-${slug(category)}-${String(occurrence).padStart(2, "0")}`;
   const common = {
@@ -159,6 +268,8 @@ function buildDevice({
         ["smart_plug", "ev_charger", "heat_pump"].includes(category),
       maximum_flexible_power_kw:
         Number(status.maximum_flexible_power_kw || device.controllableLoadKw || 0),
+      ...initialInventoryState(device, referenceTimestamp),
+      reporting_offset_ms: stableReportingOffset(deviceId, reportingWindowMs),
       simulated: true,
       no_real_execution: true
     }
@@ -171,14 +282,38 @@ function buildFleet(config = {}) {
   const communityId = config.communityId || "community-dublin-north";
   const prefix = config.householdPrefix || "demo-household";
   const profileRandom = seededRandom(seed);
+  const exactProfileInventories = Boolean(config.exactProfileInventories);
+  const reportingWindowMs = Math.max(
+    1,
+    Number(config.reportingWindowMs || config.reportingIntervalMs || 600000)
+  );
+  const referenceTimestamp =
+    config.referenceTimestamp || "2026-01-01T00:00:00.000Z";
+  const timeZone = config.timeZone || "Europe/Dublin";
   const households = [];
   const devices = [];
+  const profileOrdinals = new Map();
+
+  if (exactProfileInventories) {
+    const configuredHouseholds = Object.values(config.profileMix || {})
+      .reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0);
+    if (configuredHouseholds !== householdCount) {
+      throw new Error(
+        `Exact profile mix defines ${configuredHouseholds} households; expected ${householdCount}.`
+      );
+    }
+  }
 
   for (let index = 0; index < householdCount; index += 1) {
-    const householdId = `${prefix}-${String(index + 1).padStart(3, "0")}`;
     const profile = profileForIndex(index, config.profileMix);
+    const profileOrdinal = (profileOrdinals.get(profile) || 0) + 1;
+    profileOrdinals.set(profile, profileOrdinal);
+    const householdId = exactProfileInventories
+      ? `${prefix}-${slug(profile)}-${String(profileOrdinal).padStart(3, "0")}`
+      : `${prefix}-${String(index + 1).padStart(3, "0")}`;
     const areaId = `${config.areaPrefix || "dublin-north"}-${String((index % 4) + 1).padStart(2, "0")}`;
-    const categories = categoriesForProfile(profile, profileRandom);
+    const householdSeed = seed + (index + 1) * 1009;
+    const categories = categoriesForProfile(profile, profileRandom, exactProfileInventories);
     const occurrences = new Map();
     const householdDevices = categories.map((category, categoryIndex) => {
       const occurrence = (occurrences.get(category) || 0) + 1;
@@ -191,16 +326,28 @@ function buildFleet(config = {}) {
         communityId,
         areaId,
         profile,
-        random
+        random,
+        referenceTimestamp,
+        reportingWindowMs
       });
     });
 
+    const occupancyOptions = OCCUPANCY_PATTERNS[profile];
     households.push({
       household_id: householdId,
       community_id: communityId,
       area_id: areaId,
       profile,
-      device_count: householdDevices.length
+      device_count: householdDevices.length,
+      time_zone: timeZone,
+      random_seed: householdSeed,
+      occupancy_pattern: occupancyOptions[index % occupancyOptions.length],
+      base_load_profile: BASE_LOAD_PROFILES[profile],
+      reporting_schedule: {
+        window_ms: reportingWindowMs,
+        strategy: "stable_device_hash"
+      },
+      simulated: true
     });
     devices.push(...householdDevices);
   }
@@ -228,10 +375,14 @@ function buildFleet(config = {}) {
 }
 
 module.exports = {
+  BASE_LOAD_PROFILES,
+  EXACT_PROFILE_INVENTORIES,
+  OCCUPANCY_PATTERNS,
   PROFILE_CATEGORIES,
   PROFILE_LIMITS,
   buildFleet,
   categoriesForProfile,
-  seededRandom
+  seededRandom,
+  stableHash,
+  stableReportingOffset
 };
-

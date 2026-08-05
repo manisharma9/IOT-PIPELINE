@@ -7,7 +7,10 @@ const { spawn, spawnSync } = require("node:child_process");
 const { chromium } = require("playwright");
 
 const baseUrl = process.env.CUSTOMER_CONSOLE_URL || "http://127.0.0.1:3000";
-const outputDirectory = path.resolve(__dirname, "../../../docs/demo-assets");
+const outputDirectory = path.resolve(
+  process.env.PRODUCT_SCREENSHOT_OUTPUT ||
+  path.resolve(__dirname, "../../../docs/demo-assets")
+);
 const appDirectory = path.resolve(__dirname, "..");
 const useLiveData = process.env.PRODUCT_TEST_LIVE_DATA === "true";
 const demoUsername = process.env.DEMO_USERNAME || process.env.DEMO_AUTH_USERNAME;
@@ -299,6 +302,35 @@ const fixtureByPath = {
       { device_type: "ev_charger", count: 5 },
       { device_type: "heat_pump", count: 5 }
     ],
+    validation_population: {
+      cohort: "1,000-asset local validation",
+      household_count: 100,
+      asset_count: 1000,
+      online_assets: 1000,
+      active_assets: 742,
+      flexible_assets: 430,
+      total_simulated_demand_kw: 286.4,
+      available_flexibility_kw: 174.2,
+      by_profile: [
+        { profile: "apartment", households: 30, assets: 240 },
+        { profile: "standard_home", households: 50, assets: 500 },
+        { profile: "prosumer_home", households: 20, assets: 260 }
+      ],
+      by_category: [
+        { category: "smart_meter", count: 100 },
+        { category: "smart_plug", count: 220 },
+        { category: "ev_charger", count: 70 }
+      ],
+      semantic_progress: {
+        normalized_assets: 1000,
+        terminal_slm_assets: 1000,
+        mapped_assets: 942,
+        safely_unmapped_assets: 58,
+        completion_percent: 100
+      },
+      simulated: true,
+      no_real_execution: true
+    },
     comparison_available: true,
     selected_household_percentile: 60,
     privacy: {
@@ -461,11 +493,33 @@ async function main() {
     }
     await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded" });
     await page.locator("main").waitFor();
-    await page.waitForTimeout(500);
+    if (useLiveData) {
+      await page.getByText("Live household consumption", { exact: true }).waitFor({ timeout: 60000 });
+    } else {
+      await page.waitForTimeout(500);
+    }
     await page.screenshot({
       path: path.join(outputDirectory, "customer-dashboard-desktop.png"),
       fullPage: true
     });
+    if (useLiveData) {
+      for (const evidencePage of [
+        { route: "/dashboard/community", filename: "customer-dashboard-community-scale.png" },
+        { route: "/dashboard/devices", filename: "customer-dashboard-device-page.png" }
+      ]) {
+        await page.goto(`${baseUrl}${evidencePage.route}`, { waitUntil: "domcontentloaded" });
+        await page.locator("main").waitFor();
+        if (evidencePage.route.endsWith("/community")) {
+          await page.getByText("Validated 1,000-asset local cohort", { exact: true }).waitFor({ timeout: 60000 });
+        } else {
+          await page.getByText(/Showing 1-\d+ of \d+ devices/).waitFor({ timeout: 60000 });
+        }
+        await page.screenshot({
+          path: path.join(outputDirectory, evidencePage.filename),
+          fullPage: true
+        });
+      }
+    }
     await desktop.close();
 
     if (!useLiveData) {
@@ -563,6 +617,9 @@ async function main() {
       }
       await login(responsivePage);
       await assertResponsive(responsivePage, "/dashboard");
+      if (useLiveData) {
+        await responsivePage.getByText("Live household consumption", { exact: true }).waitFor({ timeout: 60000 });
+      }
       await responsivePage.screenshot({
         path: path.join(outputDirectory, `customer-dashboard-${profile.name}.png`),
         fullPage: true

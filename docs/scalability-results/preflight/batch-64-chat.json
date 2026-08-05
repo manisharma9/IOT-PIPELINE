@@ -1,0 +1,281 @@
+{
+  "recorded_at": "2026-07-27T08:17:16.893Z",
+  "provider": "ollama",
+  "model": "phi3:mini",
+  "server_identity": "http://localhost:11434",
+  "batch_size": 64,
+  "iterations": 1,
+  "timeout_ms": 300000,
+  "max_retries": 0,
+  "samples": [
+    {
+      "iteration": 1,
+      "elapsed_ms": 129105.852,
+      "input_readings": 64,
+      "mapped_readings": 0,
+      "safely_unmapped_readings": 64,
+      "output_received_readings": 64,
+      "readings_per_second": 0.4957,
+      "validation_failures": [
+        {
+          "reading_name": "active_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "active_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "active_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "active_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "active_power_kw",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "deterministic_property_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "active_power_kw",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "duplicate_reading_id"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "duplicate_reading_id"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "duplicate_reading_id"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "duplicate_reading_id"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "duplicate_reading_id"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "duplicate_reading_id"
+        },
+        {
+          "reading_name": "active_power_kw",
+          "reason": "duplicate_reading_id"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "duplicate_reading_id"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "active_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "missing_mapping"
+        }
+      ]
+    }
+  ],
+  "average_readings_per_second": 0.4957,
+  "note": "Direct provider benchmark only; this is not an end-to-end device-capacity validation."
+}

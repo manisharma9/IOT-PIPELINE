@@ -1,0 +1,33 @@
+{
+  "recorded_at": "2026-07-27T08:13:46.698Z",
+  "provider": "ollama",
+  "model": "phi3:mini",
+  "server_identity": "http://localhost:11434",
+  "batch_size": 16,
+  "iterations": 1,
+  "timeout_ms": 240000,
+  "max_retries": 1,
+  "samples": [
+    {
+      "iteration": 1,
+      "elapsed_ms": 43065.77,
+      "input_readings": 16,
+      "mapped_readings": 14,
+      "safely_unmapped_readings": 2,
+      "output_received_readings": 16,
+      "readings_per_second": 0.3715,
+      "validation_failures": [
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "deterministic_property_validation_failed;deterministic_concept_validation_failed;unit_relationship_invalid;deterministic_unit_validation_failed"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "missing_mapping;unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        }
+      ]
+    }
+  ],
+  "average_readings_per_second": 0.3715,
+  "note": "Direct provider benchmark only; this is not an end-to-end device-capacity validation."
+}

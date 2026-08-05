@@ -15,6 +15,7 @@ async function main() {
   const args = parseArgs();
   if (!args["started-at"] || !args.output) throw new Error("started-at and output are required");
   const intervalMs = Math.max(1000, Number(args["interval-ms"]) || 5000);
+  const consumerGroup = args["consumer-group"] || process.env.SEMANTIC_CONNECTOR_GROUP_ID;
   let running = true;
   const stop = () => { running = false; };
   process.on("SIGTERM", stop);
@@ -23,7 +24,7 @@ async function main() {
   while (running) {
     const sample = {
       recorded_at: new Date().toISOString(),
-      kafka_lag: readKafkaLag(),
+      kafka_lag: readKafkaLag(consumerGroup),
       metrics: queryRunMetrics(args["started-at"]),
       resources: readResources()
     };

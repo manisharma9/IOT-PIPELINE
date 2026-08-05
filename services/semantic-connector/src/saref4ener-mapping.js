@@ -100,6 +100,123 @@ const DETERMINISTIC_MAPPINGS = Object.freeze({
     ngsi_property: "batteryStateOfCharge",
     explanation:
       "Battery state of charge is mapped as a percentage measurement for storage flexibility availability."
+  },
+  heat_pump_power_kw: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Power",
+    saref_unit: "unit:KiloW",
+    saref4ener_concept: "saref4ener:HeatPumpPowerMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "heatPumpPower",
+    explanation: "Heat-pump power is validated as an instantaneous power measurement."
+  },
+  battery_power_kw: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Power",
+    saref_unit: "unit:KiloW",
+    saref4ener_concept: "saref4ener:PowerMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "batteryPower",
+    explanation: "Battery charge or discharge power is validated as an instantaneous power measurement."
+  },
+  indoor_temperature_c: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Temperature",
+    saref_unit: "unit:DEG_C",
+    saref4ener_concept: "saref4ener:TemperatureMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "indoorTemperature",
+    explanation: "Indoor temperature is validated as a temperature measurement."
+  },
+  target_temperature_c: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Temperature",
+    saref_unit: "unit:DEG_C",
+    saref4ener_concept: "saref4ener:TemperatureMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "targetTemperature",
+    explanation: "Target temperature is validated as telemetry context and never as an executable setpoint."
+  },
+  flow_temperature_c: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Temperature",
+    saref_unit: "unit:DEG_C",
+    saref4ener_concept: "saref4ener:HeatPumpTemperatureMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "flowTemperature",
+    explanation: "Heat-pump flow temperature is validated as a temperature measurement."
+  },
+  water_temperature_c: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Temperature",
+    saref_unit: "unit:DEG_C",
+    saref4ener_concept: "saref4ener:TemperatureMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "waterTemperature",
+    explanation: "Water temperature is validated as a temperature measurement."
+  },
+  energy_delivered_kwh: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Energy",
+    saref_unit: "unit:KiloW-HR",
+    saref4ener_concept: "saref4ener:EnergyConsumptionMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "energyDelivered",
+    explanation: "Delivered charging energy is validated as cumulative energy."
+  },
+  energy_export_kwh: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Energy",
+    saref_unit: "unit:KiloW-HR",
+    saref4ener_concept: "saref4ener:EnergyConsumptionMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "energyExported",
+    explanation: "Exported energy is validated as a cumulative energy measurement."
+  },
+  energy_throughput_kwh: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Energy",
+    saref_unit: "unit:KiloW-HR",
+    saref4ener_concept: "saref4ener:EnergyConsumptionMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "energyThroughput",
+    explanation: "Storage energy throughput is validated as cumulative energy."
+  },
+  charging_state_code: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Property",
+    saref_unit: "unit:UNITLESS",
+    saref4ener_concept: "saref4ener:Measurement",
+    ngsi_type: "Property",
+    ngsi_property: "chargingState",
+    explanation: "Charging state is validated as non-executable unitless telemetry."
+  },
+  operating_state_code: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Property",
+    saref_unit: "unit:UNITLESS",
+    saref4ener_concept: "saref4ener:Measurement",
+    ngsi_type: "Property",
+    ngsi_property: "operatingState",
+    explanation: "Operating state is validated as non-executable unitless telemetry."
+  },
+  operating_mode_code: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Property",
+    saref_unit: "unit:UNITLESS",
+    saref4ener_concept: "saref4ener:Measurement",
+    ngsi_type: "Property",
+    ngsi_property: "operatingMode",
+    explanation: "Operating mode is validated as non-executable unitless telemetry."
+  },
+  device_availability_code: {
+    saref_type: "saref:Measurement",
+    saref_property: "saref:Property",
+    saref_unit: "unit:UNITLESS",
+    saref4ener_concept: "saref4ener:FlexibilityMeasurement",
+    ngsi_type: "Property",
+    ngsi_property: "deviceAvailability",
+    explanation: "Device availability is validated as unitless flexibility telemetry."
   }
 });
 

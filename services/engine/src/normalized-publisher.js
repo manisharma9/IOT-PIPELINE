@@ -2,7 +2,15 @@
 
 const crypto = require("node:crypto");
 
-function buildCorrelationId(metadata) {
+function buildCorrelationId(metadata, payload = null) {
+  if (payload && typeof payload.correlation_id === "string" && payload.correlation_id.trim()) {
+    return payload.correlation_id.trim();
+  }
+
+  if (payload && typeof payload.message_id === "string" && payload.message_id.trim()) {
+    return payload.message_id.trim();
+  }
+
   if (
     metadata.topic &&
     Number.isInteger(metadata.partition) &&
@@ -55,6 +63,7 @@ function buildNormalizedTelemetryEvent(row, correlationId) {
     reading_unit: row.reading_unit,
     protocol: row.protocol,
     source: row.source,
+    ...(row.device_context ? { device_context: row.device_context } : {}),
     correlation_id: correlationId
   };
 }

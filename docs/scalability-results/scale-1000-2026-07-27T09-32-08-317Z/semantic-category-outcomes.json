@@ -1,0 +1,24 @@
+{
+  "run_id": "scale-1000-2026-07-27T09-32-08-317Z",
+  "provider": "ollama",
+  "model": "phi3:mini",
+  "worker_id": "f0d11de0c6b5-1",
+  "readings": 1000,
+  "batches": 140,
+  "requests_including_retries": 195,
+  "categories": [
+    { "category": "dishwasher", "readings": 70, "mapped": 70, "safely_unmapped": 0, "retries": 6 },
+    { "category": "ev_charger", "readings": 70, "mapped": 67, "safely_unmapped": 3, "retries": 8 },
+    { "category": "heat_pump", "readings": 70, "mapped": 68, "safely_unmapped": 2, "retries": 3 },
+    { "category": "home_battery", "readings": 20, "mapped": 1, "safely_unmapped": 19, "retries": 20 },
+    { "category": "lighting_circuit", "readings": 100, "mapped": 100, "safely_unmapped": 0, "retries": 6 },
+    { "category": "refrigerator", "readings": 100, "mapped": 98, "safely_unmapped": 2, "retries": 11 },
+    { "category": "smart_meter", "readings": 100, "mapped": 100, "safely_unmapped": 0, "retries": 7 },
+    { "category": "smart_plug", "readings": 220, "mapped": 219, "safely_unmapped": 1, "retries": 17 },
+    { "category": "solar_inverter", "readings": 20, "mapped": 20, "safely_unmapped": 0, "retries": 4 },
+    { "category": "thermostat_hvac", "readings": 30, "mapped": 27, "safely_unmapped": 3, "retries": 8 },
+    { "category": "washing_machine", "readings": 100, "mapped": 99, "safely_unmapped": 1, "retries": 13 },
+    { "category": "water_heater", "readings": 100, "mapped": 100, "safely_unmapped": 0, "retries": 10 }
+  ],
+  "finding": "The strict validator prevented silent substitution. Home-battery state-of-charge quality is the principal model-output gap and requires prompt/model evaluation before a larger validation."
+}

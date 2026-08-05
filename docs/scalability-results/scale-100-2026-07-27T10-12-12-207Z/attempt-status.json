@@ -1,0 +1,13 @@
+{
+  "run_id": "scale-100-2026-07-27T10-12-12-207Z",
+  "status": "aborted_validator_regression",
+  "authoritative": false,
+  "reason": "Coverage envelopes were rejected because the handwritten telemetry validator did not mirror the JSON schema allowance for a null current_primary_measurement. The validator was corrected and a regression test was added before rerunning.",
+  "generator": {
+    "planned_messages": 100,
+    "attempted_messages": 17,
+    "accepted_messages": 0,
+    "failed_messages": 17,
+    "generated_readings": 59
+  }
+}
