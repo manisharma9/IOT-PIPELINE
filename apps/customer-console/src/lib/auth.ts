@@ -19,7 +19,13 @@ export type SessionPayload = {
 };
 
 function getSessionSecret() {
-  return process.env.SESSION_SIGNING_SECRET || process.env.EDGE_API_KEY || process.env.DEMO_AUTH_PASSWORD || "local-demo-session-secret";
+  const secret =
+    process.env.DEMO_SESSION_SECRET ||
+    process.env.SESSION_SIGNING_SECRET;
+  if (!secret) {
+    throw new Error("DEMO_SESSION_SECRET is not configured.");
+  }
+  return secret;
 }
 
 function toBase64Url(value: string) {
@@ -52,7 +58,12 @@ export function verifySessionToken(token?: string) {
   }
 
   const [payload, signature] = token.split(".");
-  const expected = sign(payload);
+  let expected;
+  try {
+    expected = sign(payload);
+  } catch {
+    return null;
+  }
   const receivedBuffer = Buffer.from(signature || "");
   const expectedBuffer = Buffer.from(expected);
 
@@ -112,31 +123,43 @@ type DemoUser = Pick<
 
 export function getDemoUsers(): DemoUser[] {
   const community = process.env.DEMO_AUTH_COMMUNITY_ID || "community-dublin-north";
-  return [
-    {
-      username: process.env.DEMO_HOUSEHOLD_USERNAME || "household",
-      password: process.env.DEMO_HOUSEHOLD_PASSWORD || "household123",
+  const users: DemoUser[] = [];
+  const householdUsername = process.env.DEMO_HOUSEHOLD_USERNAME;
+  const householdPassword = process.env.DEMO_HOUSEHOLD_PASSWORD;
+  if (householdUsername && householdPassword) {
+    users.push({
+      username: householdUsername,
+      password: householdPassword,
       role: "household_user",
       household_id: process.env.DEMO_HOUSEHOLD_ID || process.env.DEMO_AUTH_HOUSEHOLD_ID || "household-001",
       community_id: community
-    },
-    {
-      username: process.env.DEMO_AUTH_USERNAME || "operator",
-      password: process.env.DEMO_AUTH_PASSWORD || "operator123",
+    });
+  }
+  const operatorUsername = process.env.DEMO_USERNAME || process.env.DEMO_AUTH_USERNAME;
+  const operatorPassword = process.env.DEMO_PASSWORD || process.env.DEMO_AUTH_PASSWORD;
+  if (operatorUsername && operatorPassword) {
+    users.push({
+      username: operatorUsername,
+      password: operatorPassword,
       role: process.env.DEMO_AUTH_ROLE === "technical_admin"
         ? "technical_admin"
         : "enershare_operator",
       household_id: null,
       community_id: community
-    },
-    {
-      username: process.env.DEMO_ADMIN_USERNAME || "admin",
-      password: process.env.DEMO_ADMIN_PASSWORD || "admin123",
+    });
+  }
+  const adminUsername = process.env.DEMO_ADMIN_USERNAME;
+  const adminPassword = process.env.DEMO_ADMIN_PASSWORD;
+  if (adminUsername && adminPassword) {
+    users.push({
+      username: adminUsername,
+      password: adminPassword,
       role: "technical_admin",
       household_id: null,
       community_id: community
-    }
-  ];
+    });
+  }
+  return users;
 }
 
 export function authenticateDemoUser(username: unknown, password: unknown) {

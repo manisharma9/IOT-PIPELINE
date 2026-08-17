@@ -1,0 +1,57 @@
+{
+  "scenario_id": "scale-1000-2026-07-27T09-32-08-317Z",
+  "started_at": "2026-07-27T09:32:08.414Z",
+  "completed_at": "2026-07-27T09:42:08.501Z",
+  "elapsed_seconds": 600.088,
+  "mode": "staggered",
+  "dry_run": false,
+  "configured_devices": 1000,
+  "represented_devices": 1000,
+  "represented_households": 100,
+  "telemetry_planned": 1000,
+  "telemetry_attempted": 1000,
+  "telemetry_gateway_accepted": 1000,
+  "telemetry_gateway_failed": 0,
+  "readings_generated": 1000,
+  "readings_gateway_accepted": 1000,
+  "readings_gateway_failed": 0,
+  "gateway_retry_count": 17,
+  "gateway_acceptance_rate_percent": 100,
+  "generated_messages_per_second": 1.666,
+  "gateway_latency": {
+    "minimum_ms": 10.46940000000177,
+    "average_ms": 249.77088950000098,
+    "maximum_ms": 8687.545599999954
+  },
+  "bounded_concurrency": 8,
+  "primary_reading_mode": true,
+  "reporting_window_seconds": 600,
+  "population": {
+    "households": 100,
+    "assets": 1000,
+    "profiles": {
+      "prosumer_home": 260,
+      "standard_home": 500,
+      "apartment": 240
+    },
+    "categories": {
+      "home_battery": 20,
+      "smart_plug": 220,
+      "lighting_circuit": 100,
+      "water_heater": 100,
+      "washing_machine": 100,
+      "refrigerator": 100,
+      "dishwasher": 70,
+      "solar_inverter": 20,
+      "heat_pump": 70,
+      "ev_charger": 70,
+      "smart_meter": 100,
+      "thermostat_hvac": 30
+    },
+    "simulated": true,
+    "no_real_execution": true
+  },
+  "output_directory": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results\\scale-1000-2026-07-27T09-32-08-317Z",
+  "end_to_end_validated": false,
+  "note": "Gateway acceptance is not end-to-end success. Pipeline completion is evaluated separately."
+}

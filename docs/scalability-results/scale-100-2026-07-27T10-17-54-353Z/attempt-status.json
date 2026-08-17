@@ -1,0 +1,14 @@
+{
+  "run_id": "scale-100-2026-07-27T10-17-54-353Z",
+  "status": "aborted_environment_interference",
+  "authoritative": false,
+  "reason": "A separate full-stack demo startup recreated services during generation, restarted the continuous fleet, and changed the semantic consumer group. The run was stopped and excluded from validation evidence.",
+  "generator": {
+    "planned_messages": 100,
+    "accepted_messages": 98,
+    "failed_messages": 2,
+    "generated_readings": 374,
+    "accepted_readings": 366,
+    "failed_readings": 8
+  }
+}

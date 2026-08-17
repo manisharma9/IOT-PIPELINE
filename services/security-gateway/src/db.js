@@ -57,12 +57,17 @@ async function ensureSecurityGatewayAuditTable(pool) {
 }
 
 async function ensureCustomerDashboardReadModel(pool) {
-  const migrationPath = path.resolve(
-    __dirname,
-    "../../../database/timescale/011_customer_dashboard_read_model.sql"
-  );
-  const sql = await fs.readFile(migrationPath, "utf8");
-  await pool.query(sql);
+  for (const migration of [
+    "011_customer_dashboard_read_model.sql",
+    "012_simulated_device_registry.sql"
+  ]) {
+    const migrationPath = path.resolve(
+      __dirname,
+      `../../../database/timescale/${migration}`
+    );
+    const sql = await fs.readFile(migrationPath, "utf8");
+    await pool.query(sql);
+  }
 }
 
 async function insertSecurityGatewayAudit(pool, event) {

@@ -1,0 +1,11 @@
+{
+  "run_id": "scale-250-2026-07-27T08-44-51-490Z",
+  "status": "aborted_diagnostic_attempt",
+  "authoritative": false,
+  "reason": "The repeated diagnostic attempt was stopped after the same seven gateway transport failures were observed. It was not used as stage evidence.",
+  "generator": {
+    "planned_messages": 250,
+    "accepted_messages": 243,
+    "failed_messages": 7
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "recorded_at": "2026-07-27T08:12:40.538Z",
+  "provider": "ollama",
+  "model": "phi3:mini",
+  "server_identity": "http://localhost:11434",
+  "batch_size": 1,
+  "iterations": 3,
+  "timeout_ms": 180000,
+  "max_retries": 0,
+  "samples": [
+    {
+      "iteration": 1,
+      "elapsed_ms": 2073.136,
+      "input_readings": 1,
+      "mapped_readings": 1,
+      "safely_unmapped_readings": 0,
+      "output_received_readings": 1,
+      "readings_per_second": 0.4824,
+      "validation_failures": []
+    },
+    {
+      "iteration": 2,
+      "elapsed_ms": 1832.528,
+      "input_readings": 1,
+      "mapped_readings": 1,
+      "safely_unmapped_readings": 0,
+      "output_received_readings": 1,
+      "readings_per_second": 0.5457,
+      "validation_failures": []
+    },
+    {
+      "iteration": 3,
+      "elapsed_ms": 1845.334,
+      "input_readings": 1,
+      "mapped_readings": 1,
+      "safely_unmapped_readings": 0,
+      "output_received_readings": 1,
+      "readings_per_second": 0.5419,
+      "validation_failures": []
+    }
+  ],
+  "average_readings_per_second": 0.5233,
+  "note": "Direct provider benchmark only; this is not an end-to-end device-capacity validation."
+}

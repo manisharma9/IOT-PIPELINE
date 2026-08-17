@@ -328,11 +328,22 @@ export function formatRelativeTime(value: string) {
 }
 
 export function customerDeviceType(value: string) {
-  return value === "shelly_plug"
-    ? "Smart plug"
-    : value === "ev_charger"
-      ? "EV charger"
-      : value === "heat_pump"
-        ? "Heat pump"
-        : "Energy device";
+  const labels: Record<string, string> = {
+    smart_meter: "Smart meter",
+    smart_plug: "Smart plug",
+    shelly_plug: "Smart plug",
+    refrigerator: "Refrigerator",
+    washing_machine: "Washing machine",
+    clothes_dryer: "Clothes dryer",
+    dishwasher: "Dishwasher",
+    lighting_circuit: "Lighting",
+    ev_charger: "EV charger",
+    heat_pump: "Heat pump",
+    thermostat_hvac: "Thermostat and HVAC",
+    water_heater: "Water heater",
+    solar_inverter: "Solar inverter",
+    home_battery: "Home battery"
+  };
+
+  return labels[value] || "Energy device";
 }

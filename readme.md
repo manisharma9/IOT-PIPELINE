@@ -78,6 +78,14 @@ The simulator layer follows a small BaseDevice-style contract. Simulated devices
 
 The ingestion path normalizes this shape into the existing pipeline schema before publishing to Kafka, so existing topics and TimescaleDB inserts continue to work.
 
+### Household Fleet Simulation
+
+`household-fleet-simulator` represents 20 mixed virtual households in one bounded Node.js process. The default reproducible inventory contains 241 devices, averaging 12.05 devices per household, across apartment, standard-home, and prosumer profiles.
+
+Supported categories are smart meter, smart plug, refrigerator, washing machine, clothes dryer, dishwasher, lighting circuit, EV charger, heat pump, thermostat/HVAC, water heater, solar inverter, and home battery. Initial and recurring telemetry is staggered, each device maintains independent state, and failed gateway delivery retains one bounded envelope for retry.
+
+The customer read model combines normalized telemetry with `simulated_device_registry`. The dashboard uses server-side filtering, pagination, and bounded history queries rather than loading the complete fleet in the browser. See [Household device model](docs/household-device-model.md) and [Fleet simulator](docs/household-fleet-simulator.md).
+
 ## EnerShare Household Energy Intelligence
 
 The customer-facing product lives in `apps/customer-console`. It is a Next.js and TypeScript experience for household energy, connected devices, flexibility opportunities, validated AI-powered insights, anonymized community information, and customer reports. The existing engineering dashboard is preserved for technical administrators at `/admin/operations`.
@@ -110,6 +118,39 @@ The current product uses real local pipeline records from simulated Shelly Plug,
 
 Safety remains explicit: real device control must not be enabled without real credentials, customer consent, operator authorization, and production safety controls.
 
+### Free Public Laptop Demo
+
+For a controlled remote demonstration, a Cloudflare Quick Tunnel can expose only the production Next.js customer dashboard:
+
+```text
+public browser
+-> temporary HTTPS trycloudflare.com URL
+-> Next.js customer dashboard on 127.0.0.1:3000
+-> same-origin /api/dashboard/* BFF
+-> server-side security gateway request
+-> local Docker pipeline
+```
+
+No Cloudflare account, domain, or paid resource is required. Internal Docker ports bind to `127.0.0.1`; Kafka, Zookeeper, MQTT, TimescaleDB, Ollama, the gateway, and simulator endpoints are never tunnel origins.
+
+Create the ignored public-demo environment file, replace every placeholder, and start:
+
+```powershell
+copy .\apps\customer-console\.env.public-demo.example `
+  .\apps\customer-console\.env.public-demo
+powershell -ExecutionPolicy Bypass -File `
+  .\scripts\start-public-demo.ps1 -BuildContainers
+```
+
+Validate and stop:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\check-public-demo.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\stop-public-demo.ps1
+```
+
+The URL is temporary and stops working with `cloudflared`. Credentials and the gateway key remain server-side, login attempts are throttled, and public-demo mode allows only product pages and `/api/dashboard/*`. See the [public demo runbook](docs/public-laptop-demo-runbook.md) and [security boundary](docs/public-demo-security.md).
+
 ## System Capabilities
 
 | Module | Reference Release | Capability |
@@ -141,6 +182,7 @@ Safety remains explicit: real device control must not be enabled without real cr
 | `shelly-simulator` | 3007 | Local simulated Shelly Plug API. |
 | `enode-simulator` | 3008 | Local simulated Enode / Easee Core charger API. |
 | `heat-pump-simulator` | 3011 | Local simulated Heat Pump API with `tick()` and `getTelemetry()` behavior. |
+| `household-fleet-simulator` | 3012 | One bounded process representing mixed multi-device household profiles. |
 | `device-command-translator` | 3009 | Translates approved ready commands into simulated device API calls. |
 | `kafka` | 9092 / 29092 | Local event streaming backbone. |
 | `timescaledb` | 5432 | Local event and audit database. |
@@ -183,6 +225,7 @@ Safety remains explicit: real device control must not be enabled without real cr
 | `device_command_audit` | Device API translation audit history for simulated Shelly, Enode, Easee Core, and Heat Pump command translation. |
 | `security_gateway_audit` | Local edge security decision audit history. |
 | `dataspace_exports` | Phase 8 export/catalog audit history. |
+| `simulated_device_registry` | Household profile, display, provider, and flexibility metadata for virtual devices. |
 
 ## Run The Full Demo
 
@@ -330,3 +373,9 @@ Invoke-RestMethod `
 - [README and architecture alignment report](docs/readme-alignment-report.md)
 - [AWS deployment skeleton](infra/aws/README.md)
 - [Connector placeholders](connectors/README.md)
+- [Household device model](docs/household-device-model.md)
+- [Household fleet simulator](docs/household-fleet-simulator.md)
+- [Public laptop demo architecture](docs/public-laptop-demo-architecture.md)
+- [Public laptop demo runbook](docs/public-laptop-demo-runbook.md)
+- [Public demo security](docs/public-demo-security.md)
+- [Public demo validation report](docs/public-demo-validation-report.md)

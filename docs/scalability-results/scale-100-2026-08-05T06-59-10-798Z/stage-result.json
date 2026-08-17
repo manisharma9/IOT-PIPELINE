@@ -1,0 +1,345 @@
+{
+  "run_id": "scale-100-2026-08-05T06-59-10-798Z",
+  "status": "passed",
+  "started_at": "2026-08-05T06:59:10.090Z",
+  "completed_at": "2026-08-05T07:15:16.698Z",
+  "configuration": {
+    "scenario_id": "scale-100-2026-08-05T06-59-10-798Z",
+    "population_model": "exact_household_profiles",
+    "device_count": 100,
+    "household_count": 10,
+    "profile_mix": {
+      "apartment": 3,
+      "standard_home": 5,
+      "prosumer_home": 2
+    },
+    "stage_populations": {
+      "100": {
+        "household_count": 10,
+        "profile_mix": {
+          "apartment": 3,
+          "standard_home": 5,
+          "prosumer_home": 2
+        }
+      },
+      "250": {
+        "household_count": 25,
+        "profile_mix": {
+          "apartment": 6,
+          "standard_home": 15,
+          "prosumer_home": 4
+        }
+      },
+      "500": {
+        "household_count": 50,
+        "profile_mix": {
+          "apartment": 12,
+          "standard_home": 30,
+          "prosumer_home": 8
+        }
+      },
+      "1000": {
+        "household_count": 100,
+        "profile_mix": {
+          "apartment": 30,
+          "standard_home": 50,
+          "prosumer_home": 20
+        }
+      }
+    },
+    "community_id": "community-dublin-north",
+    "area_prefix": "dublin-north",
+    "household_prefix": "scale1000",
+    "household_prefix_from_scenario": false,
+    "time_zone": "Europe/Dublin",
+    "random_seed": 1000100,
+    "reporting_interval_seconds": 900,
+    "reporting_window_seconds": 600,
+    "test_duration_minutes": 15,
+    "cycles": 1,
+    "primary_reading_mode": false,
+    "ramp_up_seconds": 600,
+    "burst_percentage": 0,
+    "burst_asset_count": 0,
+    "supported_burst_asset_counts": [
+      50,
+      100,
+      200
+    ],
+    "target_telemetry_rate_per_second": 0.166666666666667,
+    "maximum_permitted_backlog_readings": 1500,
+    "mode": "staggered",
+    "gateway": {
+      "base_url": "http://127.0.0.1:3010",
+      "telemetry_path": "/telemetry",
+      "api_key_env": "EDGE_API_KEY",
+      "concurrency": 8,
+      "request_timeout_ms": 30000,
+      "max_retries": 3,
+      "retry_backoff_ms": 250
+    },
+    "semantic_validation": {
+      "provider": "ollama",
+      "model": "phi3:mini",
+      "batch_sizes_to_benchmark": [
+        8,
+        16,
+        32,
+        64
+      ],
+      "recommended_initial_workers": 1,
+      "recommended_topic_partitions": 6
+    },
+    "evidence": {
+      "output_location": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results",
+      "stream_events": true,
+      "sample_success_every": 100,
+      "resource_sample_interval_ms": 5000
+    },
+    "safety": {
+      "real_device_control": false,
+      "no_real_execution": true
+    },
+    "dry_run": false,
+    "max_messages": 100
+  },
+  "consumer_group": "adflex-1000-assets-validation",
+  "test_mode": "coverage",
+  "classification": "functional_end_to_end_pass",
+  "semantic_runtime": {
+    "started": {
+      "SLM_PROVIDER": "ollama",
+      "SLM_MODEL": "phi3:mini",
+      "SLM_TIMEOUT_MS": "30000",
+      "SLM_MIN_CONFIDENCE": "0.70",
+      "SLM_BATCH_MAX_READINGS": "8",
+      "SLM_BATCH_MAX_WAIT_MS": "20",
+      "SLM_BATCH_MAX_PROMPT_TOKENS": "4096",
+      "SLM_BATCH_MAX_RETRIES": "1",
+      "SLM_PROVIDER_MAX_CONCURRENCY": "1",
+      "SEMANTIC_PARTITIONS_CONCURRENTLY": "2",
+      "SEMANTIC_CONNECTOR_GROUP_ID": "adflex-1000-assets-validation"
+    },
+    "completed": {
+      "SLM_PROVIDER": "ollama",
+      "SLM_MODEL": "phi3:mini",
+      "SLM_TIMEOUT_MS": "30000",
+      "SLM_MIN_CONFIDENCE": "0.70",
+      "SLM_BATCH_MAX_READINGS": "8",
+      "SLM_BATCH_MAX_WAIT_MS": "20",
+      "SLM_BATCH_MAX_PROMPT_TOKENS": "4096",
+      "SLM_BATCH_MAX_RETRIES": "1",
+      "SLM_PROVIDER_MAX_CONCURRENCY": "1",
+      "SEMANTIC_PARTITIONS_CONCURRENTLY": "2",
+      "SEMANTIC_CONNECTOR_GROUP_ID": "adflex-1000-assets-validation"
+    }
+  },
+  "isolation": {
+    "continuous_demo_fleet_running_at_start": false,
+    "continuous_demo_fleet_running_at_completion": false
+  },
+  "hardware": {
+    "platform": "Windows_NT 10.0.26200 x64",
+    "cpu_model": "13th Gen Intel(R) Core(TM) i9-13900HX",
+    "logical_cpu_count": 32,
+    "total_memory_bytes": 16886128640,
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+      "utilization_percent": 0,
+      "memory_used_mib": 3797,
+      "memory_total_mib": 8188
+    },
+    "docker_desktop_memory_limit": "Measured from Docker container samples; host-specific setting not inferred."
+  },
+  "generator": {
+    "scenario_id": "scale-100-2026-08-05T06-59-10-798Z",
+    "started_at": "2026-08-05T06:59:11.135Z",
+    "completed_at": "2026-08-05T07:09:11.239Z",
+    "elapsed_seconds": 600.045,
+    "mode": "staggered",
+    "dry_run": false,
+    "configured_devices": 100,
+    "represented_devices": 100,
+    "represented_households": 10,
+    "telemetry_planned": 100,
+    "telemetry_attempted": 100,
+    "telemetry_gateway_accepted": 100,
+    "telemetry_gateway_failed": 0,
+    "readings_generated": 374,
+    "readings_gateway_accepted": 374,
+    "readings_gateway_failed": 0,
+    "gateway_retry_count": 0,
+    "gateway_acceptance_rate_percent": 100,
+    "generated_messages_per_second": 0.167,
+    "gateway_latency": {
+      "minimum_ms": 12.132100000046194,
+      "average_ms": 21.947628999999505,
+      "maximum_ms": 123.58050000000003
+    },
+    "bounded_concurrency": 8,
+    "primary_reading_mode": false,
+    "reporting_window_seconds": 600,
+    "population": {
+      "households": 10,
+      "assets": 100,
+      "profiles": {
+        "prosumer_home": 26,
+        "apartment": 24,
+        "standard_home": 50
+      },
+      "categories": {
+        "home_battery": 2,
+        "smart_plug": 22,
+        "washing_machine": 10,
+        "refrigerator": 10,
+        "dishwasher": 7,
+        "lighting_circuit": 10,
+        "heat_pump": 7,
+        "ev_charger": 7,
+        "solar_inverter": 2,
+        "water_heater": 10,
+        "thermostat_hvac": 3,
+        "smart_meter": 10
+      },
+      "simulated": true,
+      "no_real_execution": true
+    },
+    "output_directory": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results\\scale-100-2026-08-05T06-59-10-798Z",
+    "end_to_end_validated": false,
+    "note": "Gateway acceptance is not end-to-end success. Pipeline completion is evaluated separately."
+  },
+  "pipeline": {
+    "raw_messages": 100,
+    "normalized_readings": 374,
+    "unique_devices": 100,
+    "unique_households": 10,
+    "audited_readings": 374,
+    "slm_called_readings": 374,
+    "mapped_readings": 339,
+    "safely_unmapped_readings": 35,
+    "output_received_readings": 374,
+    "retried_readings": 93,
+    "retry_count": 93,
+    "semantic_rows": 339,
+    "ieee_rows": 339,
+    "duplicate_audit_ids": 0,
+    "duplicate_normalized_ids": 0,
+    "duplicate_semantic_ids": 0,
+    "duplicate_ieee_ids": 0,
+    "processing_errors": 0,
+    "batch_count": 68,
+    "average_batch_size": 5.5,
+    "maximum_batch_size": 8,
+    "average_database_latency_ms": 34.9553706764645,
+    "slm_latency_p50_ms": 15823.834327000019,
+    "slm_latency_p95_ms": 24605.382028000196,
+    "slm_latency_p99_ms": 25319.70951654984,
+    "end_to_end_p50_ms": 164469.5,
+    "end_to_end_p95_ms": 359201.8499999999,
+    "end_to_end_p99_ms": 398324.9199999992,
+    "first_normalized_at": "2026-08-05T06:59:17.257483+00:00",
+    "last_audited_at": "2026-08-05T07:15:00.495+00:00",
+    "providers": [
+      "ollama"
+    ],
+    "models": [
+      "phi3:mini"
+    ],
+    "workers": [
+      "751ad1acac2f-1"
+    ],
+    "final_kafka_lag": {
+      "status": "ok",
+      "total": 0,
+      "partitions": [
+        {
+          "partition": 4,
+          "current_offset": 574,
+          "log_end_offset": 574,
+          "lag": 0
+        },
+        {
+          "partition": 5,
+          "current_offset": 563,
+          "log_end_offset": 563,
+          "lag": 0
+        },
+        {
+          "partition": 2,
+          "current_offset": 18680,
+          "log_end_offset": 18680,
+          "lag": 0
+        },
+        {
+          "partition": 0,
+          "current_offset": 17913,
+          "log_end_offset": 17913,
+          "lag": 0
+        },
+        {
+          "partition": 3,
+          "current_offset": 530,
+          "log_end_offset": 530,
+          "lag": 0
+        },
+        {
+          "partition": 1,
+          "current_offset": 18807,
+          "log_end_offset": 18807,
+          "lag": 0
+        }
+      ]
+    },
+    "maximum_observed_kafka_lag": 159,
+    "sustained_arrival_readings_per_second": 0.623,
+    "completion_readings_per_second": 0.397,
+    "processing_kept_up_with_arrival": false,
+    "required_improvement_factor": 1.572,
+    "slm_invocation_percentage": 100,
+    "slm_acceptance_percentage": 90.6417,
+    "safely_unmapped_percentage": 9.3583
+  },
+  "workflow": {
+    "status": "completed",
+    "signal_id": "scale-100-2026-08-05T06-59-10-798Z-signal",
+    "proposal_id": "109",
+    "dispatch_status": "ready_to_dispatch",
+    "mock_rows": 1,
+    "device_command_rows": 3,
+    "unsafe_execution_rows": 0,
+    "dataspace_export_type": "full_pipeline_demo_summary",
+    "dataspace_minimization_applied": true,
+    "dataspace_pseudonymization_applied": true,
+    "no_raw_private_payloads": true
+  },
+  "pass_criteria": {
+    "semantic_runtime_remained_isolated": true,
+    "continuous_demo_fleet_remained_stopped": true,
+    "all_devices_represented": true,
+    "all_households_represented": true,
+    "coverage_includes_every_device_category": true,
+    "all_gateway_messages_accepted": true,
+    "no_generator_drops": true,
+    "all_readings_normalized": true,
+    "all_readings_have_terminal_audit": true,
+    "slm_called_for_all_readings": true,
+    "all_readings_semantic_or_safely_unmapped": true,
+    "all_readings_ieee_or_safely_unmapped": true,
+    "no_duplicate_normalized_rows": true,
+    "no_duplicate_audit_rows": true,
+    "no_duplicate_semantic_rows": true,
+    "no_duplicate_ieee_rows": true,
+    "no_processing_errors": true,
+    "kafka_backlog_cleared": true,
+    "backlog_within_limit": true,
+    "safe_control_flow_completed": true,
+    "dataspace_export_completed": true
+  },
+  "output_directory": "C:\\Users\\Mani\\Desktop\\Github\\IOT-PIPELINE\\docs\\scalability-results\\scale-100-2026-08-05T06-59-10-798Z",
+  "safety": {
+    "no_real_execution": true,
+    "real_device_control": false,
+    "certified_ieee20305": false,
+    "certified_enershare_or_ids": false
+  }
+}

@@ -557,6 +557,92 @@ test("authorized customer summary returns minimized product data", async () => {
   assert.equal(audits.at(-1).reason, "customer_summary_read");
 });
 
+test("customer devices endpoint forwards bounded inventory filters", async () => {
+  let received;
+  const customerReadModel = {
+    getCustomerDevices: async (_pool, _context, householdId, options) => {
+      received = { householdId, options };
+      return {
+        limit: Number(options.limit),
+        offset: Number(options.offset),
+        total: 1,
+        devices: [{
+          device_id: "household-a-dishwasher-01",
+          device_category: "dishwasher",
+          simulated: true,
+          no_real_execution: true
+        }],
+        summary: { total_devices: 1 },
+        simulation: true,
+        no_real_execution: true
+      };
+    }
+  };
+  const { app, audits } = createTestGateway({
+    auditPool: { query: async () => ({ rows: [] }) },
+    customerReadModel
+  });
+
+  const response = await request(
+    app,
+    "GET",
+    "/customer/devices?limit=12&offset=24&category=dishwasher&profile=standard_home&search=kitchen&online=true&flexible=true&state=active",
+    { headers: customerHeaders() }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(received.householdId, "household-a");
+  assert.deepEqual(received.options, {
+    limit: "12",
+    offset: "24",
+    category: "dishwasher",
+    profile: "standard_home",
+    search: "kitchen",
+    online: true,
+    flexible: true,
+    state: "active"
+  });
+  assert.equal(response.body.devices[0].no_real_execution, true);
+  assert.equal(audits.at(-1).reason, "customer_devices_read");
+});
+
+test("customer device detail remains scoped to the authorized household", async () => {
+  let received;
+  const customerReadModel = {
+    getCustomerDeviceDetail: async (_pool, _context, householdId, deviceId) => {
+      received = { householdId, deviceId };
+      return {
+        device: {
+          device_id: deviceId,
+          simulated: true,
+          no_real_execution: true
+        },
+        recent_usage: [],
+        no_real_execution: true
+      };
+    }
+  };
+  const { app, audits } = createTestGateway({
+    auditPool: { query: async () => ({ rows: [] }) },
+    customerReadModel
+  });
+
+  const response = await request(
+    app,
+    "GET",
+    "/customer/devices/household-a-heat-pump-01",
+    { headers: customerHeaders() }
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(received, {
+    householdId: "household-a",
+    deviceId: "household-a-heat-pump-01"
+  });
+  assert.equal(response.body.no_real_execution, true);
+  assert.equal(audits.at(-1).reason, "customer_device_detail_read");
+});
+
 test("customer insight endpoint returns validated product copy only", async () => {
   const customerInsights = {
     getOrGenerateCustomerInsights: async () => ({

@@ -28,6 +28,7 @@ const INPUT_UNIT_TO_SEMANTIC_UNIT = new Map([
   ["degc", "unit:DEG_C"],
   ["score", "unit:UNITLESS"],
   ["state_code", "unit:UNITLESS"],
+  ["statecode", "unit:UNITLESS"],
   ["unitless", "unit:UNITLESS"],
   ["", "unit:UNITLESS"]
 ]);

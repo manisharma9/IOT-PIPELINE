@@ -17,7 +17,7 @@ import {
   X
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   createContext,
   useContext,
@@ -71,10 +71,13 @@ export function ProductShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedHousehold = searchParams.get("household");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [households, setHouseholds] = useState<HouseholdOption[]>([]);
+  const [householdSearch, setHouseholdSearch] = useState("");
   const [selectedHousehold, setSelectedHousehold] = useState<string | null>(
-    session.role === "household_user" ? session.household_id : null
+    session.role === "household_user" ? session.household_id : requestedHousehold
   );
   const [selectorLoading, setSelectorLoading] = useState(true);
 
@@ -82,7 +85,7 @@ export function ProductShell({
     let active = true;
     async function loadHouseholds() {
       try {
-        const response = await fetch("/api/customer/households", {
+        const response = await fetch("/api/dashboard/households", {
           cache: "no-store"
         });
         const payload = (await response.json()) as ApiEnvelope<{
@@ -91,7 +94,13 @@ export function ProductShell({
         if (!active || !response.ok) return;
         const options = payload.data.households || [];
         setHouseholds(options);
-        if (!selectedHousehold) {
+        if (
+          session.role !== "household_user" &&
+          requestedHousehold &&
+          options.some((item) => item.selector_id === requestedHousehold)
+        ) {
+          setSelectedHousehold(requestedHousehold);
+        } else if (!selectedHousehold) {
           setSelectedHousehold(
             options.find((item) => item.selected_by_default)?.selector_id ||
               options[0]?.selector_id ||
@@ -108,7 +117,7 @@ export function ProductShell({
     return () => {
       active = false;
     };
-  }, [selectedHousehold]);
+  }, [requestedHousehold, selectedHousehold, session.role]);
 
   const householdLabel = useMemo(() => {
     const selected = households.find(
@@ -118,6 +127,22 @@ export function ProductShell({
       session.role === "household_user" ? "Your household" : "Latest household"
     );
   }, [households, selectedHousehold, session.role]);
+
+  const filteredHouseholds = useMemo(() => {
+    const query = householdSearch.trim().toLowerCase();
+    if (!query) return households;
+    const matches = households.filter((item) => (
+      item.display_name.toLowerCase().includes(query) ||
+      item.selector_id.toLowerCase().includes(query)
+    ));
+    const selected = households.find(
+      (item) => item.selector_id === selectedHousehold
+    );
+    if (selected && !matches.some((item) => item.selector_id === selected.selector_id)) {
+      return [selected, ...matches];
+    }
+    return matches;
+  }, [householdSearch, households, selectedHousehold]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -251,6 +276,18 @@ export function ProductShell({
                 <Sparkles className="h-4 w-4 text-cyan-300" aria-hidden="true" />
                 <span className="text-xs text-slate-300">Simulated environment</span>
               </div>
+              {session.role !== "household_user" ? (
+                <label className="relative hidden xl:block">
+                  <span className="sr-only">Search households</span>
+                  <input
+                    type="search"
+                    value={householdSearch}
+                    onChange={(event) => setHouseholdSearch(event.target.value)}
+                    placeholder="Search households"
+                    className="product-input w-44"
+                  />
+                </label>
+              ) : null}
               <div className="relative hidden sm:block">
                 <label className="sr-only" htmlFor="household-selector">
                   Select household
@@ -262,12 +299,14 @@ export function ProductShell({
                   onChange={(event) => setSelectedHousehold(event.target.value)}
                   className="product-select min-w-44 appearance-none pr-9"
                 >
-                  {households.length ? households.map((household) => (
+                  {filteredHouseholds.length ? filteredHouseholds.map((household) => (
                     <option key={household.selector_id} value={household.selector_id}>
                       {household.display_name}
                     </option>
                   )) : (
-                    <option value={selectedHousehold || ""}>{householdLabel}</option>
+                    <option value={selectedHousehold || ""}>
+                      {households.length ? "No matching household" : householdLabel}
+                    </option>
                   )}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
@@ -286,6 +325,18 @@ export function ProductShell({
 
           <main className="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
             <div className="mb-4 sm:hidden">
+              {session.role !== "household_user" ? (
+                <label className="mb-2 block">
+                  <span className="sr-only">Search households</span>
+                  <input
+                    type="search"
+                    value={householdSearch}
+                    onChange={(event) => setHouseholdSearch(event.target.value)}
+                    placeholder="Search households"
+                    className="product-input w-full"
+                  />
+                </label>
+              ) : null}
               <label className="sr-only" htmlFor="mobile-household-selector">
                 Select household
               </label>
@@ -296,12 +347,14 @@ export function ProductShell({
                 onChange={(event) => setSelectedHousehold(event.target.value)}
                 className="product-select w-full"
               >
-                {households.length ? households.map((household) => (
+                {filteredHouseholds.length ? filteredHouseholds.map((household) => (
                   <option key={household.selector_id} value={household.selector_id}>
                     {household.display_name}
                   </option>
                 )) : (
-                  <option value={selectedHousehold || ""}>{householdLabel}</option>
+                  <option value={selectedHousehold || ""}>
+                    {households.length ? "No matching household" : householdLabel}
+                  </option>
                 )}
               </select>
             </div>

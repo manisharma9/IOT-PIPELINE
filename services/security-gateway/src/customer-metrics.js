@@ -89,7 +89,29 @@ function operatingState(device) {
   if (type === "shelly_plug") {
     return toNumber(device.current_power_kw) > 0.01 ? "On" : "Off or idle";
   }
-  return "Status unavailable";
+  const genericStates = {
+    0: "Idle",
+    1: "Monitoring",
+    2: "Cooling",
+    3: "Washing",
+    4: "Rinsing",
+    5: "Spinning",
+    6: "Drying",
+    7: "Cooling down",
+    8: "Off",
+    9: "Dimmed",
+    10: "On",
+    11: "Heating",
+    12: "Holding temperature",
+    13: "Standby",
+    14: "Generating",
+    15: "Exporting",
+    16: "Charging",
+    17: "Discharging"
+  };
+  const code = toNumber(device.operating_state_code, -1);
+  if (genericStates[code]) return genericStates[code];
+  return Math.abs(toNumber(device.current_power_kw)) > 0.05 ? "Active" : "Idle";
 }
 
 function calculateFlexibilityScore(input = {}) {

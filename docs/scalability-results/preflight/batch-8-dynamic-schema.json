@@ -1,0 +1,56 @@
+{
+  "recorded_at": "2026-07-27T08:08:58.093Z",
+  "provider": "ollama",
+  "model": "phi3:mini",
+  "server_identity": "http://localhost:11434",
+  "batch_size": 8,
+  "iterations": 1,
+  "timeout_ms": 180000,
+  "samples": [
+    {
+      "iteration": 1,
+      "elapsed_ms": 30097.649,
+      "input_readings": 8,
+      "mapped_readings": 0,
+      "safely_unmapped_readings": 8,
+      "output_received_readings": 8,
+      "readings_per_second": 0.2658,
+      "validation_failures": [
+        {
+          "reading_name": "active_power_kw",
+          "reason": "duplicate_reading_id"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "confidence_below_threshold;deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "confidence_below_threshold;unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "missing_mapping"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "missing_mapping"
+        }
+      ]
+    }
+  ],
+  "average_readings_per_second": 0.2658,
+  "note": "Direct provider benchmark only; this is not an end-to-end device-capacity validation."
+}

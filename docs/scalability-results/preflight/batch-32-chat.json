@@ -1,0 +1,141 @@
+{
+  "recorded_at": "2026-07-27T08:15:02.684Z",
+  "provider": "ollama",
+  "model": "phi3:mini",
+  "server_identity": "http://localhost:11434",
+  "batch_size": 32,
+  "iterations": 1,
+  "timeout_ms": 240000,
+  "max_retries": 0,
+  "samples": [
+    {
+      "iteration": 1,
+      "elapsed_ms": 68184.341,
+      "input_readings": 32,
+      "mapped_readings": 3,
+      "safely_unmapped_readings": 29,
+      "output_received_readings": 32,
+      "readings_per_second": 0.4693,
+      "validation_failures": [
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "active_power_kw",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "deterministic_property_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "deterministic_property_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "active_power_kw",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "active_power_kw",
+          "reason": "deterministic_property_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "voltage_v",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "current_a",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "energy_import_kwh",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "ev_charging_power_kw",
+          "reason": "deterministic_property_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "energy_delivered_kwh",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        },
+        {
+          "reading_name": "heat_pump_power_kw",
+          "reason": "deterministic_property_validation_failed"
+        },
+        {
+          "reading_name": "indoor_temperature_c",
+          "reason": "unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        }
+      ]
+    }
+  ],
+  "average_readings_per_second": 0.4693,
+  "note": "Direct provider benchmark only; this is not an end-to-end device-capacity validation."
+}

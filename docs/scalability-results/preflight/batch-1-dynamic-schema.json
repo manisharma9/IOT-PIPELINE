@@ -1,0 +1,58 @@
+{
+  "recorded_at": "2026-07-27T08:09:27.778Z",
+  "provider": "ollama",
+  "model": "phi3:mini",
+  "server_identity": "http://localhost:11434",
+  "batch_size": 1,
+  "iterations": 3,
+  "timeout_ms": 180000,
+  "samples": [
+    {
+      "iteration": 1,
+      "elapsed_ms": 5375.961,
+      "input_readings": 1,
+      "mapped_readings": 0,
+      "safely_unmapped_readings": 1,
+      "output_received_readings": 1,
+      "readings_per_second": 0.186,
+      "validation_failures": [
+        {
+          "reading_name": "active_power_kw",
+          "reason": "confidence_below_threshold;unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "elapsed_ms": 3807.9,
+      "input_readings": 1,
+      "mapped_readings": 0,
+      "safely_unmapped_readings": 1,
+      "output_received_readings": 1,
+      "readings_per_second": 0.2626,
+      "validation_failures": [
+        {
+          "reading_name": "active_power_kw",
+          "reason": "confidence_below_threshold;unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "elapsed_ms": 3505.439,
+      "input_readings": 1,
+      "mapped_readings": 0,
+      "safely_unmapped_readings": 1,
+      "output_received_readings": 1,
+      "readings_per_second": 0.2853,
+      "validation_failures": [
+        {
+          "reading_name": "active_power_kw",
+          "reason": "confidence_below_threshold;unit_relationship_invalid;deterministic_property_validation_failed;deterministic_unit_validation_failed;deterministic_concept_validation_failed"
+        }
+      ]
+    }
+  ],
+  "average_readings_per_second": 0.2446,
+  "note": "Direct provider benchmark only; this is not an end-to-end device-capacity validation."
+}

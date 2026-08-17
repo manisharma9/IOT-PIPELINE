@@ -3,7 +3,7 @@
 const crypto = require("node:crypto");
 const { performance } = require("node:perf_hooks");
 const { CircuitBreaker, ConcurrencyLimiter, InferenceProvider } = require("../provider-interface");
-const { buildBatchPrompt, responseSchema } = require("../prompt");
+const { buildBatchPrompt, buildResponseSchema } = require("../prompt");
 
 class VllmProvider extends InferenceProvider {
   constructor(config = {}, dependencies = {}) {
@@ -68,7 +68,12 @@ class VllmProvider extends InferenceProvider {
           headers: this.headers(),
           body: JSON.stringify({
             model: this.model,
-            messages: [{ role: "user", content: buildBatchPrompt(readings) }],
+            messages: [{
+              role: "user",
+              content: buildBatchPrompt(readings, {
+                validationHints: options.validationHints
+              })
+            }],
             temperature: 0,
             max_tokens: this.maxOutputTokens,
             response_format: {
@@ -76,7 +81,7 @@ class VllmProvider extends InferenceProvider {
               json_schema: {
                 name: "adflex_semantic_batch",
                 strict: true,
-                schema: responseSchema
+                schema: buildResponseSchema(readings)
               }
             }
           }),

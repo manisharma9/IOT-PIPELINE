@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="620" viewBox="0 0 1120 620">
+<rect width="100%" height="100%" fill="#07111f"/>
+<text x="100" y="45" fill="#f8fafc" font-family="Arial" font-size="26" font-weight="700">Measured SLM inference latency</text>
+<text x="24" y="305" fill="#94a3b8" font-family="Arial" font-size="14" transform="rotate(-90 24 305)">Milliseconds</text>
+<line x1="100" y1="520" x2="1080" y2="520" stroke="#243247" stroke-width="1"/>
+<text x="88" y="525" fill="#94a3b8" font-family="Arial" font-size="12" text-anchor="end">0.00</text>
+<line x1="100" y1="434" x2="1080" y2="434" stroke="#243247" stroke-width="1"/>
+<text x="88" y="439" fill="#94a3b8" font-family="Arial" font-size="12" text-anchor="end">7007</text>
+<line x1="100" y1="348" x2="1080" y2="348" stroke="#243247" stroke-width="1"/>
+<text x="88" y="353" fill="#94a3b8" font-family="Arial" font-size="12" text-anchor="end">14013</text>
+<line x1="100" y1="262" x2="1080" y2="262" stroke="#243247" stroke-width="1"/>
+<text x="88" y="267" fill="#94a3b8" font-family="Arial" font-size="12" text-anchor="end">21020</text>
+<line x1="100" y1="176" x2="1080" y2="176" stroke="#243247" stroke-width="1"/>
+<text x="88" y="181" fill="#94a3b8" font-family="Arial" font-size="12" text-anchor="end">28027</text>
+<line x1="100" y1="90" x2="1080" y2="90" stroke="#243247" stroke-width="1"/>
+<text x="88" y="95" fill="#94a3b8" font-family="Arial" font-size="12" text-anchor="end">35034</text>
+<rect x="130.625" y="272.4372320109178" width="56.25" height="247.56276798908223" rx="3" fill="#55d7e7"/>
+<rect x="191.875" y="246.76914940390907" width="56.25" height="273.23085059609093" rx="3" fill="#63dd8b"/>
+<rect x="253.125" y="204.17484611068585" width="56.25" height="315.82515388931415" rx="3" fill="#f4b45f"/>
+<text x="222.5" y="550" fill="#cbd5e1" font-family="Arial" font-size="13" text-anchor="middle">100 assets</text>
+<rect x="375.625" y="322.3715976672073" width="56.25" height="197.62840233279272" rx="3" fill="#55d7e7"/>
+<rect x="436.875" y="213.98578806056105" width="56.25" height="306.01421193943895" rx="3" fill="#63dd8b"/>
+<rect x="498.125" y="156.05777589383524" width="56.25" height="363.94222410616476" rx="3" fill="#f4b45f"/>
+<text x="467.5" y="550" fill="#cbd5e1" font-family="Arial" font-size="13" text-anchor="middle">250 assets</text>
+<rect x="620.625" y="319.499826264891" width="56.25" height="200.500173735109" rx="3" fill="#55d7e7"/>
+<rect x="681.875" y="199.07210846805202" width="56.25" height="320.927891531948" rx="3" fill="#63dd8b"/>
+<rect x="743.125" y="136.07142857142867" width="56.25" height="383.92857142857133" rx="3" fill="#f4b45f"/>
+<text x="712.5" y="550" fill="#cbd5e1" font-family="Arial" font-size="13" text-anchor="middle">500 assets</text>
+<rect x="865.625" y="318.8700145884309" width="56.25" height="201.1299854115691" rx="3" fill="#55d7e7"/>
+<rect x="926.875" y="189.9250928123933" width="56.25" height="330.0749071876067" rx="3" fill="#63dd8b"/>
+<rect x="988.125" y="153.47553751716708" width="56.25" height="366.5244624828329" rx="3" fill="#f4b45f"/>
+<text x="957.5" y="550" fill="#cbd5e1" font-family="Arial" font-size="13" text-anchor="middle">1000 assets</text>
+<rect x="100" y="582" width="14" height="14" rx="2" fill="#55d7e7"/>
+<text x="122" y="594" fill="#cbd5e1" font-family="Arial" font-size="13">p50</text>
+<rect x="310" y="582" width="14" height="14" rx="2" fill="#63dd8b"/>
+<text x="332" y="594" fill="#cbd5e1" font-family="Arial" font-size="13">p95</text>
+<rect x="520" y="582" width="14" height="14" rx="2" fill="#f4b45f"/>
+<text x="542" y="594" fill="#cbd5e1" font-family="Arial" font-size="13">p99</text>
+</svg>

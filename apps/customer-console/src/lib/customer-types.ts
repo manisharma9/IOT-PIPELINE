@@ -87,8 +87,12 @@ export type CustomerAnalytics = {
 export type CustomerDevice = {
   device_id: string;
   device_type: string;
+  device_category: string;
   display_name: string;
+  household_profile: string | null;
+  provider: string;
   simulated: boolean;
+  no_real_execution: boolean;
   online: boolean;
   last_seen: string | null;
   current_power_kw: number | null;
@@ -97,8 +101,13 @@ export type CustomerDevice = {
   operating_state: string;
   indoor_temperature_c: number | null;
   target_temperature_c: number | null;
+  water_temperature_c: number | null;
+  battery_soc_percent: number | null;
+  pv_generation_kw: number | null;
   voltage_v: number | null;
   current_a: number | null;
+  flexibility_capable: boolean;
+  maximum_flexible_power_kw: number;
   flexibility_available: boolean;
   flexibility_available_kw: number;
   latest_simulated_command: {
@@ -115,7 +124,43 @@ export type CustomerDevices = {
   offset: number;
   total: number;
   devices: CustomerDevice[];
+  summary: {
+    total_devices: number;
+    online_devices: number;
+    active_devices: number;
+    flexible_devices: number;
+    current_consumption_kw: number;
+    energy_used_today_kwh: number;
+    energy_scope: string;
+    by_category: Array<{ category: string; count: number }>;
+    by_flexibility: {
+      flexible: number;
+      not_flexible: number;
+    };
+  };
+  filters: {
+    category: string | null;
+    profile: string | null;
+    search: string | null;
+    online: boolean | null;
+    flexible: boolean | null;
+    state: string | null;
+  };
   simulation: boolean;
+  no_real_execution: boolean;
+};
+
+export type CustomerDeviceDetail = {
+  device: CustomerDevice;
+  recent_usage: Array<{
+    timestamp: string;
+    power_kw: number;
+  }>;
+  event_participation: {
+    participated: boolean;
+    latest_simulated_command: CustomerDevice["latest_simulated_command"];
+  };
+  simulated: boolean;
   no_real_execution: boolean;
 };
 
@@ -194,6 +239,34 @@ export type CommunitySummary = {
     device_type: string;
     count: number;
   }>;
+  validation_population: {
+    cohort: string;
+    household_count: number;
+    asset_count: number;
+    online_assets: number;
+    active_assets: number;
+    flexible_assets: number;
+    total_simulated_demand_kw: number;
+    available_flexibility_kw: number;
+    by_profile: Array<{
+      profile: string;
+      households: number;
+      assets: number;
+    }>;
+    by_category: Array<{
+      category: string;
+      count: number;
+    }>;
+    semantic_progress: {
+      normalized_assets: number;
+      terminal_slm_assets: number;
+      mapped_assets: number;
+      safely_unmapped_assets: number;
+      completion_percent: number;
+    };
+    simulated: boolean;
+    no_real_execution: boolean;
+  };
   comparison_available: boolean;
   selected_household_percentile: number | null;
   privacy: {

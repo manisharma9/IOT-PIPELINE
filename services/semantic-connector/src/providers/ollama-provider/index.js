@@ -3,7 +3,7 @@
 const crypto = require("node:crypto");
 const { performance } = require("node:perf_hooks");
 const { CircuitBreaker, ConcurrencyLimiter, InferenceProvider } = require("../provider-interface");
-const { buildBatchPrompt, responseSchema } = require("../prompt");
+const { buildBatchPrompt, buildResponseSchema } = require("../prompt");
 
 class OllamaProvider extends InferenceProvider {
   constructor(config = {}, dependencies = {}) {
@@ -54,13 +54,24 @@ class OllamaProvider extends InferenceProvider {
       const startedAt = new Date();
       const started = performance.now();
       try {
-        const response = await this.fetch(`${this.endpoint}/api/generate`, {
+        const response = await this.fetch(`${this.endpoint}/api/chat`, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             model: this.model,
-            prompt: buildBatchPrompt(readings),
-            format: responseSchema,
+            messages: [
+              {
+                role: "system",
+                content: "You are a strict energy telemetry semantic classifier. Return only the requested JSON."
+              },
+              {
+                role: "user",
+                content: buildBatchPrompt(readings, {
+                  validationHints: options.validationHints
+                })
+              }
+            ],
+            format: buildResponseSchema(readings),
             stream: false,
             options: {
               temperature: 0,
@@ -71,7 +82,8 @@ class OllamaProvider extends InferenceProvider {
         });
         if (!response.ok) throw new Error(`ollama_http_${response.status}`);
         const body = await response.json();
-        if (!body || typeof body.response !== "string") throw new Error("ollama_response_missing_output");
+        const rawOutput = body?.message?.content;
+        if (typeof rawOutput !== "string") throw new Error("ollama_response_missing_output");
         this.breaker.success();
         return {
           requestId,
@@ -81,7 +93,7 @@ class OllamaProvider extends InferenceProvider {
           startedAt: startedAt.toISOString(),
           completedAt: new Date().toISOString(),
           latencyMs: performance.now() - started,
-          rawOutput: body.response,
+          rawOutput,
           usage: {
             prompt_tokens: body.prompt_eval_count || null,
             completion_tokens: body.eval_count || null

@@ -194,10 +194,8 @@ http://localhost:3000
 
 Demo login:
 
-```text
-Username: operator
-Password: operator123
-```
+Use the environment-configured demo account. Credentials are intentionally
+not recorded in this report.
 
 ## Known Warnings
 
@@ -220,4 +218,3 @@ Password: operator123
 ## Demo Readiness Conclusion
 
 The Customer Console is ready for the local client demo environment. It shows live validated platform status, SLM-primary semantic mapping evidence, storage counts, security gateway insights, load-management status, simulated device command translation, and dataspace export status without exposing internal service ports or secrets to the browser.
-

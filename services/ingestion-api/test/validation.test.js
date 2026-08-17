@@ -117,3 +117,68 @@ test("POST /api/ingest accepts compatible simulator telemetry shape", async () =
   assert.equal(published.device_id, "heat-pump-001");
   assert.equal(published.readings.heat_pump_power_kw.value, 2.1);
 });
+
+test("scale metadata is accepted without becoming a telemetry reading", () => {
+  const payload = {
+    message_id: "message-scale-001",
+    correlation_id: "correlation-scale-001",
+    reading_ids: {
+      active_power_kw: "reading-scale-001"
+    },
+    household_id: "scale-household-001",
+    community_id: "community-dublin-north",
+    device_id: "scale-household-001-smart-meter-01",
+    device_type: "smart_meter",
+    timestamp: "2026-07-27T10:00:00.000Z",
+    readings: {
+      active_power_kw: { value: 2.5, unit: "kW" }
+    },
+    metadata: {
+      household_profile: "standard_home",
+      time_zone: "Europe/Dublin",
+      operating_state: "monitoring",
+      measurement_capabilities: ["active_power_kw", "energy_import_kwh"],
+      selected_primary_field: "active_power_kw",
+      reporting_offset_ms: 42,
+      simulated: true,
+      no_real_execution: true
+    },
+    protocol: "http",
+    source: "scale-smart_meter-simulator"
+  };
+
+  const result = validateTelemetry(payload);
+  assert.equal(result.valid, true);
+  assert.equal(Object.keys(payload.readings).length, 1);
+});
+
+test("full-field coverage metadata accepts a null primary measurement", () => {
+  const payload = loadSamplePayload();
+  payload.metadata = {
+    selected_primary_field: null,
+    current_primary_measurement: null,
+    measurement_capabilities: Object.keys(payload.readings),
+    simulated: true,
+    no_real_execution: true
+  };
+
+  const result = validateTelemetry(payload);
+
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.errors, []);
+});
+
+test("reading idempotency keys must correspond to supplied readings", () => {
+  const payload = loadSamplePayload();
+  payload.reading_ids = {
+    missing_reading: "reading-scale-missing"
+  };
+
+  const result = validateTelemetry(payload);
+
+  assert.equal(result.valid, false);
+  assert.equal(
+    result.errors.some((error) => error.path === "reading_ids.missing_reading"),
+    true
+  );
+});

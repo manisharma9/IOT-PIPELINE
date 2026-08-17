@@ -1,0 +1,25 @@
+{
+  "households": 50,
+  "assets": 500,
+  "profiles": {
+    "prosumer_home": 104,
+    "apartment": 96,
+    "standard_home": 300
+  },
+  "categories": {
+    "washing_machine": 50,
+    "home_battery": 8,
+    "smart_meter": 50,
+    "ev_charger": 38,
+    "smart_plug": 108,
+    "water_heater": 50,
+    "refrigerator": 50,
+    "heat_pump": 38,
+    "dishwasher": 38,
+    "lighting_circuit": 50,
+    "solar_inverter": 8,
+    "thermostat_hvac": 12
+  },
+  "simulated": true,
+  "no_real_execution": true
+}

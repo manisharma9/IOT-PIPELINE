@@ -13,17 +13,26 @@ const reading = [{
   reading_unit: "kW"
 }];
 
-test("Ollama provider contract uses local generate endpoint and temperature zero", async () => {
+test("Ollama provider contract uses local chat endpoint and temperature zero", async () => {
   let request;
   const provider = new OllamaProvider({ endpoint: "http://ollama:11434", model: "phi3:mini" }, {
     fetchImpl: async (url, options) => {
       request = { url, options, body: JSON.parse(options.body) };
-      return { ok: true, json: async () => ({ response: '{"mappings":[]}' }) };
+      return {
+        ok: true,
+        json: async () => ({ message: { content: '{"mappings":[]}' } })
+      };
     }
   });
   const result = await provider.inferBatch(reading, { requestId: "request-1" });
-  assert.equal(request.url, "http://ollama:11434/api/generate");
+  assert.equal(request.url, "http://ollama:11434/api/chat");
   assert.equal(request.body.options.temperature, 0);
+  assert.equal(request.body.format.properties.mappings.minItems, 1);
+  assert.equal(request.body.format.properties.mappings.maxItems, 1);
+  assert.deepEqual(
+    request.body.format.properties.mappings.items.properties.reading_id.enum,
+    ["provider-reading"]
+  );
   assert.equal(result.requestId, "request-1");
   assert.equal(result.provider, "ollama");
 });
@@ -46,7 +55,33 @@ test("vLLM provider contract uses OpenAI-compatible structured output", async ()
   assert.equal(request.url, "http://vllm:8000/v1/chat/completions");
   assert.equal(request.body.temperature, 0);
   assert.equal(request.body.response_format.type, "json_schema");
+  assert.equal(
+    request.body.response_format.json_schema.schema.properties.mappings.maxItems,
+    1
+  );
   assert.equal(result.provider, "vllm");
+});
+
+test("Ollama retry prompt carries validator reason codes without a replacement mapping", async () => {
+  let request;
+  const provider = new OllamaProvider({ endpoint: "http://ollama:11434", model: "phi3:mini" }, {
+    fetchImpl: async (_url, options) => {
+      request = JSON.parse(options.body);
+      return {
+        ok: true,
+        json: async () => ({ message: { content: '{"mappings":[]}' } })
+      };
+    }
+  });
+  await provider.inferBatch(reading, {
+    requestId: "request-retry",
+    validationHints: {
+      "provider-reading": ["unit_relationship_invalid"]
+    }
+  });
+  const userPrompt = request.messages.find((message) => message.role === "user").content;
+  assert.match(userPrompt, /unit_relationship_invalid/);
+  assert.doesNotMatch(userPrompt, /replacement mapping/i);
 });
 
 test("provider selection is environment driven and contains no paid provider", () => {

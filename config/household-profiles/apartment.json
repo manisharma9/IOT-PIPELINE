@@ -1,0 +1,15 @@
+{
+  "profile": "apartment",
+  "household_count_for_1000_asset_run": 30,
+  "assets_per_household": 8,
+  "inventory": [
+    "smart_meter",
+    "smart_plug",
+    "smart_plug",
+    "refrigerator",
+    "washing_machine",
+    "lighting_circuit",
+    "water_heater",
+    "thermostat_hvac"
+  ]
+}

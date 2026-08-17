@@ -1,0 +1,29 @@
+{
+  "recorded_at": "2026-07-27T10:41:00.000Z",
+  "context": "Ten sequential gateway requests per route while the local Phi-3 Mini backlog was processing.",
+  "routes": [
+    {
+      "route": "/customer/community?scale_cohort=true",
+      "requests": 10,
+      "status_code": 200,
+      "minimum_ms": 1172.04,
+      "average_ms": 1254.22,
+      "p95_ms": 1332.43,
+      "maximum_ms": 1349.70
+    },
+    {
+      "route": "/customer/devices?limit=25&offset=0&profile=standard_home&search=scale1000",
+      "requests": 10,
+      "status_code": 200,
+      "minimum_ms": 786.18,
+      "average_ms": 960.63,
+      "p95_ms": 1035.12,
+      "maximum_ms": 1697.48
+    }
+  ],
+  "privacy": {
+    "browser_loaded_all_assets": false,
+    "server_side_aggregation": true,
+    "device_page_limit": 25
+  }
+}

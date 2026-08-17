@@ -1,0 +1,2 @@
+"run_id","status","devices","households","telemetry_messages","readings","slm_called","slm_invocation_percent","slm_accepted_percent","safely_unmapped_percent","arrival_readings_per_second","completion_readings_per_second","max_kafka_lag","final_kafka_lag","duplicate_semantic_ids","duplicate_ieee_ids","processing_errors"
+"scale-100-2026-08-05T06-59-10-798Z","passed","100","10","100","374","374","100","90.6417","9.3583","0.623","0.397","159","0","0","0","0"

@@ -1,0 +1,16 @@
+{
+  "name": "adflex-household-fleet-simulator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bounded multi-household virtual energy device fleet for AD-FLEX.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}
+

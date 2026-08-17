@@ -64,6 +64,10 @@ async function householdExistsInCommunity(pool, householdId, communityId) {
         SELECT 1
         FROM normalized_telemetry
         WHERE household_id = $1 AND community_id = $2
+        UNION ALL
+        SELECT 1
+        FROM simulated_device_registry
+        WHERE household_id = $1 AND community_id = $2
       ) AS allowed
     `,
     [householdId, communityId]
@@ -86,9 +90,16 @@ async function resolveHouseholdScope(pool, context, requestedHouseholdId, salt) 
     if (requested.startsWith("household_")) {
       const candidates = await pool.query(
         `
-          SELECT DISTINCT household_id
-          FROM normalized_telemetry
-          WHERE community_id = $1
+          SELECT household_id
+          FROM (
+            SELECT DISTINCT household_id
+            FROM normalized_telemetry
+            WHERE community_id = $1
+            UNION
+            SELECT DISTINCT household_id
+            FROM simulated_device_registry
+            WHERE community_id = $1
+          ) authorized
           LIMIT 250
         `,
         [context.communityId]
@@ -108,10 +119,19 @@ async function resolveHouseholdScope(pool, context, requestedHouseholdId, salt) 
   const result = await pool.query(
     `
       SELECT household_id
-      FROM normalized_telemetry
-      WHERE community_id = $1
+      FROM (
+        SELECT household_id, max(event_time) AS last_seen
+        FROM normalized_telemetry
+        WHERE community_id = $1
+        GROUP BY household_id
+        UNION ALL
+        SELECT household_id, NULL::timestamptz AS last_seen
+        FROM simulated_device_registry
+        WHERE community_id = $1
+        GROUP BY household_id
+      ) available
       GROUP BY household_id
-      ORDER BY max(event_time) DESC, household_id
+      ORDER BY max(last_seen) DESC NULLS LAST, household_id
       LIMIT 1
     `,
     [context.communityId]
@@ -131,14 +151,22 @@ async function listAuthorizedHouseholds(pool, context, salt) {
 
   const result = await pool.query(
     `
+      WITH available AS (
+        SELECT household_id, device_id, event_time AS last_seen
+        FROM normalized_telemetry
+        WHERE community_id = $1
+        UNION ALL
+        SELECT household_id, device_id, NULL::timestamptz AS last_seen
+        FROM simulated_device_registry
+        WHERE community_id = $1
+      )
       SELECT
         household_id,
-        max(event_time) AS last_seen,
+        max(last_seen) AS last_seen,
         count(DISTINCT device_id)::integer AS device_count
-      FROM normalized_telemetry
-      WHERE community_id = $1
+      FROM available
       GROUP BY household_id
-      ORDER BY max(event_time) DESC, household_id
+      ORDER BY max(last_seen) DESC NULLS LAST, household_id
       LIMIT 250
     `,
     [context.communityId]

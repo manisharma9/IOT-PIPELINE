@@ -23,6 +23,7 @@ $Services = @(
   "shelly-simulator",
   "enode-simulator",
   "heat-pump-simulator",
+  "household-fleet-simulator",
   "device-command-translator",
   "dataspace-export",
   "security-gateway"
